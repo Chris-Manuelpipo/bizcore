@@ -1,4 +1,66 @@
 package com.bizcore.bizcore_backend.controller;
 
+import com.bizcore.bizcore_backend.domain.Resource;
+import com.bizcore.bizcore_backend.service.ResourceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/resources")
+@Tag(name = "Resources", description = "Gestion des ressources métier")
 public class ResourceController {
+
+    private final ResourceService resourceService;
+
+    public ResourceController(ResourceService resourceService) {
+        this.resourceService = resourceService;
+    }
+
+    @GetMapping
+    @Operation(summary = "Lister toutes les ressources")
+    public List<Resource> findAll() {
+        return resourceService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Trouver une ressource par ID")
+    public ResponseEntity<Resource> findById(@PathVariable UUID id) {
+        return resourceService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/business/{businessId}")
+    @Operation(summary = "Lister les ressources d'un métier")
+    public List<Resource> findByBusiness(@PathVariable UUID businessId) {
+        return resourceService.findByBusinessId(businessId);
+    }
+
+    @PostMapping("/business/{businessId}")
+    @Operation(summary = "Ajouter une ressource à un métier")
+    public ResponseEntity<Resource> create(@PathVariable UUID businessId,
+                                           @Valid @RequestBody Resource resource) {
+        Resource saved = resourceService.save(businessId, resource);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Mettre à jour une ressource")
+    public ResponseEntity<Resource> update(@PathVariable UUID id,
+                                           @Valid @RequestBody Resource resource) {
+        return ResponseEntity.ok(resourceService.update(id, resource));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Supprimer une ressource")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        resourceService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
