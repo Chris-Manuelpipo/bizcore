@@ -43,6 +43,14 @@ public class PersonController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Mettre à jour une personne")
+    public ResponseEntity<Person> update(@PathVariable UUID id,
+                                         @Valid @RequestBody Person person) {
+        Person updated = personService.update(id, person);
+        return ResponseEntity.ok(updated);
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprimer une personne")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {

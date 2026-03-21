@@ -31,6 +31,22 @@ public class PersonService {
         return personRepository.save(person);
     }
 
+    public Person update(UUID id, Person updated) {
+        Person existing = personRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Person non trouvée : " + id));
+        existing.setFirstName(updated.getFirstName());
+        existing.setLastName(updated.getLastName());
+        existing.setPhone(updated.getPhone());
+        existing.setCountry(updated.getCountry());
+        if (!existing.getEmail().equals(updated.getEmail())) {
+            if (personRepository.existsByEmail(updated.getEmail())) {
+                throw new RuntimeException("Email déjà utilisé : " + updated.getEmail());
+            }
+            existing.setEmail(updated.getEmail());
+        }
+        return personRepository.save(existing);
+    }
+
     public void deleteById(UUID id) {
         personRepository.deleteById(id);
     }
