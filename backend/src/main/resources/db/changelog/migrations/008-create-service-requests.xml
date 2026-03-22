@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="008" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="service_requests"/></not>
+    </preConditions>
+    <createTable tableName="service_requests">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="consumer_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_sr_consumer" references="actors(id)"/>
+      </column>
+      <column name="provider_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_sr_provider" references="actors(id)"/>
+      </column>
+      <column name="business_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_sr_business" references="businesses(id)"/>
+      </column>
+      <column name="service_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="text"/>
+      <column name="status" type="varchar(50)" defaultValue="PENDING">
+        <constraints nullable="false"/>
+      </column>
+      <column name="requested_at" type="timestamp"/>
+      <column name="fulfilled_at" type="timestamp"/>
+    </createTable>
+  </changeSet>
+
+</databaseChangeLog>

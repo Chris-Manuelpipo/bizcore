@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="004" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="portfolios"/></not>
+    </preConditions>
+    <createTable tableName="portfolios">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="actor_id" type="uuid">
+        <constraints nullable="false" unique="true" foreignKeyName="fk_portfolio_actor" references="actors(id)"/>
+      </column>
+      <column name="title" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="text"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="004b" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="portfolio_businesses"/></not>
+    </preConditions>
+    <createTable tableName="portfolio_businesses">
+      <column name="portfolio_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_pb_portfolio" references="portfolios(id)"/>
+      </column>
+      <column name="business_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_pb_business" references="businesses(id)"/>
+      </column>
+    </createTable>
+    <addPrimaryKey tableName="portfolio_businesses" columnNames="portfolio_id, business_id"/>
+  </changeSet>
+
+</databaseChangeLog>

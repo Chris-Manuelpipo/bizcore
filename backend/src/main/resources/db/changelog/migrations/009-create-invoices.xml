@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="009" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="invoices"/></not>
+    </preConditions>
+    <createTable tableName="invoices">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="service_request_id" type="uuid">
+        <constraints nullable="false" unique="true" foreignKeyName="fk_invoice_sr" references="service_requests(id)"/>
+      </column>
+      <column name="amount" type="decimal(15,2)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="currency" type="varchar(10)" defaultValue="XAF">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status" type="varchar(50)" defaultValue="PENDING">
+        <constraints nullable="false"/>
+      </column>
+      <column name="issued_at" type="timestamp"/>
+      <column name="paid_at" type="timestamp"/>
+    </createTable>
+  </changeSet>
+
+</databaseChangeLog>

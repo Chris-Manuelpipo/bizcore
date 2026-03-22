@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <include file="db/changelog/migrations/001-create-persons.xml"/>
+    <include file="db/changelog/migrations/002-create-businesses.xml"/>
+    <include file="db/changelog/migrations/003-create-actors.xml"/>
+    <include file="db/changelog/migrations/004-create-portfolios.xml"/>
+    <include file="db/changelog/migrations/005-create-business-rules.xml"/>
+    <include file="db/changelog/migrations/006-create-service-catalogues.xml"/>
+    <include file="db/changelog/migrations/007-create-resources.xml"/>
+    <include file="db/changelog/migrations/008-create-service-requests.xml"/>
+    <include file="db/changelog/migrations/009-create-invoices.xml"/>
+
+</databaseChangeLog>

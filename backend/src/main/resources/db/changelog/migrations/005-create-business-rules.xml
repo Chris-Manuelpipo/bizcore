@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="005" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="business_rules"/></not>
+    </preConditions>
+    <createTable tableName="business_rules">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="business_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_rule_business" references="businesses(id)"/>
+      </column>
+      <column name="rule_key" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="rule_value" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="text"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+  </changeSet>
+
+</databaseChangeLog>

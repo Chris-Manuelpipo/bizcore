@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="007" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="resources"/></not>
+    </preConditions>
+    <createTable tableName="resources">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="business_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="fk_resource_business" references="businesses(id)"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="type" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quantity_available" type="integer" defaultValueNumeric="0"/>
+      <column name="description" type="text"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+  </changeSet>
+
+</databaseChangeLog>
