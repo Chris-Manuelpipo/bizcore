@@ -15,9 +15,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "Inscription et connexion")
+@Tag(name = "Authentication", description = "Inscription, connexion et gestion des rôles")
 public class AuthController {
 
     private final AppUserRepository appUserRepository;
@@ -39,7 +43,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Créer un nouveau compte utilisateur")
+    @Operation(summary = "Créer un nouveau compte — rôle USER par défaut")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequest request) {
         if (appUserRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -49,14 +53,25 @@ public class AuthController {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
+
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            Set<AppUser.Role> roles = request.getRoles().stream()
+                    .map(r -> AppUser.Role.valueOf(r.toUpperCase()))
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
+
         appUserRepository.save(user);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtService.generateToken(userDetails);
 
+        Set<String> roles = user.getRoles().stream()
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AuthResponse(token, user.getEmail(),
-                        user.getFullName(), user.getRole().name()));
+                .body(new AuthResponse(token, user.getEmail(), user.getFullName(), roles));
     }
 
     @PostMapping("/login")
@@ -66,13 +81,36 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        AppUser user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow();
-
+        AppUser user = appUserRepository.findByEmail(request.getEmail()).orElseThrow();
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtService.generateToken(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(token, user.getEmail(),
-                user.getFullName(), user.getRole().name()));
+        Set<String> roles = user.getRoles().stream()
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+
+        return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), user.getFullName(), roles));
+    }
+
+    @PatchMapping("/users/{id}/roles")
+    @Operation(summary = "Ajouter un rôle à un utilisateur (ADMIN uniquement)")
+    public ResponseEntity<Void> addRole(@PathVariable UUID id,
+                                        @RequestParam String role) {
+        AppUser user = appUserRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé : " + id));
+        user.addRole(AppUser.Role.valueOf(role.toUpperCase()));
+        appUserRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/users/{id}/roles")
+    @Operation(summary = "Retirer un rôle d'un utilisateur (ADMIN uniquement)")
+    public ResponseEntity<Void> removeRole(@PathVariable UUID id,
+                                           @RequestParam String role) {
+        AppUser user = appUserRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé : " + id));
+        user.removeRole(AppUser.Role.valueOf(role.toUpperCase()));
+        appUserRepository.save(user);
+        return ResponseEntity.ok().build();
     }
 }

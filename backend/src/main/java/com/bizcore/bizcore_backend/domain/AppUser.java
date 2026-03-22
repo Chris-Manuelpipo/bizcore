@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -11,7 +13,10 @@ import java.util.UUID;
 public class AppUser {
 
     public enum Role {
-        USER, ADMIN
+        USER,
+        ADMIN,
+        PROVIDER,
+        CONSUMER
     }
 
     @Id
@@ -31,9 +36,11 @@ public class AppUser {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role = Role.USER;
+    @Column(name = "role")
+    private Set<Role> roles = new HashSet<>();
 
     @Column(name = "is_active")
     private Boolean isActive = true;
@@ -44,6 +51,9 @@ public class AppUser {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.roles.isEmpty()) {
+            this.roles.add(Role.USER);
+        }
     }
 
     public UUID getId() { return id; }
@@ -58,8 +68,11 @@ public class AppUser {
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public Set<Role> getRoles() { return roles; }
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
+
+    public void addRole(Role role) { this.roles.add(role); }
+    public void removeRole(Role role) { this.roles.remove(role); }
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }

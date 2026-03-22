@@ -14,7 +14,7 @@
     <include file="db/changelog/migrations/007-create-resources.xml"/>
     <include file="db/changelog/migrations/008-create-service-requests.xml"/>
     <include file="db/changelog/migrations/009-create-invoices.xml"/>
-
-  <include file="db/changelog/migrations/010-create-users.xml"/>
+    <include file="db/changelog/migrations/010-create-users.xml"/>
+    <include file="db/changelog/migrations/011-create-user-roles.xml"/>
 
 </databaseChangeLog>

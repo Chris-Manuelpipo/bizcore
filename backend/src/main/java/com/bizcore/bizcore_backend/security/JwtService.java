@@ -1,5 +1,7 @@
 package com.bizcore.bizcore_backend.security;
 
+import com.bizcore.bizcore_backend.domain.AppUser;
+import com.bizcore.bizcore_backend.repository.AppUserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -11,7 +13,9 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -21,6 +25,12 @@ public class JwtService {
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
+
+    private final AppUserRepository appUserRepository;
+
+    public JwtService(AppUserRepository appUserRepository) {
+        this.appUserRepository = appUserRepository;
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -32,7 +42,15 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> extraClaims = new HashMap<>();
+        appUserRepository.findByEmail(userDetails.getUsername()).ifPresent(user -> {
+            Set<String> roles = user.getRoles().stream()
+                    .map(Enum::name)
+                    .collect(Collectors.toSet());
+            extraClaims.put("roles", roles);
+            extraClaims.put("fullName", user.getFullName());
+        });
+        return generateToken(extraClaims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
