@@ -8,6 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,14 +47,16 @@ class BusinessServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnAllBusinesses() {
-        when(businessRepository.findAll()).thenReturn(Arrays.asList(business));
+    void findAll_shouldReturnPageOfBusinesses() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Business> page = new PageImpl<>(Arrays.asList(business));
+        when(businessRepository.findAll(pageable)).thenReturn(page);
 
-        List<Business> result = businessService.findAll();
+        Page<Business> result = businessService.findAll(pageable);
 
-        assertEquals(1, result.size());
-        assertEquals("Pharmacien", result.get(0).getName());
-        verify(businessRepository, times(1)).findAll();
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Pharmacien", result.getContent().get(0).getName());
+        verify(businessRepository, times(1)).findAll(pageable);
     }
 
     @Test

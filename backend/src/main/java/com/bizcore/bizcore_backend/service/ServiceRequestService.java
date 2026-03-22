@@ -3,9 +3,12 @@ package com.bizcore.bizcore_backend.service;
 import com.bizcore.bizcore_backend.domain.Actor;
 import com.bizcore.bizcore_backend.domain.Business;
 import com.bizcore.bizcore_backend.domain.ServiceRequest;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.ActorRepository;
 import com.bizcore.bizcore_backend.repository.BusinessRepository;
 import com.bizcore.bizcore_backend.repository.ServiceRequestRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,8 +30,8 @@ public class ServiceRequestService {
         this.businessRepository = businessRepository;
     }
 
-    public List<ServiceRequest> findAll() {
-        return serviceRequestRepository.findAll();
+    public Page<ServiceRequest> findAll(Pageable pageable) {
+        return serviceRequestRepository.findAll(pageable);
     }
 
     public Optional<ServiceRequest> findById(UUID id) {
@@ -50,11 +53,11 @@ public class ServiceRequestService {
     public ServiceRequest save(UUID consumerId, UUID providerId,
                                UUID businessId, ServiceRequest request) {
         Actor consumer = actorRepository.findById(consumerId)
-                .orElseThrow(() -> new RuntimeException("Consommateur non trouvé : " + consumerId));
+                .orElseThrow(() -> new ResourceNotFoundException("Actor (consumer)", consumerId.toString()));
         Actor provider = actorRepository.findById(providerId)
-                .orElseThrow(() -> new RuntimeException("Fournisseur non trouvé : " + providerId));
+                .orElseThrow(() -> new ResourceNotFoundException("Actor (provider)", providerId.toString()));
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new RuntimeException("Métier non trouvé : " + businessId));
+                .orElseThrow(() -> new ResourceNotFoundException("Business", businessId.toString()));
 
         request.setConsumer(consumer);
         request.setProvider(provider);
@@ -64,7 +67,7 @@ public class ServiceRequestService {
 
     public ServiceRequest fulfill(UUID id) {
         ServiceRequest request = serviceRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Demande non trouvée : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
         request.setStatus(ServiceRequest.Status.FULFILLED);
         request.setFulfilledAt(LocalDateTime.now());
         return serviceRequestRepository.save(request);
@@ -72,7 +75,7 @@ public class ServiceRequestService {
 
     public ServiceRequest cancel(UUID id) {
         ServiceRequest request = serviceRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Demande non trouvée : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
         request.setStatus(ServiceRequest.Status.CANCELLED);
         return serviceRequestRepository.save(request);
     }

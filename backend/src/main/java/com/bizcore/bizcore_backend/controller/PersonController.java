@@ -1,14 +1,20 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.Person;
+import com.bizcore.bizcore_backend.dto.PersonDTO;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+
 import java.util.UUID;
 
 @RestController
@@ -23,32 +29,36 @@ public class PersonController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister toutes les personnes")
-    public List<Person> findAll() {
-        return personService.findAll();
+    @Operation(summary = "Lister toutes les personnes avec pagination")
+    public Page<PersonDTO> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        return personService.findAll(pageable).map(PersonDTO::fromEntity);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Trouver une personne par ID")
-    public ResponseEntity<Person> findById(@PathVariable UUID id) {
-        return personService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PersonDTO> findById(@PathVariable UUID id) {
+        Person person = personService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Person", id.toString()));
+        return ResponseEntity.ok(PersonDTO.fromEntity(person));
     }
 
     @PostMapping
     @Operation(summary = "Créer une nouvelle personne")
-    public ResponseEntity<Person> create(@Valid @RequestBody Person person) {
-        Person saved = personService.save(person);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public ResponseEntity<PersonDTO> create(@Valid @RequestBody PersonDTO dto) {
+        Person saved = personService.save(dto.toEntity());
+        return ResponseEntity.status(HttpStatus.CREATED).body(PersonDTO.fromEntity(saved));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Mettre à jour une personne")
-    public ResponseEntity<Person> update(@PathVariable UUID id,
-                                         @Valid @RequestBody Person person) {
-        Person updated = personService.update(id, person);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<PersonDTO> update(@PathVariable UUID id,
+                                            @Valid @RequestBody PersonDTO dto) {
+        Person updated = personService.update(id, dto.toEntity());
+        return ResponseEntity.ok(PersonDTO.fromEntity(updated));
     }
 
     @DeleteMapping("/{id}")

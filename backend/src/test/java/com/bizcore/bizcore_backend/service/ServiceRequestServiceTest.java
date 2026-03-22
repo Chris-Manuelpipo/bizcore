@@ -12,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -76,13 +80,15 @@ class ServiceRequestServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnAllRequests() {
-        when(serviceRequestRepository.findAll()).thenReturn(Arrays.asList(serviceRequest));
+    void findAll_shouldReturnPageOfRequests() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ServiceRequest> page = new PageImpl<>(Arrays.asList(serviceRequest));
+        when(serviceRequestRepository.findAll(pageable)).thenReturn(page);
 
-        List<ServiceRequest> result = serviceRequestService.findAll();
+        Page<ServiceRequest> result = serviceRequestService.findAll(pageable);
 
-        assertEquals(1, result.size());
-        assertEquals("Consultation", result.get(0).getServiceName());
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Consultation", result.getContent().get(0).getServiceName());
     }
 
     @Test

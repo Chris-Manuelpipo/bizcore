@@ -1,7 +1,10 @@
 package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Business;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.BusinessRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +19,8 @@ public class BusinessService {
         this.businessRepository = businessRepository;
     }
 
-    public List<Business> findAll() {
-        return businessRepository.findAll();
+    public Page<Business> findAll(Pageable pageable) {
+        return businessRepository.findAll(pageable);
     }
 
     public Optional<Business> findById(UUID id) {
@@ -38,7 +41,7 @@ public class BusinessService {
 
     public Business update(UUID id, Business updated) {
         Business existing = businessRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Business non trouvé : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Business", id.toString()));
         existing.setName(updated.getName());
         existing.setDomain(updated.getDomain());
         existing.setDescription(updated.getDescription());

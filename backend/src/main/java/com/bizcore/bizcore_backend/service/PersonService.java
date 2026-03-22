@@ -1,9 +1,11 @@
 package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Person;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.PersonRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,8 +18,8 @@ public class PersonService {
         this.personRepository = personRepository;
     }
 
-    public List<Person> findAll() {
-        return personRepository.findAll();
+    public Page<Person> findAll(Pageable pageable) {
+        return personRepository.findAll(pageable);
     }
 
     public Optional<Person> findById(UUID id) {
@@ -33,7 +35,7 @@ public class PersonService {
 
     public Person update(UUID id, Person updated) {
         Person existing = personRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Person non trouvée : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Person", id.toString()));
         existing.setFirstName(updated.getFirstName());
         existing.setLastName(updated.getLastName());
         existing.setPhone(updated.getPhone());
