@@ -151,7 +151,7 @@ class ServiceRequestServiceTest {
     void fulfill_shouldThrowException_whenRequestNotFound() {
         when(serviceRequestRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class,
+        assertThrows(RuntimeException.class,  
                 () -> serviceRequestService.fulfill(UUID.randomUUID()));
     }
 }

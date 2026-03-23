@@ -51,3 +51,44 @@ github.com/spring-petclinic/spring-petclinic-microservices
 BizCore n'est pas une copie — c'est une réponse aux besoins locaux avec une approche pédagogique réseau. C'est ce qui le rend original pour le jury.
 
 On continue avec le Sprint 2 ?
+
+
+
+
+## Le workflow de BizCore jusqu'ici
+
+Voici comment tout s'articule concrètement :
+
+**Scénario : Un pharmacien propose ses services, un patient les consomme**
+```
+1. INSCRIPTION
+   Jean s'inscrit → POST /api/auth/register
+   → rôles : ["PROVIDER"]
+   → reçoit un token JWT
+
+2. CRÉATION DU PROFIL MÉTIER
+   Jean crée sa Person → POST /api/persons
+   Jean crée son Actor (FdS) → POST /api/actors/person/{id}
+   Jean crée son Portfolio → POST /api/portfolios/actor/{id}
+   Jean ajoute "Pharmacien" à son portfolio → PATCH /api/portfolios/{id}/businesses/{id}
+
+3. CATALOGUE DE SERVICES
+   Jean ajoute ses services → POST /api/service-catalogues/business/{id}
+   Ex: "Consultation médicaments" à 2500 XAF
+
+4. TRANSACTION (le cœur du système)
+   Paul (CONSUMER) s'inscrit, crée son profil
+   Paul demande un service → POST /api/service-requests/consumer/{id}/provider/{id}/business/{id}
+   → statut : PENDING (requête réseau envoyée)
+
+5. TRAITEMENT
+   Jean accepte → PATCH /api/service-requests/{id}/fulfill
+   → statut : FULFILLED (ACK réseau reçu)
+
+6. FACTURATION
+   Système génère la facture → POST /api/invoices/service-request/{id}
+   Paul paie → PATCH /api/invoices/{id}/pay
+   → statut : PAID
+   
+   
+// TODO ajouter le chat et le chatbot

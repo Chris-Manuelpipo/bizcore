@@ -2,6 +2,8 @@ package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Business;
 import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
+import com.bizcore.bizcore_backend.domain.SupportedCurrency;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.BusinessRepository;
 import com.bizcore.bizcore_backend.repository.ServiceCatalogueRepository;
 import org.springframework.stereotype.Service;
@@ -43,14 +45,27 @@ public class ServiceCatalogueService {
 
     public ServiceCatalogue save(UUID businessId, ServiceCatalogue catalogue) {
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new RuntimeException("Métier non trouvé : " + businessId));
+                .orElseThrow(() -> new ResourceNotFoundException("Business", businessId.toString()));
+
+        if (catalogue.getCurrency() != null
+                && !SupportedCurrency.isSupported(catalogue.getCurrency())) {
+            throw new RuntimeException("Devise non supportée : " + catalogue.getCurrency()
+                    + ". Devises acceptées : XAF, XOF, NGN, KES, GHS, USD, EUR, GBP");
+        }
+
         catalogue.setBusiness(business);
         return serviceCatalogueRepository.save(catalogue);
     }
 
     public ServiceCatalogue update(UUID id, ServiceCatalogue updated) {
         ServiceCatalogue existing = serviceCatalogueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Service non trouvé : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceCatalogue", id.toString()));
+
+        if (updated.getCurrency() != null
+                && !SupportedCurrency.isSupported(updated.getCurrency())) {
+            throw new RuntimeException("Devise non supportée : " + updated.getCurrency());
+        }
+
         existing.setName(updated.getName());
         existing.setDescription(updated.getDescription());
         existing.setBasePrice(updated.getBasePrice());

@@ -2,6 +2,8 @@ package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Invoice;
 import com.bizcore.bizcore_backend.domain.ServiceRequest;
+import com.bizcore.bizcore_backend.domain.SupportedCurrency;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.InvoiceRepository;
 import com.bizcore.bizcore_backend.repository.ServiceRequestRepository;
 import org.springframework.stereotype.Service;
@@ -36,14 +38,25 @@ public class InvoiceService {
 
     public Invoice save(UUID serviceRequestId, Invoice invoice) {
         ServiceRequest serviceRequest = serviceRequestRepository.findById(serviceRequestId)
-                .orElseThrow(() -> new RuntimeException("Demande non trouvée : " + serviceRequestId));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", serviceRequestId.toString()));
+
+        if (invoice.getCurrency() != null
+                && !SupportedCurrency.isSupported(invoice.getCurrency())) {
+            throw new RuntimeException("Devise non supportée : " + invoice.getCurrency()
+                    + ". Devises acceptées : XAF, XOF, NGN, KES, GHS, USD, EUR, GBP");
+        }
+
+        if (invoice.getCurrency() == null) {
+            invoice.setCurrency("XAF");
+        }
+
         invoice.setServiceRequest(serviceRequest);
         return invoiceRepository.save(invoice);
     }
 
     public Invoice pay(UUID id) {
         Invoice invoice = invoiceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id.toString()));
         invoice.setStatus(Invoice.Status.PAID);
         invoice.setPaidAt(LocalDateTime.now());
         return invoiceRepository.save(invoice);
@@ -51,7 +64,7 @@ public class InvoiceService {
 
     public Invoice cancel(UUID id) {
         Invoice invoice = invoiceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id.toString()));
         invoice.setStatus(Invoice.Status.CANCELLED);
         return invoiceRepository.save(invoice);
     }
