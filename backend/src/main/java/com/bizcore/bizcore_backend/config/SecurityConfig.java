@@ -1,4 +1,4 @@
-package com.bizcore.bizcore_backend.bizcore_backend.config;
+package com.bizcore.bizcore_backend.config;
 
 import com.bizcore.bizcore_backend.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;

@@ -1,0 +1,109 @@
+# =============================================================================
+# BizCore Backend - Docker Compose Stack
+# PostgreSQL + Spring Boot Application
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database Service
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: bizcore-postgres
+    restart: unless-stopped
+    environment:
+      # Database configuration
+      POSTGRES_DB: ${POSTGRES_DB:-bizcore}
+      POSTGRES_USER: ${POSTGRES_USER:-bizcore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bizcore123}
+      
+      # PostgreSQL performance settings
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Persist database data
+      - postgres_data:/var/lib/postgresql/data
+      
+      # Initialize database with custom scripts (optional)
+      # - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bizcore} -d ${POSTGRES_DB:-bizcore}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bizcore-network
+
+  # ---------------------------------------------------------------------------
+  # Spring Boot Application Service
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bizcore-app
+    restart: unless-stopped
+    depends_on:
+      # Wait for PostgreSQL to be ready
+      postgres:
+        condition: service_healthy
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      
+      # Database Configuration (using docker-compose service name)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bizcore}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-bizcore}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-bizcore123}
+      SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
+      
+      # JPA/Hibernate Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-none}
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_OPEN-IN-VIEW: "false"
+      
+      # Liquibase Configuration
+      SPRING_LIQUIBASE_ENABLED: "true"
+      SPRING_LIQUIBASE_CHANGE-LOG: classpath:db/changelog/db.changelog-master.xml
+      
+      # JWT Configuration (MUST be overridden in production!)
+      JWT_SECRET: ${JWT_SECRET:-bizcore_secret_key_must_be_at_least_256_bits_long_for_hmac_sha}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      
+      # Server Configuration
+      SERVER_PORT: 8080
+      
+      # Actuator Configuration
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: when_authorized
+      
+      # Logging
+      LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT:-INFO}
+      LOGGING_LEVEL_COM_BIZCORE: ${LOGGING_LEVEL_COM_BIZCORE:-INFO}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - bizcore-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  bizcore-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes (for data persistence)
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local

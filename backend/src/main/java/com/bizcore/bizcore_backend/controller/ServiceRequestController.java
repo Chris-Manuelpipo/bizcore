@@ -1,6 +1,7 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.ServiceRequest;
+import com.bizcore.bizcore_backend.dto.FulfillResponseDTO;
 import com.bizcore.bizcore_backend.dto.ServiceRequestDTO;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.service.ServiceRequestService;
@@ -86,15 +87,39 @@ public class ServiceRequestController {
     }
 
     @PatchMapping("/{id}/fulfill")
-    @Operation(summary = "Marquer une demande comme accomplie (ACK)")
-    public ResponseEntity<ServiceRequestDTO> fulfill(@PathVariable UUID id) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.fulfill(id)));
+    @Operation(summary = "Marquer une demande comme accomplie (ACK). Crée automatiquement une facture (Invoice) avec le montant du catalogue de services.")
+    public ResponseEntity<FulfillResponseDTO> fulfill(@PathVariable UUID id) {
+        return ResponseEntity.ok(serviceRequestService.fulfill(id));
+    }
+
+    @PatchMapping("/{id}/accept")
+    @Operation(summary = "Accepter une demande de service (PENDING → ACCEPTED). " +
+            "Seul le provider peut accepter une demande.")
+    public ResponseEntity<ServiceRequestDTO> accept(
+            @PathVariable UUID id,
+            @RequestParam UUID actorId) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
+                serviceRequestService.accept(id, actorId)));
+    }
+
+    @PatchMapping("/{id}/start")
+    @Operation(summary = "Démarrer le travail sur une demande (ACCEPTED → IN_PROGRESS). " +
+            "Seul le provider peut démarrer le travail.")
+    public ResponseEntity<ServiceRequestDTO> start(
+            @PathVariable UUID id,
+            @RequestParam UUID actorId) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
+                serviceRequestService.start(id, actorId)));
     }
 
     @PatchMapping("/{id}/cancel")
-    @Operation(summary = "Annuler une demande de service")
-    public ResponseEntity<ServiceRequestDTO> cancel(@PathVariable UUID id) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.cancel(id)));
+    @Operation(summary = "Annuler une demande de service. " +
+            "Seul le consumer peut annuler une demande.")
+    public ResponseEntity<ServiceRequestDTO> cancel(
+            @PathVariable UUID id,
+            @RequestParam UUID actorId) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
+                serviceRequestService.cancel(id, actorId)));
     }
 
     @DeleteMapping("/{id}")

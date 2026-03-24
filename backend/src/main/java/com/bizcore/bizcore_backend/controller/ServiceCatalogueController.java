@@ -1,6 +1,7 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
+import com.bizcore.bizcore_backend.dto.ServiceCatalogueDTO;
 import com.bizcore.bizcore_backend.service.ServiceCatalogueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/service-catalogues")
@@ -24,49 +26,59 @@ public class ServiceCatalogueController {
 
     @GetMapping
     @Operation(summary = "Lister tous les services du catalogue")
-    public List<ServiceCatalogue> findAll() {
-        return serviceCatalogueService.findAll();
+    public List<ServiceCatalogueDTO> findAll() {
+        return serviceCatalogueService.findAll().stream()
+                .map(ServiceCatalogueDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Trouver un service par ID")
-    public ResponseEntity<ServiceCatalogue> findById(@PathVariable UUID id) {
+    public ResponseEntity<ServiceCatalogueDTO> findById(@PathVariable UUID id) {
         return serviceCatalogueService.findById(id)
+                .map(ServiceCatalogueDTO::fromEntity)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/business/{businessId}")
     @Operation(summary = "Lister les services d'un métier")
-    public List<ServiceCatalogue> findByBusiness(@PathVariable UUID businessId) {
-        return serviceCatalogueService.findByBusinessId(businessId);
+    public List<ServiceCatalogueDTO> findByBusiness(@PathVariable UUID businessId) {
+        return serviceCatalogueService.findByBusinessId(businessId).stream()
+                .map(ServiceCatalogueDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/available")
     @Operation(summary = "Lister les services disponibles")
-    public List<ServiceCatalogue> findAvailable() {
-        return serviceCatalogueService.findAvailable();
+    public List<ServiceCatalogueDTO> findAvailable() {
+        return serviceCatalogueService.findAvailable().stream()
+                .map(ServiceCatalogueDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/search")
     @Operation(summary = "Rechercher un service par nom")
-    public List<ServiceCatalogue> search(@RequestParam String name) {
-        return serviceCatalogueService.search(name);
+    public List<ServiceCatalogueDTO> search(@RequestParam String name) {
+        return serviceCatalogueService.search(name).stream()
+                .map(ServiceCatalogueDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/business/{businessId}")
     @Operation(summary = "Ajouter un service au catalogue d'un métier")
-    public ResponseEntity<ServiceCatalogue> create(@PathVariable UUID businessId,
-                                                   @Valid @RequestBody ServiceCatalogue catalogue) {
+    public ResponseEntity<ServiceCatalogueDTO> create(@PathVariable UUID businessId,
+                                                       @Valid @RequestBody ServiceCatalogue catalogue) {
         ServiceCatalogue saved = serviceCatalogueService.save(businessId, catalogue);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ServiceCatalogueDTO.fromEntity(saved));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Mettre à jour un service du catalogue")
-    public ResponseEntity<ServiceCatalogue> update(@PathVariable UUID id,
-                                                   @Valid @RequestBody ServiceCatalogue catalogue) {
-        return ResponseEntity.ok(serviceCatalogueService.update(id, catalogue));
+    public ResponseEntity<ServiceCatalogueDTO> update(@PathVariable UUID id,
+                                                       @Valid @RequestBody ServiceCatalogue catalogue) {
+        ServiceCatalogue updated = serviceCatalogueService.update(id, catalogue);
+        return ResponseEntity.ok(ServiceCatalogueDTO.fromEntity(updated));
     }
 
     @DeleteMapping("/{id}")

@@ -1,0 +1,144 @@
+# =============================================================================
+# BizCore Backend - Production Profile Configuration
+# PostgreSQL with optimized HikariCP connection pool
+# Liquibase manages schema (DDL none)
+# =============================================================================
+
+spring:
+  # ---------------------------------------------------------------------------
+  # Database Configuration
+  # Values injected via environment variables in docker-compose
+  # ---------------------------------------------------------------------------
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bizcore}
+    username: ${SPRING_DATASOURCE_USERNAME:bizcore}
+    password: ${SPRING_DATASOURCE_PASSWORD:bizcore123}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+    
+    # HikariCP Connection Pool Optimization for Production
+    hikari:
+      # Pool size: recommended: CPU cores * 2
+      maximum-pool-size: 20
+      minimum-idle: 5
+      # Connection timeout
+      connection-timeout: 30000
+      # Idle timeout
+      idle-timeout: 600000
+      # Max lifetime (slightly less than PostgreSQL's wait_timeout)
+      max-lifetime: 1800000
+      # Connection test query
+      connection-test-query: SELECT 1
+      # Enable metrics
+      pool-name: BizCoreHikariPool
+      register-mbeans: true
+  
+  # ---------------------------------------------------------------------------
+  # JPA/Hibernate Configuration
+  # DDL none - Liquibase handles schema migrations
+  # ---------------------------------------------------------------------------
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:none}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          # Batch inserts/updates for performance
+          batch_size: 25
+          batch_versioned_data: true
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+    open-in-view: false
+  
+  # ---------------------------------------------------------------------------
+  # Liquibase Configuration
+  # Schema migrations managed by Liquibase
+  # ---------------------------------------------------------------------------
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    change-log: ${SPRING_LIQUIBASE_CHANGE_LOG:classpath:db/changelog/db.changelog-master.xml}
+    # Drop and recreate on startup (use with caution!)
+    # drop-first: false
+
+# =============================================================================
+# Logging Configuration
+# WARN level for production - less verbose
+# =============================================================================
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:WARN}
+    com.bizcore: ${LOGGING_LEVEL_COM_BIZCORE:INFO}
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.deprecations: WARN
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: /var/log/bizcore/application.log
+    max-size: 10MB
+    max-history: 30
+
+# =============================================================================
+# Server Configuration
+# =============================================================================
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
+  http2:
+    enabled: true
+
+# =============================================================================
+# Actuator Configuration
+# Minimal exposure for production
+# =============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+
+# =============================================================================
+# SpringDoc OpenAPI Configuration
+# Production: disabled for security
+# =============================================================================
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+  show-actuator: false
+
+# =============================================================================
+# Security Configuration
+# =============================================================================
+security:
+  # Disable actuator security for health checks
+  ignored: /actuator/health/**

@@ -1,6 +1,7 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.BusinessRule;
+import com.bizcore.bizcore_backend.dto.BusinessRuleDTO;
 import com.bizcore.bizcore_backend.service.BusinessRuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/business-rules")
@@ -24,37 +26,43 @@ public class BusinessRuleController {
 
     @GetMapping
     @Operation(summary = "Lister toutes les règles métier")
-    public List<BusinessRule> findAll() {
-        return businessRuleService.findAll();
+    public List<BusinessRuleDTO> findAll() {
+        return businessRuleService.findAll().stream()
+                .map(BusinessRuleDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Trouver une règle par ID")
-    public ResponseEntity<BusinessRule> findById(@PathVariable UUID id) {
+    public ResponseEntity<BusinessRuleDTO> findById(@PathVariable UUID id) {
         return businessRuleService.findById(id)
+                .map(BusinessRuleDTO::fromEntity)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/business/{businessId}")
     @Operation(summary = "Lister les règles d'un métier")
-    public List<BusinessRule> findByBusiness(@PathVariable UUID businessId) {
-        return businessRuleService.findByBusinessId(businessId);
+    public List<BusinessRuleDTO> findByBusiness(@PathVariable UUID businessId) {
+        return businessRuleService.findByBusinessId(businessId).stream()
+                .map(BusinessRuleDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/business/{businessId}")
     @Operation(summary = "Ajouter une règle à un métier")
-    public ResponseEntity<BusinessRule> create(@PathVariable UUID businessId,
-                                               @Valid @RequestBody BusinessRule rule) {
+    public ResponseEntity<BusinessRuleDTO> create(@PathVariable UUID businessId,
+                                                  @Valid @RequestBody BusinessRule rule) {
         BusinessRule saved = businessRuleService.save(businessId, rule);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(BusinessRuleDTO.fromEntity(saved));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Mettre à jour une règle")
-    public ResponseEntity<BusinessRule> update(@PathVariable UUID id,
-                                               @Valid @RequestBody BusinessRule rule) {
-        return ResponseEntity.ok(businessRuleService.update(id, rule));
+    public ResponseEntity<BusinessRuleDTO> update(@PathVariable UUID id,
+                                                  @Valid @RequestBody BusinessRule rule) {
+        BusinessRule updated = businessRuleService.update(id, rule);
+        return ResponseEntity.ok(BusinessRuleDTO.fromEntity(updated));
     }
 
     @DeleteMapping("/{id}")
