@@ -1,8 +1,10 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.Business;
+import com.bizcore.bizcore_backend.domain.Tenant;
 import com.bizcore.bizcore_backend.dto.BusinessDTO;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
+import com.bizcore.bizcore_backend.repository.TenantRepository;
 import com.bizcore.bizcore_backend.service.BusinessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,9 +27,11 @@ import java.util.stream.Collectors;
 public class BusinessController {
 
     private final BusinessService businessService;
+    private final TenantRepository tenantRepository;
 
-    public BusinessController(BusinessService businessService) {
+    public BusinessController(BusinessService businessService, TenantRepository tenantRepository) {
         this.businessService = businessService;
+        this.tenantRepository = tenantRepository;
     }
 
     @GetMapping
@@ -67,7 +71,16 @@ public class BusinessController {
     @PostMapping
     @Operation(summary = "Créer un nouveau métier")
     public ResponseEntity<BusinessDTO> create(@Valid @RequestBody BusinessDTO dto) {
-        Business saved = businessService.save(dto.toEntity());
+        Business business = dto.toEntity();
+
+        // Récupérer et assigner le tenant si fourni
+        if (dto.getTenantId() != null) {
+            Tenant tenant = tenantRepository.findById(dto.getTenantId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tenant", dto.getTenantId().toString()));
+            business.setTenant(tenant);
+        }
+
+        Business saved = businessService.save(business);
         return ResponseEntity.status(HttpStatus.CREATED).body(BusinessDTO.fromEntity(saved));
     }
 

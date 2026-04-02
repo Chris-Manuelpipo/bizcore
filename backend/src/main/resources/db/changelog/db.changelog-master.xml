@@ -5,6 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
 
+    <!-- Sprint 1 & 2 — entités de base -->
     <include file="db/changelog/migrations/001-create-persons.xml"/>
     <include file="db/changelog/migrations/002-create-businesses.xml"/>
     <include file="db/changelog/migrations/003-create-actors.xml"/>
@@ -16,5 +17,10 @@
     <include file="db/changelog/migrations/009-create-invoices.xml"/>
     <include file="db/changelog/migrations/010-create-users.xml"/>
     <include file="db/changelog/migrations/011-create-user-roles.xml"/>
+
+    <!-- Sprint 3 — multitenant + headers BCaaS -->
+    <include file="db/changelog/migrations/012-create-tenants.xml"/>
+    <include file="db/changelog/migrations/013-alter-entities-tenant.xml"/>
+    <include file="db/changelog/migrations/014-alter-service-requests.xml"/>
 
 </databaseChangeLog>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <!--
+    Migration 013 — Ajout du tenant_id sur toutes les entités métier
+    Dépend de : 012-create-tenants.xml (la table tenants doit exister)
+    Couche 3 BCaaS : isolation multitenant (analogie VLAN)
+
+    IMPORTANT : tenant_id est nullable ici pour ne pas bloquer les données
+    existantes en base. Une fois les données migrées vers un tenant,
+    passe-le NOT NULL dans une migration 013b si nécessaire.
+  -->
+
+  <!-- ════════════════════════════════════════════════════════
+       businesses — le métier appartient à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-businesses-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="businesses" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="businesses">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_businesses_tenant"
+      baseTableName="businesses"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="businesses" indexName="idx_businesses_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ════════════════════════════════════════════════════════
+       actors — l'acteur appartient à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-actors-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="actors" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="actors">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_actors_tenant"
+      baseTableName="actors"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="actors" indexName="idx_actors_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ════════════════════════════════════════════════════════
+       business_rules — les règles métier appartiennent à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-business-rules-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="business_rules" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="business_rules">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_business_rules_tenant"
+      baseTableName="business_rules"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="business_rules" indexName="idx_business_rules_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ════════════════════════════════════════════════════════
+       service_catalogues — le catalogue de services appartient à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-service-catalogues-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="service_catalogues" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="service_catalogues">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_service_catalogues_tenant"
+      baseTableName="service_catalogues"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="service_catalogues" indexName="idx_service_catalogues_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ════════════════════════════════════════════════════════
+       resources — les ressources appartiennent à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-resources-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="resources" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="resources">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_resources_tenant"
+      baseTableName="resources"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="resources" indexName="idx_resources_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ════════════════════════════════════════════════════════
+       invoices — les factures appartiennent à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-invoices-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="invoices" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="invoices">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_invoices_tenant"
+      baseTableName="invoices"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="invoices" indexName="idx_invoices_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ════════════════════════════════════════════════════════
+       app_users — l'utilisateur est rattaché à un tenant
+       ════════════════════════════════════════════════════════ -->
+  <changeSet id="013-app-users-tenant" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="app_users" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="app_users">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_app_users_tenant"
+      baseTableName="app_users"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="app_users" indexName="idx_app_users_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

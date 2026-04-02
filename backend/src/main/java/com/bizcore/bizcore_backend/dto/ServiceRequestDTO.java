@@ -25,6 +25,12 @@ public class ServiceRequestDTO {
     private ServiceRequest.Status status;
     private LocalDateTime requestedAt;
     private LocalDateTime fulfilledAt;
+    private UUID traceId;
+    private UUID correlationId;
+    private LocalDateTime acceptedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime cancelledAt;
+
 
     public ServiceRequestDTO() {}
 
@@ -36,6 +42,11 @@ public class ServiceRequestDTO {
         dto.setStatus(request.getStatus());
         dto.setRequestedAt(request.getRequestedAt());
         dto.setFulfilledAt(request.getFulfilledAt());
+        dto.setTraceId(request.getTraceId());
+        dto.setCorrelationId(request.getCorrelationId());
+        dto.setAcceptedAt(request.getAcceptedAt());
+        dto.setStartedAt(request.getStartedAt());
+        dto.setCancelledAt(request.getCancelledAt());
 
         if (request.getConsumer() != null) {
             dto.setConsumerId(request.getConsumer().getId());
@@ -56,6 +67,31 @@ public class ServiceRequestDTO {
             dto.setBusinessName(request.getBusiness().getName());
         }
         return dto;
+    }
+
+    private void setTraceId(UUID traceId2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setTraceId'");
+    }
+
+    private void setCancelledAt(LocalDateTime cancelledAt2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setCancelledAt'");
+    }
+
+    private void setStartedAt(LocalDateTime startedAt2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setStartedAt'");
+    }
+
+    private void setAcceptedAt(LocalDateTime acceptedAt2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setAcceptedAt'");
+    }
+
+    private void setCorrelationId(UUID correlationId2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setCorrelationId'");
     }
 
     public UUID getId() { return id; }

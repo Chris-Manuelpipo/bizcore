@@ -1,40 +1,35 @@
 package com.bizcore.bizcore_backend.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "businesses")
-public class Business {
+@Table(name = "tenants")
+public class Tenant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Tenant tenant;
-
+    // Nom de l'instance métier — ex: "Campharma", "ImmoCore", "TourismCM"
     @NotBlank
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
+    // Domaine métier — ex: "pharmacie", "immobilier", "tourisme"
     @NotBlank
     @Column(name = "domain", nullable = false)
     private String domain;
 
+    // Description libre de l'instance
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "needed_education")
-    private String neededEducation;
-
-    @Column(name = "needed_training")
-    private String neededTraining;
+    // Soft delete : un tenant désactivé ne peut plus créer de ServiceRequests
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -44,6 +39,7 @@ public class Business {
         this.createdAt = LocalDateTime.now();
     }
 
+    // ── Getters / Setters ─────────────────────────────────────────────────
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
@@ -56,14 +52,8 @@ public class Business {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getNeededEducation() { return neededEducation; }
-    public void setNeededEducation(String neededEducation) { this.neededEducation = neededEducation; }
-
-    public String getNeededTraining() { return neededTraining; }
-    public void setNeededTraining(String neededTraining) { this.neededTraining = neededTraining; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public Tenant getTenant() { return tenant; }
-    public void setTenant(Tenant tenant) { this.tenant = tenant; }
 }

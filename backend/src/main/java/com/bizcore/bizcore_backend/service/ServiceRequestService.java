@@ -203,7 +203,7 @@ public class ServiceRequestService {
         }
         
         // 6. Update the service request status
-        request.setStatus(ServiceRequest.Status.FULFILLED);
+        // request.setStatus(ServiceRequest.Status.FULFILLED);
         request.setFulfilledAt(LocalDateTime.now());
         serviceRequestRepository.save(request);
         
@@ -234,7 +234,8 @@ public class ServiceRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
         validateProvider(request, userActorId);
         validateTransition(request, ServiceRequest.Status.ACCEPTED);
-        request.setStatus(ServiceRequest.Status.ACCEPTED);
+        // request.setStatus(ServiceRequest.Status.ACCEPTED);
+        request.setAcceptedAt(LocalDateTime.now());
         return serviceRequestRepository.save(request);
     }
 
@@ -254,7 +255,9 @@ public class ServiceRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
         validateProvider(request, userActorId);
         validateTransition(request, ServiceRequest.Status.IN_PROGRESS);
-        request.setStatus(ServiceRequest.Status.IN_PROGRESS);
+        // request.setStatus(ServiceRequest.Status.IN_PROGRESS);
+        request.setStartedAt(LocalDateTime.now());
+
         return serviceRequestRepository.save(request);
     }
 
@@ -274,7 +277,8 @@ public class ServiceRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
         validateConsumer(request, userActorId);
         validateTransition(request, ServiceRequest.Status.CANCELLED);
-        request.setStatus(ServiceRequest.Status.CANCELLED);
+        // request.setStatus(ServiceRequest.Status.CANCELLED);
+        request.setCancelledAt(LocalDateTime.now());
         return serviceRequestRepository.save(request);
     }
 
@@ -285,7 +289,7 @@ public class ServiceRequestService {
         ServiceRequest request = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
         validateTransition(request, ServiceRequest.Status.CANCELLED);
-        request.setStatus(ServiceRequest.Status.CANCELLED);
+        // request.setStatus(ServiceRequest.Status.CANCELLED);
         return serviceRequestRepository.save(request);
     }
 

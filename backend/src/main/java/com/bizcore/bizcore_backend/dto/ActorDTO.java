@@ -18,6 +18,7 @@ public class ActorDTO {
     private String bio;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private UUID tenantId;
 
     public ActorDTO() {}
 
@@ -33,6 +34,9 @@ public class ActorDTO {
             dto.setPersonFullName(actor.getPerson().getFirstName()
                     + " " + actor.getPerson().getLastName());
             dto.setPersonEmail(actor.getPerson().getEmail());
+        }
+        if (actor.getTenant() != null) {
+            dto.setTenantId(actor.getTenant().getId());
         }
         return dto;
     }
@@ -60,4 +64,7 @@ public class ActorDTO {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 }

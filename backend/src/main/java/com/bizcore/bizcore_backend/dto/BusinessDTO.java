@@ -19,6 +19,7 @@ public class BusinessDTO {
     private String neededEducation;
     private String neededTraining;
     private LocalDateTime createdAt;
+    private UUID tenantId;
 
     public BusinessDTO() {}
 
@@ -31,6 +32,9 @@ public class BusinessDTO {
         dto.setNeededEducation(business.getNeededEducation());
         dto.setNeededTraining(business.getNeededTraining());
         dto.setCreatedAt(business.getCreatedAt());
+        if (business.getTenant() != null) {
+            dto.setTenantId(business.getTenant().getId());
+        }
         return dto;
     }
 
@@ -64,4 +68,7 @@ public class BusinessDTO {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 }

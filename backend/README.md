@@ -393,6 +393,72 @@ JWT_EXPIRATION=86400000
 
 ---
 
+## ✅ Vérification
+
+Cette section vous permet de vérifier rapidement que le backend fonctionne correctement.
+
+### Vérification Automatique (Script)
+
+Le script [`verify-backend.sh`](verify-backend.sh) automatise la vérification complète :
+
+```bash
+# Rendre le script exécutable
+chmod +x verify-backend.sh
+
+# Exécuter la vérification complète
+./verify-backend.sh
+
+# Avec test de démarrage de l'application
+./verify-backend.sh --with-startup-test
+
+# Avec instructions Docker
+./verify-backend.sh --with-docker-test
+```
+
+**Le script vérifie automatiquement :**
+- ✅ Prérequis système (Java 21, Maven, Docker)
+- ✅ Compilation Maven
+- ✅ Exécution des tests (31 tests)
+- ✅ Packaging de l'application
+- ✅ (Optionnel) Démarrage et health check
+- ✅ (Optionnel) Configuration Docker
+
+### Vérification Rapide
+
+```bash
+# Compilation
+mvn clean compile
+
+# Tests unitaires
+mvn clean test
+
+# Démarrage rapide
+mvn spring-boot:run
+
+# Health check
+curl http://localhost:8080/actuator/health
+```
+
+### Guide de Test Manuel
+
+Pour les tests manuels complets (workflow ServiceRequest, curl commands, Docker), consultez [TESTING.md](TESTING.md).
+
+### Checklist Rapide
+
+```
+☐ Compilation Maven réussie
+☐ Tests unitaires passent (31/31)
+☐ Application démarre
+☐ Swagger UI accessible (http://localhost:8080/swagger-ui/index.html)
+☐ Endpoint health check OK
+☐ CRUD Business fonctionne
+☐ CRUD Actor fonctionne
+☐ Cycle de vie ServiceRequest complet
+☐ Factures créées automatiquement
+```
+
+---
+
 ## 🐳 Docker
 
 ### Structure Docker Compose

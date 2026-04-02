@@ -21,6 +21,12 @@ public class Actor {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Person person;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "tenant_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Tenant tenant;
+
+
     @NotBlank
     @Column(name = "role", nullable = false)
     private String role;
@@ -55,4 +61,8 @@ public class Actor {
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public Tenant getTenant() { return tenant; }
+    public void setTenant(Tenant tenant) { this.tenant = tenant; }
+
 }

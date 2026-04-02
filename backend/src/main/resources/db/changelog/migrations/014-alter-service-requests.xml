@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="014" author="bizcore">
+
+    <!-- Couche 3 BCaaS : tenant_id (dépend de la migration 012 qui crée tenants) -->
+    <addColumn tableName="service_requests">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      baseTableName="service_requests"
+      baseColumnNames="tenant_id"
+      constraintName="fk_sr_tenant"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+
+    <!-- Couche 2 BCaaS : headers métier -->
+    <addColumn tableName="service_requests">
+      <column name="trace_id" type="uuid"/>
+    </addColumn>
+    <addColumn tableName="service_requests">
+      <column name="correlation_id" type="uuid"/>
+    </addColumn>
+
+    <!-- Horodatages de chaque transition d'état -->
+    <addColumn tableName="service_requests">
+      <column name="accepted_at" type="timestamp"/>
+    </addColumn>
+    <addColumn tableName="service_requests">
+      <column name="started_at" type="timestamp"/>
+    </addColumn>
+    <addColumn tableName="service_requests">
+      <column name="cancelled_at" type="timestamp"/>
+    </addColumn>
+
+    <!-- Index pour les requêtes fréquentes par tenant -->
+    <createIndex tableName="service_requests" indexName="idx_sr_tenant_status">
+      <column name="tenant_id"/>
+      <column name="status"/>
+    </createIndex>
+
+    <!-- Index pour la traçabilité -->
+    <createIndex tableName="service_requests" indexName="idx_sr_trace_id">
+      <column name="trace_id"/>
+    </createIndex>
+
+  </changeSet>
+
+</databaseChangeLog>

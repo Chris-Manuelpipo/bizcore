@@ -18,6 +18,11 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "tenant_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Tenant tenant;
+
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "service_request_id", nullable = false, unique = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -63,4 +68,7 @@ public class Invoice {
 
     public LocalDateTime getPaidAt() { return paidAt; }
     public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
+
+    public Tenant getTenant() { return tenant; }
+    public void setTenant(Tenant tenant) { this.tenant = tenant; }
 }

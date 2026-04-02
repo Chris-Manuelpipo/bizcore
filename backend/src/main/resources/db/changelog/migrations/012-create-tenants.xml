@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <changeSet id="012" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="tenants"/></not>
+    </preConditions>
+
+    <createTable tableName="tenants">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="domain" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="text"/>
+      <column name="is_active" type="boolean" defaultValueBoolean="true"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+
+    <!-- Index de recherche par domaine métier -->
+    <createIndex tableName="tenants" indexName="idx_tenants_domain">
+      <column name="domain"/>
+    </createIndex>
+
+    <!-- Index pour le filtre is_active -->
+    <createIndex tableName="tenants" indexName="idx_tenants_active">
+      <column name="is_active"/>
+    </createIndex>
+
+  </changeSet>
+
+</databaseChangeLog>
