@@ -23,4 +23,11 @@
     <include file="db/changelog/migrations/013-alter-entities-tenant.xml"/>
     <include file="db/changelog/migrations/014-alter-service-requests.xml"/>
 
+    <!-- Sprint 4 — Fusion USER + MEDIA + Refactoring MCD -->
+    <include file="db/changelog/migrations/015-fusion-user-media.xml"/>
+    <include file="db/changelog/migrations/016-refactor-actor-user.xml"/>
+    <include file="db/changelog/migrations/017-enrich-business.xml"/>
+    <include file="db/changelog/migrations/018-refactor-service-request.xml"/>
+    <include file="db/changelog/migrations/019-remove-tenant-ids.xml"/>
+
 </databaseChangeLog>

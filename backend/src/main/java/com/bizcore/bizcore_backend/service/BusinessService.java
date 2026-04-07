@@ -47,6 +47,8 @@ public class BusinessService {
         existing.setDescription(updated.getDescription());
         existing.setNeededEducation(updated.getNeededEducation());
         existing.setNeededTraining(updated.getNeededTraining());
+        existing.setTypeOfInvolvedActors(updated.getTypeOfInvolvedActors());
+        existing.setRequiredJobProfiles(updated.getRequiredJobProfiles());
         return businessRepository.save(existing);
     }
 

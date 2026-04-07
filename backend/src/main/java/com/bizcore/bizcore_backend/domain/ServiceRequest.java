@@ -19,14 +19,12 @@ public class ServiceRequest {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // ── Couche 3 BCaaS : isolation multitenant ────────────────────────────
     @NotNull
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Tenant tenant;
 
-    // ── Acteurs : émetteur (CdS) et récepteur (FdS) ──────────────────────
     @NotNull
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "consumer_id", nullable = false)
@@ -41,9 +39,9 @@ public class ServiceRequest {
 
     @NotNull
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "business_id", nullable = false)
+    @JoinColumn(name = "service_catalogue_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Business business;
+    private ServiceCatalogue serviceCatalogue;
 
     @NotBlank
     @Column(name = "service_name", nullable = false)
@@ -52,21 +50,16 @@ public class ServiceRequest {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    // ── Automate d'états — modifié uniquement via ServiceRequestService ───
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status = Status.PENDING;
 
-    // ── Headers BCaaS (couche 2) ──────────────────────────────────────────
-    // Lié au header HTTP X-Trace-ID — une valeur unique par requête entrante
     @Column(name = "trace_id")
     private UUID traceId;
 
-    // Lié à l'Invoice générée — permet de corréler SR et facture dans Kafka
     @Column(name = "correlation_id")
     private UUID correlationId;
 
-    // ── Horodatages de chaque étape (audit trail dans l'entité) ──────────
     @Column(name = "requested_at", updatable = false)
     private LocalDateTime requestedAt;
 
@@ -85,14 +78,13 @@ public class ServiceRequest {
     @PrePersist
     protected void onCreate() {
         this.requestedAt = LocalDateTime.now();
-        // Génère un correlationId dès la création — liera la SR à sa future Invoice
         if (this.correlationId == null) {
             this.correlationId = UUID.randomUUID();
         }
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────
     public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public Tenant getTenant() { return tenant; }
     public void setTenant(Tenant tenant) { this.tenant = tenant; }
@@ -103,8 +95,8 @@ public class ServiceRequest {
     public Actor getProvider() { return provider; }
     public void setProvider(Actor provider) { this.provider = provider; }
 
-    public Business getBusiness() { return business; }
-    public void setBusiness(Business business) { this.business = business; }
+    public ServiceCatalogue getServiceCatalogue() { return serviceCatalogue; }
+    public void setServiceCatalogue(ServiceCatalogue serviceCatalogue) { this.serviceCatalogue = serviceCatalogue; }
 
     public String getServiceName() { return serviceName; }
     public void setServiceName(String serviceName) { this.serviceName = serviceName; }
@@ -112,8 +104,8 @@ public class ServiceRequest {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    // Note : pas de setStatus() — les transitions passent par ServiceRequestService
     public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
 
     public UUID getTraceId() { return traceId; }
     public void setTraceId(UUID traceId) { this.traceId = traceId; }

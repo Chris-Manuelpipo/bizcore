@@ -1,10 +1,10 @@
 package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Actor;
-import com.bizcore.bizcore_backend.domain.Person;
+import com.bizcore.bizcore_backend.domain.User;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.ActorRepository;
-import com.bizcore.bizcore_backend.repository.PersonRepository;
+import com.bizcore.bizcore_backend.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,11 +16,11 @@ import java.util.UUID;
 public class ActorService {
 
     private final ActorRepository actorRepository;
-    private final PersonRepository personRepository;
+    private final UserRepository userRepository;
 
-    public ActorService(ActorRepository actorRepository, PersonRepository personRepository) {
+    public ActorService(ActorRepository actorRepository, UserRepository userRepository) {
         this.actorRepository = actorRepository;
-        this.personRepository = personRepository;
+        this.userRepository = userRepository;
     }
 
     public Page<Actor> findAll(Pageable pageable) {
@@ -31,18 +31,18 @@ public class ActorService {
         return actorRepository.findById(id);
     }
 
-    public List<Actor> findByPersonId(UUID personId) {
-        return actorRepository.findByPersonId(personId);
+    public List<Actor> findByUserId(UUID userId) {
+        return actorRepository.findByUserId(userId);
     }
 
     public List<Actor> findByRole(String role) {
         return actorRepository.findByRole(role);
     }
 
-    public Actor save(UUID personId, Actor actor) {
-        Person person = personRepository.findById(personId)
-                .orElseThrow(() -> new ResourceNotFoundException("Person", personId.toString()));
-        actor.setPerson(person);
+    public Actor save(UUID userId, Actor actor) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId.toString()));
+        actor.setUser(user);
         return actorRepository.save(actor);
     }
 

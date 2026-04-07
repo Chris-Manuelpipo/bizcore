@@ -18,6 +18,8 @@ public class BusinessDTO {
     private String description;
     private String neededEducation;
     private String neededTraining;
+    private String typeOfInvolvedActors;
+    private String requiredJobProfiles;
     private LocalDateTime createdAt;
     private UUID tenantId;
 
@@ -31,6 +33,8 @@ public class BusinessDTO {
         dto.setDescription(business.getDescription());
         dto.setNeededEducation(business.getNeededEducation());
         dto.setNeededTraining(business.getNeededTraining());
+        dto.setTypeOfInvolvedActors(business.getTypeOfInvolvedActors());
+        dto.setRequiredJobProfiles(business.getRequiredJobProfiles());
         dto.setCreatedAt(business.getCreatedAt());
         if (business.getTenant() != null) {
             dto.setTenantId(business.getTenant().getId());
@@ -45,6 +49,8 @@ public class BusinessDTO {
         business.setDescription(this.description);
         business.setNeededEducation(this.neededEducation);
         business.setNeededTraining(this.neededTraining);
+        business.setTypeOfInvolvedActors(this.typeOfInvolvedActors);
+        business.setRequiredJobProfiles(this.requiredJobProfiles);
         return business;
     }
 
@@ -65,6 +71,12 @@ public class BusinessDTO {
 
     public String getNeededTraining() { return neededTraining; }
     public void setNeededTraining(String neededTraining) { this.neededTraining = neededTraining; }
+
+    public String getTypeOfInvolvedActors() { return typeOfInvolvedActors; }
+    public void setTypeOfInvolvedActors(String typeOfInvolvedActors) { this.typeOfInvolvedActors = typeOfInvolvedActors; }
+
+    public String getRequiredJobProfiles() { return requiredJobProfiles; }
+    public void setRequiredJobProfiles(String requiredJobProfiles) { this.requiredJobProfiles = requiredJobProfiles; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

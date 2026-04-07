@@ -6,18 +6,21 @@ public class AuthResponse {
 
     private String token;
     private String email;
-    private String fullName;
+    private String firstName;
+    private String lastName;
     private Set<String> roles;
 
-    public AuthResponse(String token, String email, String fullName, Set<String> roles) {
+    public AuthResponse(String token, String email, String firstName, String lastName, Set<String> roles) {
         this.token = token;
         this.email = email;
-        this.fullName = fullName;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.roles = roles;
     }
 
     public String getToken() { return token; }
     public String getEmail() { return email; }
-    public String getFullName() { return fullName; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
     public Set<String> getRoles() { return roles; }
 }

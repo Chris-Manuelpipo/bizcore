@@ -72,54 +72,41 @@ public class ServiceRequestController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("/consumer/{consumerId}/provider/{providerId}/business/{businessId}")
-    @Operation(summary = "Créer une demande de service")
+    @PostMapping("/consumer/{consumerId}/provider/{providerId}/catalogue/{serviceCatalogueId}")
+    @Operation(summary = "Créer une demande de service via catalogue")
     public ResponseEntity<ServiceRequestDTO> create(
             @PathVariable UUID consumerId,
             @PathVariable UUID providerId,
-            @PathVariable UUID businessId,
+            @PathVariable UUID serviceCatalogueId,
             @Valid @RequestBody ServiceRequestDTO dto) {
         ServiceRequest request = new ServiceRequest();
-        request.setServiceName(dto.getServiceName());
         request.setDescription(dto.getDescription());
-        ServiceRequest saved = serviceRequestService.save(consumerId, providerId, businessId, request);
+        ServiceRequest saved = serviceRequestService.save(consumerId, providerId, serviceCatalogueId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ServiceRequestDTO.fromEntity(saved));
     }
 
     @PatchMapping("/{id}/fulfill")
-    @Operation(summary = "Marquer une demande comme accomplie (ACK). Crée automatiquement une facture (Invoice) avec le montant du catalogue de services.")
+    @Operation(summary = "Marquer une demande comme accomplie (ACK). Crée automatiquement une facture (Invoice).")
     public ResponseEntity<FulfillResponseDTO> fulfill(@PathVariable UUID id) {
         return ResponseEntity.ok(serviceRequestService.fulfill(id));
     }
 
     @PatchMapping("/{id}/accept")
-    @Operation(summary = "Accepter une demande de service (PENDING → ACCEPTED). " +
-            "Seul le provider peut accepter une demande.")
-    public ResponseEntity<ServiceRequestDTO> accept(
-            @PathVariable UUID id,
-            @RequestParam UUID actorId) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
-                serviceRequestService.accept(id, actorId)));
+    @Operation(summary = "Accepter une demande de service (PENDING → ACCEPTED). Seul le provider peut accepter.")
+    public ResponseEntity<ServiceRequestDTO> accept(@PathVariable UUID id, @RequestParam UUID actorId) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.accept(id, actorId)));
     }
 
     @PatchMapping("/{id}/start")
-    @Operation(summary = "Démarrer le travail sur une demande (ACCEPTED → IN_PROGRESS). " +
-            "Seul le provider peut démarrer le travail.")
-    public ResponseEntity<ServiceRequestDTO> start(
-            @PathVariable UUID id,
-            @RequestParam UUID actorId) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
-                serviceRequestService.start(id, actorId)));
+    @Operation(summary = "Démarrer le travail (ACCEPTED → IN_PROGRESS). Seul le provider peut démarrer.")
+    public ResponseEntity<ServiceRequestDTO> start(@PathVariable UUID id, @RequestParam UUID actorId) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.start(id, actorId)));
     }
 
     @PatchMapping("/{id}/cancel")
-    @Operation(summary = "Annuler une demande de service. " +
-            "Seul le consumer peut annuler une demande.")
-    public ResponseEntity<ServiceRequestDTO> cancel(
-            @PathVariable UUID id,
-            @RequestParam UUID actorId) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
-                serviceRequestService.cancel(id, actorId)));
+    @Operation(summary = "Annuler une demande. Seul le consumer peut annuler.")
+    public ResponseEntity<ServiceRequestDTO> cancel(@PathVariable UUID id, @RequestParam UUID actorId) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.cancel(id, actorId)));
     }
 
     @DeleteMapping("/{id}")

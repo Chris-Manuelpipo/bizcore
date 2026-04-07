@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Repository
 public interface ActorRepository extends JpaRepository<Actor, UUID> {
-    List<Actor> findByPersonId(UUID personId);
+    List<Actor> findByUserId(UUID userId);
     List<Actor> findByRole(String role);
     List<Actor> findByIsActive(Boolean isActive);
 }

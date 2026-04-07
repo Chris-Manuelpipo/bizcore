@@ -54,10 +54,6 @@ public class ServiceCatalogueService {
         }
 
         catalogue.setBusiness(business);
-        // Hériter le tenant du business
-        if (business.getTenant() != null) {
-            catalogue.setTenant(business.getTenant());
-        }
         return serviceCatalogueRepository.save(catalogue);
     }
 

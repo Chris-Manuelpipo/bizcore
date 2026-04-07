@@ -8,9 +8,10 @@ import java.util.UUID;
 public class ActorDTO {
 
     private UUID id;
-    private UUID personId;
-    private String personFullName;
-    private String personEmail;
+    private UUID userId;
+    private String userFullName;
+    private String userEmail;
+    private UUID tenantId;
 
     @NotBlank(message = "Le rôle est obligatoire")
     private String role;
@@ -18,7 +19,6 @@ public class ActorDTO {
     private String bio;
     private Boolean isActive;
     private LocalDateTime createdAt;
-    private UUID tenantId;
 
     public ActorDTO() {}
 
@@ -29,14 +29,14 @@ public class ActorDTO {
         dto.setBio(actor.getBio());
         dto.setIsActive(actor.getIsActive());
         dto.setCreatedAt(actor.getCreatedAt());
-        if (actor.getPerson() != null) {
-            dto.setPersonId(actor.getPerson().getId());
-            dto.setPersonFullName(actor.getPerson().getFirstName()
-                    + " " + actor.getPerson().getLastName());
-            dto.setPersonEmail(actor.getPerson().getEmail());
-        }
-        if (actor.getTenant() != null) {
-            dto.setTenantId(actor.getTenant().getId());
+        if (actor.getUser() != null) {
+            dto.setUserId(actor.getUser().getId());
+            dto.setUserFullName(actor.getUser().getFirstName()
+                    + " " + actor.getUser().getLastName());
+            dto.setUserEmail(actor.getUser().getEmail());
+            if (actor.getUser().getTenant() != null) {
+                dto.setTenantId(actor.getUser().getTenant().getId());
+            }
         }
         return dto;
     }
@@ -44,14 +44,17 @@ public class ActorDTO {
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
-    public UUID getPersonId() { return personId; }
-    public void setPersonId(UUID personId) { this.personId = personId; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
-    public String getPersonFullName() { return personFullName; }
-    public void setPersonFullName(String personFullName) { this.personFullName = personFullName; }
+    public String getUserFullName() { return userFullName; }
+    public void setUserFullName(String userFullName) { this.userFullName = userFullName; }
 
-    public String getPersonEmail() { return personEmail; }
-    public void setPersonEmail(String personEmail) { this.personEmail = personEmail; }
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
@@ -64,7 +67,4 @@ public class ActorDTO {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public UUID getTenantId() { return tenantId; }
-    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 }

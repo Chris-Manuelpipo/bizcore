@@ -15,6 +15,9 @@ public class ServiceRequestDTO {
     private UUID providerId;
     private String providerName;
 
+    private UUID serviceCatalogueId;
+    private String serviceCatalogueName;
+
     private UUID businessId;
     private String businessName;
 
@@ -30,7 +33,6 @@ public class ServiceRequestDTO {
     private LocalDateTime acceptedAt;
     private LocalDateTime startedAt;
     private LocalDateTime cancelledAt;
-
 
     public ServiceRequestDTO() {}
 
@@ -50,48 +52,27 @@ public class ServiceRequestDTO {
 
         if (request.getConsumer() != null) {
             dto.setConsumerId(request.getConsumer().getId());
-            if (request.getConsumer().getPerson() != null) {
-                dto.setConsumerName(request.getConsumer().getPerson().getFirstName()
-                        + " " + request.getConsumer().getPerson().getLastName());
+            if (request.getConsumer().getUser() != null) {
+                dto.setConsumerName(request.getConsumer().getUser().getFirstName()
+                        + " " + request.getConsumer().getUser().getLastName());
             }
         }
         if (request.getProvider() != null) {
             dto.setProviderId(request.getProvider().getId());
-            if (request.getProvider().getPerson() != null) {
-                dto.setProviderName(request.getProvider().getPerson().getFirstName()
-                        + " " + request.getProvider().getPerson().getLastName());
+            if (request.getProvider().getUser() != null) {
+                dto.setProviderName(request.getProvider().getUser().getFirstName()
+                        + " " + request.getProvider().getUser().getLastName());
             }
         }
-        if (request.getBusiness() != null) {
-            dto.setBusinessId(request.getBusiness().getId());
-            dto.setBusinessName(request.getBusiness().getName());
+        if (request.getServiceCatalogue() != null) {
+            dto.setServiceCatalogueId(request.getServiceCatalogue().getId());
+            dto.setServiceCatalogueName(request.getServiceCatalogue().getName());
+            if (request.getServiceCatalogue().getBusiness() != null) {
+                dto.setBusinessId(request.getServiceCatalogue().getBusiness().getId());
+                dto.setBusinessName(request.getServiceCatalogue().getBusiness().getName());
+            }
         }
         return dto;
-    }
-
-    private void setTraceId(UUID traceId2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setTraceId'");
-    }
-
-    private void setCancelledAt(LocalDateTime cancelledAt2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setCancelledAt'");
-    }
-
-    private void setStartedAt(LocalDateTime startedAt2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setStartedAt'");
-    }
-
-    private void setAcceptedAt(LocalDateTime acceptedAt2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setAcceptedAt'");
-    }
-
-    private void setCorrelationId(UUID correlationId2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setCorrelationId'");
     }
 
     public UUID getId() { return id; }
@@ -108,6 +89,12 @@ public class ServiceRequestDTO {
 
     public String getProviderName() { return providerName; }
     public void setProviderName(String providerName) { this.providerName = providerName; }
+
+    public UUID getServiceCatalogueId() { return serviceCatalogueId; }
+    public void setServiceCatalogueId(UUID serviceCatalogueId) { this.serviceCatalogueId = serviceCatalogueId; }
+
+    public String getServiceCatalogueName() { return serviceCatalogueName; }
+    public void setServiceCatalogueName(String serviceCatalogueName) { this.serviceCatalogueName = serviceCatalogueName; }
 
     public UUID getBusinessId() { return businessId; }
     public void setBusinessId(UUID businessId) { this.businessId = businessId; }
@@ -129,4 +116,19 @@ public class ServiceRequestDTO {
 
     public LocalDateTime getFulfilledAt() { return fulfilledAt; }
     public void setFulfilledAt(LocalDateTime fulfilledAt) { this.fulfilledAt = fulfilledAt; }
+
+    public UUID getTraceId() { return traceId; }
+    public void setTraceId(UUID traceId) { this.traceId = traceId; }
+
+    public UUID getCorrelationId() { return correlationId; }
+    public void setCorrelationId(UUID correlationId) { this.correlationId = correlationId; }
+
+    public LocalDateTime getAcceptedAt() { return acceptedAt; }
+    public void setAcceptedAt(LocalDateTime acceptedAt) { this.acceptedAt = acceptedAt; }
+
+    public LocalDateTime getStartedAt() { return startedAt; }
+    public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
+
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
 }

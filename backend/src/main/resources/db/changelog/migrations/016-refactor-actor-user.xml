@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <!--
+    Migration 016 — REFACTOR ACTOR
+    - Remplacer person_id par user_id (ACTOR → USER, cardinalité 1:N)
+    - Supprimer tenant_id (ACTOR hérite du tenant via USER)
+    
+    MCD BizCore : USER(1,N)—possède—(1,1)ACTOR
+  -->
+
+  <!-- ── Supprimer l'ancienne FK actor → person ── -->
+  <changeSet id="016-drop-actor-person-fk" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="fk_actor_person"/>
+    </preConditions>
+    <dropForeignKeyConstraint
+      baseTableName="actors"
+      constraintName="fk_actor_person"/>
+  </changeSet>
+
+  <!-- ── Supprimer l'ancienne FK actor → tenant ── -->
+  <changeSet id="016-drop-actor-tenant-fk" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="fk_actors_tenant"/>
+    </preConditions>
+    <dropForeignKeyConstraint
+      baseTableName="actors"
+      constraintName="fk_actors_tenant"/>
+  </changeSet>
+
+  <!-- ── Ajouter user_id à actors ── -->
+  <changeSet id="016-add-actor-user-id" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="actors" columnName="user_id"/></not>
+    </preConditions>
+    <addColumn tableName="actors">
+      <column name="user_id" type="uuid"/>
+    </addColumn>
+    <sql>
+      -- Migrer les données : chaque actor pointe vers le user correspondant via l'ancienne personne
+      -- Si la table persons n'existe plus, cette colonne sera NULL
+    </sql>
+  </changeSet>
+
+  <!-- ── Supprimer l'ancienne colonne person_id ── -->
+  <changeSet id="016-drop-actor-person-id" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="actors" columnName="person_id"/>
+    </preConditions>
+    <dropColumn tableName="actors" columnName="person_id"/>
+  </changeSet>
+
+  <!-- ── Ajouter FK actors → users ── -->
+  <changeSet id="016-add-actor-user-fk" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="actors" columnName="user_id"/>
+      <not><foreignKeyConstraintExists foreignKeyName="fk_actor_user"/></not>
+    </preConditions>
+    <addForeignKeyConstraint
+      constraintName="fk_actor_user"
+      baseTableName="actors"
+      baseColumnNames="user_id"
+      referencedTableName="users"
+      referencedColumnNames="id"/>
+    <createIndex tableName="actors" indexName="idx_actors_user_id">
+      <column name="user_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ── Supprimer la colonne tenant_id de actors ── -->
+  <changeSet id="016-drop-actor-tenant-id" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="actors" columnName="tenant_id"/>
+    </preConditions>
+    <dropColumn tableName="actors" columnName="tenant_id"/>
+  </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <!--
+    Migration 018 — REFACTOR SERVICE_REQUEST
+    - Remplacer business_id par service_catalogue_id (concerne SERVICE_CATALOGUE)
+    - Ajouter trace_id (UUID) pour la traçabilité réseau
+    - Garder tenant_id (SERVICE_REQUEST lié au tenant)
+    
+    MCD BizCore : SERVICE_CATALOGUE(0,N)—concerne—(1,1)SERVICE_REQUEST
+    SERVICE_REQUEST a traceId pour la traçabilité réseau (analogie paquet métier)
+  -->
+
+  <!-- ── Supprimer l'ancienne FK service_request → business ── -->
+  <changeSet id="018-drop-sr-business-fk" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="fk_sr_business"/>
+    </preConditions>
+    <dropForeignKeyConstraint
+      baseTableName="service_requests"
+      constraintName="fk_sr_business"/>
+  </changeSet>
+
+  <!-- ── Ajouter service_catalogue_id ── -->
+  <changeSet id="018-add-sr-catalogue-id" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="service_requests"/>
+      <not><columnExists tableName="service_requests" columnName="service_catalogue_id"/></not>
+    </preConditions>
+    <addColumn tableName="service_requests">
+      <column name="service_catalogue_id" type="uuid"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- ── Supprimer l'ancienne colonne business_id ── -->
+  <changeSet id="018-drop-sr-business-id" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="service_requests" columnName="business_id"/>
+    </preConditions>
+    <dropColumn tableName="service_requests" columnName="business_id"/>
+  </changeSet>
+
+  <!-- ── Ajouter FK service_request → service_catalogue ── -->
+  <changeSet id="018-add-sr-catalogue-fk" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="service_requests" columnName="service_catalogue_id"/>
+      <not><foreignKeyConstraintExists foreignKeyName="fk_sr_catalogue"/></not>
+    </preConditions>
+    <addForeignKeyConstraint
+      constraintName="fk_sr_catalogue"
+      baseTableName="service_requests"
+      baseColumnNames="service_catalogue_id"
+      referencedTableName="service_catalogues"
+      referencedColumnNames="id"/>
+    <createIndex tableName="service_requests" indexName="idx_sr_service_catalogue_id">
+      <column name="service_catalogue_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ── Ajouter tenant_id si pas encore présent (SERVICE_REQUEST héberge directement) ── -->
+  <changeSet id="018-add-sr-tenant-id" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="service_requests"/>
+      <not><columnExists tableName="service_requests" columnName="tenant_id"/></not>
+    </preConditions>
+    <addColumn tableName="service_requests">
+      <column name="tenant_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_sr_tenant"
+      baseTableName="service_requests"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="service_requests" indexName="idx_sr_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

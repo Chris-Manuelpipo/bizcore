@@ -17,15 +17,9 @@ public class Actor {
 
     @NotNull
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "person_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Person person;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Tenant tenant;
-
+    private User user;
 
     @NotBlank
     @Column(name = "role", nullable = false)
@@ -48,8 +42,8 @@ public class Actor {
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
-    public Person getPerson() { return person; }
-    public void setPerson(Person person) { this.person = person; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
@@ -61,8 +55,4 @@ public class Actor {
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
-
-    public Tenant getTenant() { return tenant; }
-    public void setTenant(Tenant tenant) { this.tenant = tenant; }
-
 }

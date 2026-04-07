@@ -1,10 +1,10 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.Actor;
-import com.bizcore.bizcore_backend.domain.Tenant;
+import com.bizcore.bizcore_backend.domain.User;
 import com.bizcore.bizcore_backend.dto.ActorDTO;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
-import com.bizcore.bizcore_backend.repository.TenantRepository;
+import com.bizcore.bizcore_backend.repository.UserRepository;
 import com.bizcore.bizcore_backend.service.ActorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 public class ActorController {
 
     private final ActorService actorService;
-    private final TenantRepository tenantRepository;
+    private final UserRepository userRepository;
 
-    public ActorController(ActorService actorService, TenantRepository tenantRepository) {
+    public ActorController(ActorService actorService, UserRepository userRepository) {
         this.actorService = actorService;
-        this.tenantRepository = tenantRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -51,10 +51,10 @@ public class ActorController {
         return ResponseEntity.ok(ActorDTO.fromEntity(actor));
     }
 
-    @GetMapping("/person/{personId}")
-    @Operation(summary = "Lister les acteurs d'une personne")
-    public List<ActorDTO> findByPersonId(@PathVariable UUID personId) {
-        return actorService.findByPersonId(personId).stream()
+    @GetMapping("/user/{userId}")
+    @Operation(summary = "Lister les acteurs d'un utilisateur")
+    public List<ActorDTO> findByUserId(@PathVariable UUID userId) {
+        return actorService.findByUserId(userId).stream()
                 .map(ActorDTO::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -67,23 +67,19 @@ public class ActorController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("/person/{personId}")
-    @Operation(summary = "Créer un acteur pour une personne")
-    public ResponseEntity<ActorDTO> create(@PathVariable UUID personId,
+    @PostMapping("/user/{userId}")
+    @Operation(summary = "Créer un acteur pour un utilisateur")
+    public ResponseEntity<ActorDTO> create(@PathVariable UUID userId,
                                            @Valid @RequestBody ActorDTO dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId.toString()));
         Actor actor = new Actor();
+        actor.setUser(user);
         actor.setRole(dto.getRole());
         actor.setBio(dto.getBio());
         actor.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
 
-        // Récupérer et assigner le tenant si fourni
-        if (dto.getTenantId() != null) {
-            Tenant tenant = tenantRepository.findById(dto.getTenantId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Tenant", dto.getTenantId().toString()));
-            actor.setTenant(tenant);
-        }
-
-        Actor saved = actorService.save(personId, actor);
+        Actor saved = actorService.save(userId, actor);
         return ResponseEntity.status(HttpStatus.CREATED).body(ActorDTO.fromEntity(saved));
     }
 

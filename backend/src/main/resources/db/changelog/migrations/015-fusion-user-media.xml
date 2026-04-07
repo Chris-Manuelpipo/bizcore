@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <!--
+    Migration 015 — FUSION USER : PERSON + APP_USER
+    Fusion definitive de PERSON et APP_USER en une seule entité USER.
+    Champs : id, tenant_id, first_name, last_name, email, password, phone, country, roles, is_active, created_at
+    
+    MCD BizCore : USER(id, tenantId, firstName, lastName, email, password, phone, country, isActive, createdAt)
+  -->
+
+  <!-- ── Création table users (fusion persons + app_users) ── -->
+  <changeSet id="015-create-users" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="users"/></not>
+    </preConditions>
+    <createTable tableName="users">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="tenant_id" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="first_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="email" type="varchar(255)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="password" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="phone" type="varchar(255)"/>
+      <column name="country" type="varchar(255)"/>
+      <column name="is_active" type="boolean" defaultValueBoolean="true"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+    <addForeignKeyConstraint
+      constraintName="fk_users_tenant"
+      baseTableName="users"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="users" indexName="idx_users_tenant_id">
+      <column name="tenant_id"/>
+    </createIndex>
+    <createIndex tableName="users" indexName="idx_users_email">
+      <column name="email"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ── Table de jointure user_roles ── -->
+  <changeSet id="015-create-user-roles" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="user_roles"/></not>
+    </preConditions>
+    <createTable tableName="user_roles">
+      <column name="user_id" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="role" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    <addPrimaryKey tableName="user_roles" columnNames="user_id, role"/>
+    <addForeignKeyConstraint
+      constraintName="fk_user_roles_user"
+      baseTableName="user_roles"
+      baseColumnNames="user_id"
+      referencedTableName="users"
+      referencedColumnNames="id"
+      onDelete="CASCADE"/>
+    <createIndex tableName="user_roles" indexName="idx_user_roles_user_id">
+      <column name="user_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ── Création table media ── -->
+  <changeSet id="015-create-media" author="bizcore">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="media"/></not>
+    </preConditions>
+    <createTable tableName="media">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="business_id" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="url" type="varchar(1024)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="type" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="text"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+    <addForeignKeyConstraint
+      constraintName="fk_media_business"
+      baseTableName="media"
+      baseColumnNames="business_id"
+      referencedTableName="businesses"
+      referencedColumnNames="id"
+      onDelete="CASCADE"/>
+    <createIndex tableName="media" indexName="idx_media_business_id">
+      <column name="business_id"/>
+    </createIndex>
+    <createIndex tableName="media" indexName="idx_media_type">
+      <column name="type"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

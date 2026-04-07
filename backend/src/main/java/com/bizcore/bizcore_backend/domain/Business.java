@@ -15,7 +15,7 @@ public class Business {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tenant_id")
+    @JoinColumn(name = "tenant_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Tenant tenant;
 
@@ -36,6 +36,12 @@ public class Business {
     @Column(name = "needed_training")
     private String neededTraining;
 
+    @Column(name = "type_of_involved_actors", columnDefinition = "TEXT")
+    private String typeOfInvolvedActors;
+
+    @Column(name = "required_job_profiles", columnDefinition = "TEXT")
+    private String requiredJobProfiles;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -46,6 +52,9 @@ public class Business {
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+
+    public Tenant getTenant() { return tenant; }
+    public void setTenant(Tenant tenant) { this.tenant = tenant; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -62,8 +71,11 @@ public class Business {
     public String getNeededTraining() { return neededTraining; }
     public void setNeededTraining(String neededTraining) { this.neededTraining = neededTraining; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public String getTypeOfInvolvedActors() { return typeOfInvolvedActors; }
+    public void setTypeOfInvolvedActors(String typeOfInvolvedActors) { this.typeOfInvolvedActors = typeOfInvolvedActors; }
 
-    public Tenant getTenant() { return tenant; }
-    public void setTenant(Tenant tenant) { this.tenant = tenant; }
+    public String getRequiredJobProfiles() { return requiredJobProfiles; }
+    public void setRequiredJobProfiles(String requiredJobProfiles) { this.requiredJobProfiles = requiredJobProfiles; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

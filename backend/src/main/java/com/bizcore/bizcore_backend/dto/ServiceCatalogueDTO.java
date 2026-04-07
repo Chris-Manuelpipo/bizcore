@@ -20,7 +20,6 @@ public class ServiceCatalogueDTO {
     private String currency;
     private Boolean isAvailable;
     private LocalDateTime createdAt;
-    private UUID tenantId;
 
     public ServiceCatalogueDTO() {}
 
@@ -36,9 +35,6 @@ public class ServiceCatalogueDTO {
         if (serviceCatalogue.getBusiness() != null) {
             dto.setBusinessId(serviceCatalogue.getBusiness().getId());
             dto.setBusinessName(serviceCatalogue.getBusiness().getName());
-        }
-        if (serviceCatalogue.getTenant() != null) {
-            dto.setTenantId(serviceCatalogue.getTenant().getId());
         }
         return dto;
     }
@@ -69,7 +65,4 @@ public class ServiceCatalogueDTO {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public UUID getTenantId() { return tenantId; }
-    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 }
