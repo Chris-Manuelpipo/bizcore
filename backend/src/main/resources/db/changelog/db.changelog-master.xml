@@ -5,29 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
 
-    <!-- Sprint 1 & 2 — entités de base -->
-    <include file="db/changelog/migrations/001-create-persons.xml"/>
-    <include file="db/changelog/migrations/002-create-businesses.xml"/>
-    <include file="db/changelog/migrations/003-create-actors.xml"/>
-    <include file="db/changelog/migrations/004-create-portfolios.xml"/>
-    <include file="db/changelog/migrations/005-create-business-rules.xml"/>
-    <include file="db/changelog/migrations/006-create-service-catalogues.xml"/>
-    <include file="db/changelog/migrations/007-create-resources.xml"/>
-    <include file="db/changelog/migrations/008-create-service-requests.xml"/>
-    <include file="db/changelog/migrations/009-create-invoices.xml"/>
-    <include file="db/changelog/migrations/010-create-users.xml"/>
-    <include file="db/changelog/migrations/011-create-user-roles.xml"/>
-
-    <!-- Sprint 3 — multitenant + headers BCaaS -->
-    <include file="db/changelog/migrations/012-create-tenants.xml"/>
-    <include file="db/changelog/migrations/013-alter-entities-tenant.xml"/>
-    <include file="db/changelog/migrations/014-alter-service-requests.xml"/>
-
-    <!-- Sprint 4 — Fusion USER + MEDIA + Refactoring MCD -->
-    <include file="db/changelog/migrations/015-fusion-user-media.xml"/>
-    <include file="db/changelog/migrations/016-refactor-actor-user.xml"/>
-    <include file="db/changelog/migrations/017-enrich-business.xml"/>
-    <include file="db/changelog/migrations/018-refactor-service-request.xml"/>
-    <include file="db/changelog/migrations/019-remove-tenant-ids.xml"/>
+    <!-- Schema propre — Sprint 4 refactoring -->
+    <include file="db/changelog/migrations/001-clean-schema.xml"/>
 
 </databaseChangeLog>

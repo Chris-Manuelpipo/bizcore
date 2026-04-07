@@ -23,6 +23,8 @@ public class AuthRequest {
 
     private String country;
 
+    private String tenantId;
+
     private Set<String> roles;
 
     public String getFirstName() { return firstName; }
@@ -45,4 +47,7 @@ public class AuthRequest {
 
     public Set<String> getRoles() { return roles; }
     public void setRoles(Set<String> roles) { this.roles = roles; }
+
+    public String getTenantId() { return tenantId; }
+    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 }

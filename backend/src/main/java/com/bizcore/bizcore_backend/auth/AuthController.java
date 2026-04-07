@@ -54,8 +54,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
-        Tenant defaultTenant = tenantRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001"))
-                .orElse(null);
+        Tenant tenant;
+        if (request.getTenantId() != null && !request.getTenantId().isBlank()) {
+            tenant = tenantRepository.findById(UUID.fromString(request.getTenantId()))
+                    .orElseThrow(() -> new RuntimeException("Tenant introuvable : " + request.getTenantId()));
+        } else {
+            tenant = tenantRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                    .orElseThrow(() -> new RuntimeException("Tenant par défaut introuvable. Exécutez la migration 020."));
+        }
 
         User user = new User();
         user.setFirstName(request.getFirstName());
@@ -64,9 +70,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
         user.setCountry(request.getCountry());
-        if (defaultTenant != null) {
-            user.setTenant(defaultTenant);
-        }
+        user.setTenant(tenant);
 
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             Set<User.Role> roles = request.getRoles().stream()
