@@ -1,85 +1,62 @@
 package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Actor;
-import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
 import com.bizcore.bizcore_backend.domain.Invoice;
+import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
 import com.bizcore.bizcore_backend.domain.ServiceRequest;
 import com.bizcore.bizcore_backend.dto.FulfillResponseDTO;
+import com.bizcore.bizcore_backend.dto.InvoiceDTO;
+import com.bizcore.bizcore_backend.dto.ServiceRequestDTO;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.ActorRepository;
 import com.bizcore.bizcore_backend.repository.InvoiceRepository;
 import com.bizcore.bizcore_backend.repository.ServiceCatalogueRepository;
 import com.bizcore.bizcore_backend.repository.ServiceRequestRepository;
+import com.bizcore.bizcore_backend.security.TenantContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.Map;
-import java.util.HashMap;
 
 @Service
 public class ServiceRequestService {
 
-    private static final String DEFAULT_CURRENCY = "XAF";
+    // Table de routage FSM — analogie : table de routage réseau
+    private static final Map<ServiceRequest.Status, List<ServiceRequest.Status>> VALID_TRANSITIONS =
+            Map.of(
+                ServiceRequest.Status.PENDING,     List.of(ServiceRequest.Status.ACCEPTED, ServiceRequest.Status.CANCELLED),
+                ServiceRequest.Status.ACCEPTED,    List.of(ServiceRequest.Status.IN_PROGRESS, ServiceRequest.Status.CANCELLED),
+                ServiceRequest.Status.IN_PROGRESS, List.of(ServiceRequest.Status.FULFILLED, ServiceRequest.Status.CANCELLED),
+                ServiceRequest.Status.FULFILLED,   List.of(),
+                ServiceRequest.Status.CANCELLED,   List.of()
+            );
 
     private final ServiceRequestRepository serviceRequestRepository;
     private final ActorRepository actorRepository;
-    private final InvoiceRepository invoiceRepository;
     private final ServiceCatalogueRepository serviceCatalogueRepository;
-
-    private static final Map<ServiceRequest.Status, List<ServiceRequest.Status>> VALID_TRANSITIONS;
-
-    static {
-        VALID_TRANSITIONS = new HashMap<>();
-        VALID_TRANSITIONS.put(ServiceRequest.Status.PENDING,
-            List.of(ServiceRequest.Status.ACCEPTED, ServiceRequest.Status.CANCELLED));
-        VALID_TRANSITIONS.put(ServiceRequest.Status.ACCEPTED,
-            List.of(ServiceRequest.Status.IN_PROGRESS, ServiceRequest.Status.CANCELLED));
-        VALID_TRANSITIONS.put(ServiceRequest.Status.IN_PROGRESS,
-            List.of(ServiceRequest.Status.FULFILLED, ServiceRequest.Status.CANCELLED));
-        VALID_TRANSITIONS.put(ServiceRequest.Status.FULFILLED, List.of());
-        VALID_TRANSITIONS.put(ServiceRequest.Status.CANCELLED, List.of());
-    }
+    private final InvoiceRepository invoiceRepository;
 
     public ServiceRequestService(ServiceRequestRepository serviceRequestRepository,
                                  ActorRepository actorRepository,
-                                 InvoiceRepository invoiceRepository,
-                                 ServiceCatalogueRepository serviceCatalogueRepository) {
+                                 ServiceCatalogueRepository serviceCatalogueRepository,
+                                 InvoiceRepository invoiceRepository) {
         this.serviceRequestRepository = serviceRequestRepository;
         this.actorRepository = actorRepository;
-        this.invoiceRepository = invoiceRepository;
         this.serviceCatalogueRepository = serviceCatalogueRepository;
+        this.invoiceRepository = invoiceRepository;
     }
 
-    private void validateTransition(ServiceRequest request, ServiceRequest.Status newStatus) {
-        ServiceRequest.Status currentStatus = request.getStatus();
-        List<ServiceRequest.Status> allowedTransitions = VALID_TRANSITIONS.get(currentStatus);
-        if (allowedTransitions == null || !allowedTransitions.contains(newStatus)) {
-            throw new IllegalStateException(
-                String.format("Invalid state transition: cannot transition from %s to %s.", currentStatus, newStatus));
-        }
-    }
-
-    private void validateProvider(ServiceRequest request, UUID userActorId) {
-        if (request.getProvider() == null || !request.getProvider().getId().equals(userActorId)) {
-            throw new AccessDeniedException("Only the provider can perform this action.");
-        }
-    }
-
-    private void validateConsumer(ServiceRequest request, UUID userActorId) {
-        if (request.getConsumer() == null || !request.getConsumer().getId().equals(userActorId)) {
-            throw new AccessDeniedException("Only the consumer can perform this action.");
-        }
-    }
+    // ── Lecture tenant-aware ──────────────────────────────────────────────────
 
     public Page<ServiceRequest> findAll(Pageable pageable) {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return serviceRequestRepository.findAllByTenantId(tenantId, pageable);
+        }
         return serviceRequestRepository.findAll(pageable);
     }
 
@@ -88,23 +65,39 @@ public class ServiceRequestService {
     }
 
     public List<ServiceRequest> findByConsumer(UUID consumerId) {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return serviceRequestRepository.findByConsumerIdAndTenantId(consumerId, tenantId);
+        }
         return serviceRequestRepository.findByConsumerId(consumerId);
     }
 
     public List<ServiceRequest> findByProvider(UUID providerId) {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return serviceRequestRepository.findByProviderIdAndTenantId(providerId, tenantId);
+        }
         return serviceRequestRepository.findByProviderId(providerId);
     }
 
     public List<ServiceRequest> findByStatus(ServiceRequest.Status status) {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return serviceRequestRepository.findByStatusAndTenantId(status, tenantId);
+        }
         return serviceRequestRepository.findByStatus(status);
     }
 
+    // ── Création ──────────────────────────────────────────────────────────────
+
+    /**
+     * Crée une ServiceRequest (paquet réseau CdS → FdS).
+     * - requestedAt est géré par @PrePersist sur ServiceRequest
+     * - correlationId est géré par @PrePersist si non fourni
+     * - tenant hérité du consumer (jamais fourni par le client)
+     */
     public ServiceRequest save(UUID consumerId, UUID providerId,
                                UUID serviceCatalogueId, ServiceRequest request) {
-        if (consumerId.equals(providerId)) {
-            throw new IllegalArgumentException("Un utilisateur ne peut pas être à la fois le consommateur et le fournisseur du même service.");
-        }
-
         Actor consumer = actorRepository.findById(consumerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Actor (consumer)", consumerId.toString()));
         Actor provider = actorRepository.findById(providerId)
@@ -115,84 +108,109 @@ public class ServiceRequestService {
         request.setConsumer(consumer);
         request.setProvider(provider);
         request.setServiceCatalogue(catalogue);
-        request.setServiceName(catalogue.getName());
+        request.setStatus(ServiceRequest.Status.PENDING);
+        request.setTraceId(UUID.randomUUID());
+
+        // Tenant hérité du consumer via son User (jamais surchargeable par le client)
+        if (consumer.getUser() != null && consumer.getUser().getTenant() != null) {
+            request.setTenant(consumer.getUser().getTenant());
+        }
+
         return serviceRequestRepository.save(request);
     }
 
-    @Transactional
+    // ── Transitions FSM ───────────────────────────────────────────────────────
+
+    public ServiceRequest accept(UUID id, UUID actorId) {
+        ServiceRequest sr = findAndValidateActor(id, actorId, "provider");
+        transitionTo(sr, ServiceRequest.Status.ACCEPTED);
+        sr.setAcceptedAt(java.time.LocalDateTime.now());
+        return serviceRequestRepository.save(sr);
+    }
+
+    public ServiceRequest start(UUID id, UUID actorId) {
+        ServiceRequest sr = findAndValidateActor(id, actorId, "provider");
+        transitionTo(sr, ServiceRequest.Status.IN_PROGRESS);
+        sr.setStartedAt(java.time.LocalDateTime.now());
+        return serviceRequestRepository.save(sr);
+    }
+
+    /**
+     * Marque la demande FULFILLED et génère automatiquement la facture (ACK réseau).
+     * issuedAt sur Invoice est géré par @PrePersist — ne pas appeler setIssuedAt().
+     */
     public FulfillResponseDTO fulfill(UUID id) {
-        ServiceRequest request = serviceRequestRepository.findById(id)
+        ServiceRequest sr = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        validateTransition(request, ServiceRequest.Status.FULFILLED);
 
-        if (invoiceRepository.findByServiceRequestId(id).isPresent()) {
-            throw new IllegalStateException("An invoice already exists for this service request.");
-        }
+        transitionTo(sr, ServiceRequest.Status.FULFILLED);
+        sr.setFulfilledAt(java.time.LocalDateTime.now());
+        serviceRequestRepository.save(sr);
 
-        ServiceCatalogue catalogue = request.getServiceCatalogue();
-        BigDecimal amount = catalogue.getBasePrice();
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalStateException("Invalid invoice amount: must be greater than 0.");
-        }
-
-        String currency = catalogue.getCurrency();
-        if (currency == null || currency.isBlank()) {
-            currency = DEFAULT_CURRENCY;
-        }
-
-        request.setStatus(ServiceRequest.Status.FULFILLED);
-        request.setFulfilledAt(LocalDateTime.now());
-        serviceRequestRepository.save(request);
-
+        // Génération automatique de la facture (ACK)
         Invoice invoice = new Invoice();
-        invoice.setServiceRequest(request);
-        invoice.setAmount(amount);
-        invoice.setCurrency(currency);
+        invoice.setServiceRequest(sr);
         invoice.setStatus(Invoice.Status.PENDING);
-        Invoice savedInvoice = invoiceRepository.save(invoice);
+        // issuedAt : géré par @PrePersist → NE PAS appeler setIssuedAt()
 
-        return FulfillResponseDTO.fromEntities(request, savedInvoice);
+        // Prix depuis le catalogue si disponible
+        if (sr.getServiceCatalogue() != null && sr.getServiceCatalogue().getBasePrice() != null) {
+            invoice.setAmount(sr.getServiceCatalogue().getBasePrice());
+            invoice.setCurrency(sr.getServiceCatalogue().getCurrency() != null
+                    ? sr.getServiceCatalogue().getCurrency() : "XAF");
+        } else {
+            invoice.setCurrency("XAF");
+        }
+
+        Invoice saved = invoiceRepository.save(invoice);
+
+        return new FulfillResponseDTO(
+                ServiceRequestDTO.fromEntity(sr),
+                InvoiceDTO.fromEntity(saved)
+        );
     }
 
-    public ServiceRequest accept(UUID id, UUID userActorId) {
-        ServiceRequest request = serviceRequestRepository.findById(id)
+    public ServiceRequest cancel(UUID id, UUID actorId) {
+        ServiceRequest sr = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        validateProvider(request, userActorId);
-        validateTransition(request, ServiceRequest.Status.ACCEPTED);
-        request.setStatus(ServiceRequest.Status.ACCEPTED);
-        request.setAcceptedAt(LocalDateTime.now());
-        return serviceRequestRepository.save(request);
-    }
-
-    public ServiceRequest start(UUID id, UUID userActorId) {
-        ServiceRequest request = serviceRequestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        validateProvider(request, userActorId);
-        validateTransition(request, ServiceRequest.Status.IN_PROGRESS);
-        request.setStatus(ServiceRequest.Status.IN_PROGRESS);
-        request.setStartedAt(LocalDateTime.now());
-        return serviceRequestRepository.save(request);
-    }
-
-    public ServiceRequest cancel(UUID id, UUID userActorId) {
-        ServiceRequest request = serviceRequestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        validateConsumer(request, userActorId);
-        validateTransition(request, ServiceRequest.Status.CANCELLED);
-        request.setStatus(ServiceRequest.Status.CANCELLED);
-        request.setCancelledAt(LocalDateTime.now());
-        return serviceRequestRepository.save(request);
-    }
-
-    public ServiceRequest cancel(UUID id) {
-        ServiceRequest request = serviceRequestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        validateTransition(request, ServiceRequest.Status.CANCELLED);
-        request.setStatus(ServiceRequest.Status.CANCELLED);
-        return serviceRequestRepository.save(request);
+        transitionTo(sr, ServiceRequest.Status.CANCELLED);
+        sr.setCancelledAt(java.time.LocalDateTime.now());
+        return serviceRequestRepository.save(sr);
     }
 
     public void deleteById(UUID id) {
         serviceRequestRepository.deleteById(id);
+    }
+
+    // ── Helpers privés ────────────────────────────────────────────────────────
+
+    private void transitionTo(ServiceRequest sr, ServiceRequest.Status target) {
+        List<ServiceRequest.Status> allowed = VALID_TRANSITIONS.get(sr.getStatus());
+        if (allowed == null || !allowed.contains(target)) {
+            throw new IllegalStateException(
+                    "Transition invalide : " + sr.getStatus() + " → " + target
+                    + ". Transitions autorisées depuis cet état : " + allowed);
+        }
+        sr.setStatus(target);
+    }
+
+    private ServiceRequest findAndValidateActor(UUID srId, UUID actorId, String expectedRole) {
+        ServiceRequest sr = serviceRequestRepository.findById(srId)
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", srId.toString()));
+        actorRepository.findById(actorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Actor", actorId.toString()));
+
+        boolean isProvider = sr.getProvider() != null && sr.getProvider().getId().equals(actorId);
+        boolean isConsumer = sr.getConsumer() != null && sr.getConsumer().getId().equals(actorId);
+
+        if ("provider".equals(expectedRole) && !isProvider) {
+            throw new IllegalArgumentException(
+                    "L'acteur " + actorId + " n'est pas le provider de cette demande.");
+        }
+        if ("consumer".equals(expectedRole) && !isConsumer) {
+            throw new IllegalArgumentException(
+                    "L'acteur " + actorId + " n'est pas le consumer de cette demande.");
+        }
+        return sr;
     }
 }

@@ -26,3 +26,6 @@ Thumbs.db
 
 # Docker
 docker-volumes/
+
+# Rapport 
+backend/docs/rapport/

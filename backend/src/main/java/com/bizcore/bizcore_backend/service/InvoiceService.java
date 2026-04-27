@@ -6,7 +6,9 @@ import com.bizcore.bizcore_backend.domain.SupportedCurrency;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.InvoiceRepository;
 import com.bizcore.bizcore_backend.repository.ServiceRequestRepository;
+import com.bizcore.bizcore_backend.security.TenantContext;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +26,15 @@ public class InvoiceService {
         this.serviceRequestRepository = serviceRequestRepository;
     }
 
+    /**
+     * Retourne les factures du tenant courant (si défini), sinon toutes.
+     * Signature sans Pageable pour compatibilité InvoiceController existant.
+     */
     public List<Invoice> findAll() {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return invoiceRepository.findAllByTenantId(tenantId);
+        }
         return invoiceRepository.findAll();
     }
 
@@ -33,12 +43,25 @@ public class InvoiceService {
     }
 
     public Optional<Invoice> findByServiceRequestId(UUID serviceRequestId) {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return invoiceRepository.findByServiceRequestIdAndTenantId(serviceRequestId, tenantId);
+        }
         return invoiceRepository.findByServiceRequestId(serviceRequestId);
+    }
+
+    public List<Invoice> findByStatus(Invoice.Status status) {
+        UUID tenantId = TenantContext.getTenantId();
+        if (tenantId != null) {
+            return invoiceRepository.findByStatusAndTenantId(status, tenantId);
+        }
+        return invoiceRepository.findByStatus(status);
     }
 
     public Invoice save(UUID serviceRequestId, Invoice invoice) {
         ServiceRequest serviceRequest = serviceRequestRepository.findById(serviceRequestId)
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", serviceRequestId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest",
+                        serviceRequestId.toString()));
 
         if (invoice.getCurrency() != null
                 && !SupportedCurrency.isSupported(invoice.getCurrency())) {
@@ -51,6 +74,8 @@ public class InvoiceService {
         }
 
         invoice.setServiceRequest(serviceRequest);
+        // issuedAt est géré automatiquement par @PrePersist sur Invoice
+
         return invoiceRepository.save(invoice);
     }
 

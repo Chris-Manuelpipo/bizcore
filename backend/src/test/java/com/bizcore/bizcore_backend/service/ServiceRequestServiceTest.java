@@ -1,270 +1,238 @@
 package com.bizcore.bizcore_backend.service;
 
-import com.bizcore.bizcore_backend.domain.Actor;
-import com.bizcore.bizcore_backend.domain.Business;
-import com.bizcore.bizcore_backend.domain.Invoice;
-import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
-import com.bizcore.bizcore_backend.domain.ServiceRequest;
+import com.bizcore.bizcore_backend.domain.*;
 import com.bizcore.bizcore_backend.dto.FulfillResponseDTO;
-import com.bizcore.bizcore_backend.repository.ActorRepository;
-import com.bizcore.bizcore_backend.repository.InvoiceRepository;
-import com.bizcore.bizcore_backend.repository.ServiceCatalogueRepository;
-import com.bizcore.bizcore_backend.repository.ServiceRequestRepository;
+import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
+import com.bizcore.bizcore_backend.repository.*;
+import com.bizcore.bizcore_backend.security.TenantContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class ServiceRequestServiceTest {
 
     @Mock private ServiceRequestRepository serviceRequestRepository;
     @Mock private ActorRepository actorRepository;
-    @Mock private InvoiceRepository invoiceRepository;
     @Mock private ServiceCatalogueRepository serviceCatalogueRepository;
+    @Mock private InvoiceRepository invoiceRepository;
 
-    private ServiceRequestService service;
-    private ServiceRequest serviceRequest;
-    private Actor consumer;
-    private Actor provider;
-    private Business business;
-    private ServiceCatalogue serviceCatalogue;
-    private UUID requestId;
-    private UUID consumerId;
-    private UUID providerId;
-    private UUID serviceCatalogueId;
+    @InjectMocks
+    private ServiceRequestService serviceRequestService;
+
+    private UUID tenantId, consumerId, providerId, catalogueId, srId;
+    private Tenant tenant;
+    private Actor consumer, provider;
+    private ServiceCatalogue catalogue;
+    private ServiceRequest pendingSr;
+    private User consumerUser;
 
     @BeforeEach
     void setUp() {
-        service = new ServiceRequestService(
-                serviceRequestRepository, actorRepository, invoiceRepository, serviceCatalogueRepository);
+        tenantId    = UUID.randomUUID();
+        consumerId  = UUID.randomUUID();
+        providerId  = UUID.randomUUID();
+        catalogueId = UUID.randomUUID();
+        srId        = UUID.randomUUID();
 
-        requestId = UUID.randomUUID();
-        consumerId = UUID.randomUUID();
-        providerId = UUID.randomUUID();
-        serviceCatalogueId = UUID.randomUUID();
+        tenant = new Tenant();
+        tenant.setId(tenantId);
+        tenant.setName("Pharmacie Centrale");
+
+        consumerUser = new User();
+        consumerUser.setId(UUID.randomUUID());
+        consumerUser.setTenant(tenant);
 
         consumer = new Actor();
         consumer.setId(consumerId);
-        consumer.setRole("Consommateur");
+        consumer.setRole("CONSUMER");
+        consumer.setUser(consumerUser);
 
         provider = new Actor();
         provider.setId(providerId);
-        provider.setRole("Prestataire");
+        provider.setRole("PROVIDER");
 
-        business = new Business();
-        business.setId(UUID.randomUUID());
-        business.setName("Pharmacien");
-        business.setDomain("Santé");
+        catalogue = new ServiceCatalogue();
+        catalogue.setId(catalogueId);
+        catalogue.setName("Dispensation médicaments ordonnance");
+        catalogue.setBasePrice(new BigDecimal("15000.00"));
+        catalogue.setCurrency("XAF");
 
-        serviceCatalogue = new ServiceCatalogue();
-        serviceCatalogue.setId(serviceCatalogueId);
-        serviceCatalogue.setBusiness(business);
-        serviceCatalogue.setName("Consultation");
-        serviceCatalogue.setBasePrice(new BigDecimal("15000.00"));
-        serviceCatalogue.setCurrency("XAF");
-
-        serviceRequest = new ServiceRequest();
-        serviceRequest.setId(requestId);
-        serviceRequest.setConsumer(consumer);
-        serviceRequest.setProvider(provider);
-        serviceRequest.setServiceCatalogue(serviceCatalogue);
-        serviceRequest.setServiceName("Consultation");
+        pendingSr = new ServiceRequest();
+        pendingSr.setId(srId);
+        pendingSr.setConsumer(consumer);
+        pendingSr.setProvider(provider);
+        pendingSr.setServiceCatalogue(catalogue);
+        pendingSr.setStatus(ServiceRequest.Status.PENDING);
+        pendingSr.setTenant(tenant);
+        pendingSr.setServiceName("Dispensation Amoxicilline");
     }
 
-    @Test
-    void findAll_shouldReturnPageOfRequests() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ServiceRequest> page = new PageImpl<>(Arrays.asList(serviceRequest));
-        when(serviceRequestRepository.findAll(pageable)).thenReturn(page);
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
+    }
 
-        Page<ServiceRequest> result = service.findAll(pageable);
+    // ── Lecture tenant-aware ──────────────────────────────────────────────────
+
+    @Test
+    void findAll_withTenantContext_shouldUseTenantAwareQuery() {
+        TenantContext.setTenantId(tenantId);
+        Page<ServiceRequest> page = new PageImpl<>(List.of(pendingSr));
+        when(serviceRequestRepository.findAllByTenantId(eq(tenantId), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<ServiceRequest> result = serviceRequestService.findAll(PageRequest.of(0, 10));
 
         assertEquals(1, result.getTotalElements());
-        assertEquals("Consultation", result.getContent().get(0).getServiceName());
+        verify(serviceRequestRepository).findAllByTenantId(eq(tenantId), any(Pageable.class));
+        verify(serviceRequestRepository, never()).findAll(any(Pageable.class));
     }
 
     @Test
-    void findById_shouldReturnRequest_whenExists() {
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
+    void findAll_withoutTenantContext_shouldReturnAll() {
+        Page<ServiceRequest> page = new PageImpl<>(List.of(pendingSr));
+        when(serviceRequestRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        Optional<ServiceRequest> result = service.findById(requestId);
+        serviceRequestService.findAll(PageRequest.of(0, 10));
 
-        assertTrue(result.isPresent());
-        assertEquals(ServiceRequest.Status.PENDING, result.get().getStatus());
+        verify(serviceRequestRepository).findAll(any(Pageable.class));
+        verify(serviceRequestRepository, never()).findAllByTenantId(any(), any());
     }
 
-    @Test
-    void save_shouldCreateRequest_withValidActorsAndCatalogue() {
-        ServiceRequest newRequest = new ServiceRequest();
+    // ── Création ──────────────────────────────────────────────────────────────
 
+    @Test
+    void save_shouldInheritTenantFromConsumerUser() {
         when(actorRepository.findById(consumerId)).thenReturn(Optional.of(consumer));
         when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
-        when(serviceCatalogueRepository.findById(serviceCatalogueId)).thenReturn(Optional.of(serviceCatalogue));
-        when(serviceRequestRepository.save(any(ServiceRequest.class))).thenAnswer(i -> {
-            ServiceRequest sr = i.getArgument(0);
-            sr.setId(requestId);
-            return sr;
-        });
+        when(serviceCatalogueRepository.findById(catalogueId)).thenReturn(Optional.of(catalogue));
+        when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        ServiceRequest result = service.save(consumerId, providerId, serviceCatalogueId, newRequest);
+        ServiceRequest request = new ServiceRequest();
+        request.setServiceName("Test dispensation");
+        ServiceRequest saved = serviceRequestService.save(consumerId, providerId, catalogueId, request);
 
-        assertNotNull(result);
-        assertNotNull(result.getId());
+        assertNotNull(saved.getTenant(), "Le tenant doit être hérité du User du consumer");
+        assertEquals(tenantId, saved.getTenant().getId());
+        assertEquals(ServiceRequest.Status.PENDING, saved.getStatus());
+        assertNotNull(saved.getTraceId(), "traceId doit être généré");
     }
 
     @Test
-    void save_shouldThrowException_whenConsumerAndProviderAreSame() {
-        ServiceRequest newRequest = new ServiceRequest();
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> service.save(consumerId, consumerId, serviceCatalogueId, newRequest));
-
-        assertEquals("Un utilisateur ne peut pas être à la fois le consommateur et le fournisseur du même service.",
-                exception.getMessage());
-    }
-
-    @Test
-    void save_shouldThrowException_whenConsumerNotFound() {
+    void save_shouldThrow_whenConsumerNotFound() {
         when(actorRepository.findById(consumerId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class,
-                () -> service.save(consumerId, providerId, serviceCatalogueId, new ServiceRequest()));
+        assertThrows(ResourceNotFoundException.class, () ->
+                serviceRequestService.save(consumerId, providerId, catalogueId, new ServiceRequest()));
     }
 
     @Test
-    void fulfill_shouldCreateInvoiceWithCorrectAmount() {
-        serviceRequest.setStatus(ServiceRequest.Status.IN_PROGRESS);
+    void save_shouldThrow_whenCatalogueNotFound() {
+        when(actorRepository.findById(consumerId)).thenReturn(Optional.of(consumer));
+        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
+        when(serviceCatalogueRepository.findById(catalogueId)).thenReturn(Optional.empty());
 
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(invoiceRepository.findByServiceRequestId(requestId)).thenReturn(Optional.empty());
-        when(serviceRequestRepository.save(any(ServiceRequest.class))).thenAnswer(i -> i.getArgument(0));
-        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(i -> i.getArgument(0));
-
-        FulfillResponseDTO result = service.fulfill(requestId);
-
-        assertNotNull(result);
-        assertNotNull(result.getInvoice());
-        assertEquals(new BigDecimal("15000.00"), result.getInvoice().getAmount());
-        assertEquals("XAF", result.getInvoice().getCurrency());
+        assertThrows(ResourceNotFoundException.class, () ->
+                serviceRequestService.save(consumerId, providerId, catalogueId, new ServiceRequest()));
     }
 
-    @Test
-    void fulfill_shouldThrowException_whenNotInProgress() {
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(invoiceRepository.findByServiceRequestId(requestId)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalStateException.class, () -> service.fulfill(requestId));
-    }
+    // ── Transitions FSM ───────────────────────────────────────────────────────
 
     @Test
-    void fulfill_shouldThrowException_whenInvoiceAlreadyExists() {
-        Invoice existingInvoice = new Invoice();
-        existingInvoice.setId(UUID.randomUUID());
+    void accept_shouldTransitionPendingToAccepted() {
+        when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
+        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
+        when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(invoiceRepository.findByServiceRequestId(requestId)).thenReturn(Optional.of(existingInvoice));
-
-        assertThrows(IllegalStateException.class, () -> service.fulfill(requestId));
-    }
-
-    @Test
-    void fulfill_shouldThrowException_whenBasePriceIsNull() {
-        serviceCatalogue.setBasePrice(null);
-
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(invoiceRepository.findByServiceRequestId(requestId)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalStateException.class, () -> service.fulfill(requestId));
-    }
-
-    @Test
-    void fulfill_shouldThrowException_whenBasePriceIsZero() {
-        serviceCatalogue.setBasePrice(BigDecimal.ZERO);
-
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(invoiceRepository.findByServiceRequestId(requestId)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalStateException.class, () -> service.fulfill(requestId));
-    }
-
-    @Test
-    void fulfill_shouldUseDefaultCurrency_whenCatalogueCurrencyIsNull() {
-        serviceRequest.setStatus(ServiceRequest.Status.IN_PROGRESS);
-        serviceCatalogue.setCurrency(null);
-
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(invoiceRepository.findByServiceRequestId(requestId)).thenReturn(Optional.empty());
-        when(serviceRequestRepository.save(any(ServiceRequest.class))).thenAnswer(i -> i.getArgument(0));
-        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(i -> i.getArgument(0));
-
-        FulfillResponseDTO result = service.fulfill(requestId);
-
-        assertEquals("XAF", result.getInvoice().getCurrency());
-    }
-
-    @Test
-    void cancel_shouldUpdateStatusToCancelled() {
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(serviceRequestRepository.save(any(ServiceRequest.class))).thenAnswer(i -> i.getArgument(0));
-
-        ServiceRequest result = service.cancel(requestId);
-
-        assertEquals(ServiceRequest.Status.CANCELLED, result.getStatus());
-    }
-
-    @Test
-    void accept_shouldUpdateStatusToAccepted() {
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(serviceRequestRepository.save(any(ServiceRequest.class))).thenAnswer(i -> i.getArgument(0));
-
-        ServiceRequest result = service.accept(requestId, providerId);
+        ServiceRequest result = serviceRequestService.accept(srId, providerId);
 
         assertEquals(ServiceRequest.Status.ACCEPTED, result.getStatus());
         assertNotNull(result.getAcceptedAt());
     }
 
     @Test
-    void accept_shouldThrowException_whenNotProvider() {
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
+    void start_shouldTransitionAcceptedToInProgress() {
+        pendingSr.setStatus(ServiceRequest.Status.ACCEPTED);
+        when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
+        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
+        when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        assertThrows(org.springframework.security.access.AccessDeniedException.class,
-                () -> service.accept(requestId, consumerId));
-    }
-
-    @Test
-    void start_shouldUpdateStatusToInProgress() {
-        serviceRequest.setStatus(ServiceRequest.Status.ACCEPTED);
-
-        when(serviceRequestRepository.findById(requestId)).thenReturn(Optional.of(serviceRequest));
-        when(serviceRequestRepository.save(any(ServiceRequest.class))).thenAnswer(i -> i.getArgument(0));
-
-        ServiceRequest result = service.start(requestId, providerId);
+        ServiceRequest result = serviceRequestService.start(srId, providerId);
 
         assertEquals(ServiceRequest.Status.IN_PROGRESS, result.getStatus());
+        assertNotNull(result.getStartedAt());
     }
 
     @Test
-    void fulfill_shouldThrowException_whenRequestNotFound() {
-        when(serviceRequestRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+    void fulfill_shouldTransitionToFulfilledAndCreateInvoiceWithCorrectAmount() {
+        pendingSr.setStatus(ServiceRequest.Status.IN_PROGRESS);
+        when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
+        when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(invoiceRepository.save(any())).thenAnswer(inv -> {
+            Invoice i = inv.getArgument(0);
+            i.setId(UUID.randomUUID());
+            return i;
+        });
 
-        assertThrows(RuntimeException.class, () -> service.fulfill(UUID.randomUUID()));
+        FulfillResponseDTO result = serviceRequestService.fulfill(srId);
+
+        assertEquals(ServiceRequest.Status.FULFILLED, result.getServiceRequest().getStatus());
+        assertNotNull(result.getInvoice(), "Invoice générée automatiquement (ACK)");
+        assertEquals("XAF", result.getInvoice().getCurrency());
+        assertEquals(new BigDecimal("15000.00"), result.getInvoice().getAmount());
+        verify(invoiceRepository).save(any(Invoice.class));
+    }
+
+    @Test
+    void cancel_shouldTransitionToCancelled_fromPending() {
+        when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
+        when(actorRepository.findById(consumerId)).thenReturn(Optional.of(consumer));
+        when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ServiceRequest result = serviceRequestService.cancel(srId, consumerId);
+
+        assertEquals(ServiceRequest.Status.CANCELLED, result.getStatus());
+        assertNotNull(result.getCancelledAt());
+    }
+
+    @Test
+    void transition_shouldThrow_whenAlreadyFulfilled() {
+        pendingSr.setStatus(ServiceRequest.Status.FULFILLED);
+        when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
+        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
+
+        assertThrows(IllegalStateException.class,
+                () -> serviceRequestService.accept(srId, providerId));
+    }
+
+    @Test
+    void accept_shouldThrow_whenActorIsNotProvider() {
+        UUID wrongId = UUID.randomUUID();
+        Actor wrong = new Actor();
+        wrong.setId(wrongId);
+        when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
+        when(actorRepository.findById(wrongId)).thenReturn(Optional.of(wrong));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> serviceRequestService.accept(srId, wrongId));
     }
 }

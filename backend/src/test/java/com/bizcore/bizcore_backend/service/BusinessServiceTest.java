@@ -1,7 +1,9 @@
 package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Business;
+import com.bizcore.bizcore_backend.domain.Tenant;
 import com.bizcore.bizcore_backend.repository.BusinessRepository;
+import com.bizcore.bizcore_backend.repository.TenantRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,15 +30,26 @@ class BusinessServiceTest {
     @Mock
     private BusinessRepository businessRepository;
 
+    @Mock
+    private TenantRepository tenantRepository;
+
     @InjectMocks
     private BusinessService businessService;
 
     private Business business;
     private UUID businessId;
+    private UUID tenantId;
+    private Tenant tenant;
 
     @BeforeEach
     void setUp() {
         businessId = UUID.randomUUID();
+        tenantId = UUID.randomUUID();
+        tenant = new Tenant();
+        tenant.setId(tenantId);
+        tenant.setName("Pharmacie Centrale");
+        tenant.setDomain("Santé");
+
         business = new Business();
         business.setId(businessId);
         business.setName("Pharmacien");
@@ -91,9 +104,10 @@ class BusinessServiceTest {
 
     @Test
     void save_shouldSaveBusiness() {
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         when(businessRepository.save(any(Business.class))).thenReturn(business);
 
-        Business result = businessService.save(business);
+        Business result = businessService.save(tenantId, business);
 
         assertNotNull(result);
         assertEquals("Pharmacien", result.getName());
@@ -109,10 +123,11 @@ class BusinessServiceTest {
         updated.setNeededEducation("Doctorat + spécialisation");
         updated.setNeededTraining("Stage 12 mois");
 
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         when(businessRepository.findById(businessId)).thenReturn(Optional.of(business));
         when(businessRepository.save(any(Business.class))).thenReturn(updated);
 
-        Business result = businessService.update(businessId, updated);
+        Business result = businessService.update(businessId, tenantId, updated);
 
         assertEquals("Pharmacien Senior", result.getName());
         verify(businessRepository, times(1)).save(any());
@@ -120,10 +135,11 @@ class BusinessServiceTest {
 
     @Test
     void update_shouldThrowException_whenNotExists() {
+        when(tenantRepository.findById(any(UUID.class))).thenReturn(Optional.of(tenant));
         when(businessRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class,
-                () -> businessService.update(UUID.randomUUID(), business));
+                () -> businessService.update(UUID.randomUUID(), tenantId, business));
     }
 
     @Test

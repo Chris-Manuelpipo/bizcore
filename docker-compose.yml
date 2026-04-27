@@ -12,3 +12,6 @@ services:
       - postgres-data:/var/lib/postgresql/data
 volumes:
   postgres-data:
+
+
+# psql postgresql://mon_utilisateur:mon_mot_de_passe@localhost:5432/ma_base

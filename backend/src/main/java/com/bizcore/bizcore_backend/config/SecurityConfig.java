@@ -1,6 +1,7 @@
 package com.bizcore.bizcore_backend.config;
 
 import com.bizcore.bizcore_backend.security.JwtAuthFilter;
+import com.bizcore.bizcore_backend.security.TenantFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,10 +24,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final TenantFilter tenantFilter;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          TenantFilter tenantFilter,
+                          UserDetailsService userDetailsService) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.tenantFilter = tenantFilter;
         this.userDetailsService = userDetailsService;
     }
 
@@ -50,7 +55,11 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // Chaîne de filtres :
+                //   1. JwtAuthFilter  → valide le token, charge UserDetails
+                //   2. TenantFilter   → extrait tenantId → TenantContext (VLAN)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tenantFilter, JwtAuthFilter.class);
 
         return http.build();
     }

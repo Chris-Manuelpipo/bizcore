@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <!--
+    Migration 002 — Corriger le schéma pour correspondre aux entités JPA
+    - Portfolio.actor_id (relation 1:1 avec Actor)
+    - Business.needed_education, Business.needed_training
+  -->
+
+  <!-- ── Portfolio: ajouter actor_id ── -->
+  <changeSet id="014" author="bizcore">
+    <addColumn tableName="portfolios">
+      <column name="actor_id" type="uuid">
+        <constraints nullable="false" unique="true"/>
+      </column>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_portfolios_actor"
+      baseTableName="portfolios"
+      baseColumnNames="actor_id"
+      referencedTableName="actors"
+      referencedColumnNames="id"/>
+    <createIndex tableName="portfolios" indexName="idx_portfolios_actor_id">
+      <column name="actor_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ── Business: ajouter needed_education et needed_training ── -->
+  <changeSet id="015" author="bizcore">
+    <addColumn tableName="businesses">
+      <column name="needed_education" type="text"/>
+      <column name="needed_training" type="text"/>
+    </addColumn>
+  </changeSet>
+
+</databaseChangeLog>

@@ -36,6 +36,14 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    /**
+     * Extrait l'UUID du tenant embarqué dans le claim "tenantId".
+     * Utilisé par TenantFilter pour alimenter TenantContext.
+     */
+    public String extractTenantId(String token) {
+        return extractClaim(token, claims -> claims.get("tenantId", String.class));
+    }
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -44,12 +52,23 @@ public class JwtService {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         userRepository.findByEmail(userDetails.getUsername()).ifPresent(user -> {
+            // Rôles
             Set<String> roles = user.getRoles().stream()
                     .map(Enum::name)
                     .collect(Collectors.toSet());
             extraClaims.put("roles", roles);
+
+            // Identité
             extraClaims.put("firstName", user.getFirstName());
             extraClaims.put("lastName", user.getLastName());
+
+            // ── Tenant (VLAN d'appartenance) ──────────────────────────────
+            // Embarqué dans le JWT pour que TenantFilter n'ait pas besoin
+            // d'un appel base supplémentaire à chaque requête.
+            if (user.getTenant() != null) {
+                extraClaims.put("tenantId", user.getTenant().getId().toString());
+                extraClaims.put("tenantName", user.getTenant().getName());
+            }
         });
         return generateToken(extraClaims, userDetails);
     }

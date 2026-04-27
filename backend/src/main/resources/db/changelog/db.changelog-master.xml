@@ -5,7 +5,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
 
-    <!-- Schema propre — Sprint 4 refactoring -->
+    <!-- Sprint 3 — Schéma complet refactorisé -->
     <include file="db/changelog/migrations/001-clean-schema.xml"/>
+    <include file="db/changelog/migrations/002-fix-schema.xml"/>
+
+    <!-- Sprint 3 — Données de démonstration (Pharmacie XAF) -->
+    <include file="db/changelog/migrations/003-seed-data.xml"/>
 
 </databaseChangeLog>
