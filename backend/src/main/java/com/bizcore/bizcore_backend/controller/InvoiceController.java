@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/invoices")
-@Tag(name = "Invoices", description = "Gestion des factures — ACK du service rendu")
+@Tag(name = "Invoices", description = "Gestion des factures - ACK du service rendu")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;

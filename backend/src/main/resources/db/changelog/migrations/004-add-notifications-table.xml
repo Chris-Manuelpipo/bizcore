@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="004" author="bizcore">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="notifications"/>
+            </not>
+        </preConditions>
+        <createTable tableName="notifications">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_notification_user" referencedTableName="users" referencedColumnNames="id"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(2000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reference_id" type="UUID"/>
+            <column name="is_read" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_notification_tenant" referencedTableName="tenants" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="notifications" indexName="idx_notifications_user_created">
+            <column name="user_id"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+
+        <createIndex tableName="notifications" indexName="idx_notifications_user_unread">
+            <column name="user_id"/>
+            <column name="is_read"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

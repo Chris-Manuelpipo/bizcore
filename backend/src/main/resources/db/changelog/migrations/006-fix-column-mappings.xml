@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <!--
+        Migration 006 — Correction des mappings schéma ↔ entités JPA
+        ==============================================================
+
+        Problèmes résolus :
+
+        1. service_requests : l'entité ServiceRequest mappe requestedAt sur
+           la colonne "requested_at", mais le schéma n'a que "created_at".
+           → On ajoute "requested_at" et on copie les valeurs existantes.
+
+        2. invoices : l'entité Invoice mappe issuedAt sur "issued_at",
+           mais le schéma n'a que "created_at".
+           → On ajoute "issued_at" et on copie les valeurs existantes.
+
+        3. service_catalogues : l'entité ServiceCatalogue mappe isAvailable
+           sur "is_available", mais le schéma n'a que "is_active".
+           → On ajoute "is_available" et on copie les valeurs existantes.
+
+        Sans ces colonnes, TOUTES les requêtes INSERT/SELECT sur ces entités
+        échouent avec "column not found" côté PostgreSQL.
+    -->
+
+    <changeSet id="016" author="bizcore">
+
+        <!-- ── 1. service_requests : ajouter requested_at ── -->
+        <addColumn tableName="service_requests">
+            <column name="requested_at" type="timestamp"/>
+        </addColumn>
+        <!-- Rétro-remplissage depuis created_at pour les lignes existantes -->
+        <sql>
+            UPDATE service_requests
+            SET requested_at = created_at
+            WHERE requested_at IS NULL;
+        </sql>
+
+        <!-- ── 2. invoices : ajouter issued_at ── -->
+        <addColumn tableName="invoices">
+            <column name="issued_at" type="timestamp"/>
+        </addColumn>
+        <sql>
+            UPDATE invoices
+            SET issued_at = created_at
+            WHERE issued_at IS NULL;
+        </sql>
+
+        <!-- ── 3. service_catalogues : ajouter is_available ── -->
+        <addColumn tableName="service_catalogues">
+            <column name="is_available" type="boolean" defaultValueBoolean="true"/>
+        </addColumn>
+        <sql>
+            UPDATE service_catalogues
+            SET is_available = is_active
+            WHERE is_available IS NULL;
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>

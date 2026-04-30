@@ -2,6 +2,7 @@ package com.bizcore.bizcore_backend.service;
 
 import com.bizcore.bizcore_backend.domain.Business;
 import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
+import com.bizcore.bizcore_backend.dto.CreateServiceCatalogueDTO;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.BusinessRepository;
 import com.bizcore.bizcore_backend.repository.ServiceCatalogueRepository;
@@ -126,44 +127,64 @@ class ServiceCatalogueServiceTest {
         when(businessRepository.findById(businessId)).thenReturn(Optional.of(business));
         when(serviceCatalogueRepository.save(any(ServiceCatalogue.class))).thenReturn(catalogue);
 
-        ServiceCatalogue result = serviceCatalogueService.save(businessId, catalogue);
+        CreateServiceCatalogueDTO dto = new CreateServiceCatalogueDTO();
+        dto.setName("Dispensation médicaments");
+        dto.setDescription("Dispensation sur ordonnance");
+        dto.setBasePrice(new BigDecimal("5000.00"));
+        dto.setCurrency("XAF");
+        dto.setIsAvailable(true);
+
+        ServiceCatalogue result = serviceCatalogueService.save(businessId, dto);
 
         assertNotNull(result);
         assertEquals("Dispensation médicaments", result.getName());
         assertNotNull(result.getBusiness());
         assertEquals(businessId, result.getBusiness().getId());
         verify(businessRepository, times(1)).findById(businessId);
-        verify(serviceCatalogueRepository, times(1)).save(catalogue);
+        verify(serviceCatalogueRepository, times(1)).save(any(ServiceCatalogue.class));
     }
 
     @Test
     void save_shouldThrowException_whenBusinessNotFound() {
         when(businessRepository.findById(businessId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> serviceCatalogueService.save(businessId, catalogue));
+        CreateServiceCatalogueDTO dto = new CreateServiceCatalogueDTO();
+        dto.setName("Dispensation médicaments");
+        dto.setDescription("Dispensation sur ordonnance");
+        dto.setBasePrice(new BigDecimal("5000.00"));
+        dto.setCurrency("XAF");
+        dto.setIsAvailable(true);
+
+        assertThrows(ResourceNotFoundException.class, () -> serviceCatalogueService.save(businessId, dto));
     }
 
     @Test
     void save_shouldThrowException_whenUnsupportedCurrency() {
         when(businessRepository.findById(businessId)).thenReturn(Optional.of(business));
-        catalogue.setCurrency("UNSUPPORTED");
 
-        assertThrows(RuntimeException.class, () -> serviceCatalogueService.save(businessId, catalogue));
+        CreateServiceCatalogueDTO dto = new CreateServiceCatalogueDTO();
+        dto.setName("Dispensation médicaments");
+        dto.setDescription("Dispensation sur ordonnance");
+        dto.setBasePrice(new BigDecimal("5000.00"));
+        dto.setCurrency("UNSUPPORTED");
+        dto.setIsAvailable(true);
+
+        assertThrows(RuntimeException.class, () -> serviceCatalogueService.save(businessId, dto));
     }
 
     @Test
     void update_shouldUpdateCatalogue_whenExists() {
-        ServiceCatalogue updated = new ServiceCatalogue();
-        updated.setName("Updated Name");
-        updated.setDescription("Updated description");
-        updated.setBasePrice(new BigDecimal("10000.00"));
-        updated.setCurrency("XAF");
-        updated.setIsAvailable(false);
+        CreateServiceCatalogueDTO updatedDto = new CreateServiceCatalogueDTO();
+        updatedDto.setName("Updated Name");
+        updatedDto.setDescription("Updated description");
+        updatedDto.setBasePrice(new BigDecimal("10000.00"));
+        updatedDto.setCurrency("XAF");
+        updatedDto.setIsAvailable(false);
 
         when(serviceCatalogueRepository.findById(catalogueId)).thenReturn(Optional.of(catalogue));
         when(serviceCatalogueRepository.save(any(ServiceCatalogue.class))).thenReturn(catalogue);
 
-        ServiceCatalogue result = serviceCatalogueService.update(catalogueId, updated);
+        ServiceCatalogue result = serviceCatalogueService.update(catalogueId, updatedDto);
 
         assertNotNull(result);
         verify(serviceCatalogueRepository, times(1)).findById(catalogueId);
@@ -174,15 +195,28 @@ class ServiceCatalogueServiceTest {
     void update_shouldThrowException_whenCatalogueNotFound() {
         when(serviceCatalogueRepository.findById(catalogueId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> serviceCatalogueService.update(catalogueId, catalogue));
+        CreateServiceCatalogueDTO dto = new CreateServiceCatalogueDTO();
+        dto.setName("Dispensation médicaments");
+        dto.setDescription("Dispensation sur ordonnance");
+        dto.setBasePrice(new BigDecimal("5000.00"));
+        dto.setCurrency("XAF");
+        dto.setIsAvailable(true);
+
+        assertThrows(ResourceNotFoundException.class, () -> serviceCatalogueService.update(catalogueId, dto));
     }
 
     @Test
     void update_shouldThrowException_whenUnsupportedCurrency() {
         when(serviceCatalogueRepository.findById(catalogueId)).thenReturn(Optional.of(catalogue));
-        catalogue.setCurrency("UNSUPPORTED");
 
-        assertThrows(RuntimeException.class, () -> serviceCatalogueService.update(catalogueId, catalogue));
+        CreateServiceCatalogueDTO dto = new CreateServiceCatalogueDTO();
+        dto.setName("Dispensation médicaments");
+        dto.setDescription("Dispensation sur ordonnance");
+        dto.setBasePrice(new BigDecimal("5000.00"));
+        dto.setCurrency("UNSUPPORTED");
+        dto.setIsAvailable(true);
+
+        assertThrows(RuntimeException.class, () -> serviceCatalogueService.update(catalogueId, dto));
     }
 
     @Test

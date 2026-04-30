@@ -21,7 +21,7 @@ import java.util.Map;
         info = @Info(
                 title = "BizCore API",
                 version = "1.0",
-                description = "Business as a Service — API générique de gestion des métiers"
+                description = "Business as a Service - API générique de gestion des métiers"
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )
@@ -38,7 +38,8 @@ public class OpenApiConfig {
     private static final List<String> TAG_ORDER = List.of(
             "Authentication", "Users", "Tenants", "Actors", "Businesses",
             "Service Catalogues", "Service Requests", "Invoices",
-            "Portfolios", "Business Rules", "Resources", "Media", "Currencies"
+            "Portfolios", "Business Rules", "Resources", "Media", "Currencies",
+             "Messages", "Notifications", "Audit tail", "Analytics"
     );
 
     @Bean

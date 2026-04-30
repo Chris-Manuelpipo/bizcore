@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="005" author="bizcore">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="messages"/>
+            </not>
+        </preConditions>
+        <createTable tableName="messages">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_request_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_message_service_request" referencedTableName="service_requests" referencedColumnNames="id"/>
+            </column>
+            <column name="sender_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_message_sender" referencedTableName="actors" referencedColumnNames="id"/>
+            </column>
+            <column name="content" type="VARCHAR(3000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_read" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_message_tenant" referencedTableName="tenants" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="messages" indexName="idx_messages_request_created">
+            <column name="service_request_id"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

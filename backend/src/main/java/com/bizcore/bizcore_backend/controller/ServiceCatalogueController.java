@@ -1,6 +1,7 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
+import com.bizcore.bizcore_backend.dto.CreateServiceCatalogueDTO;
 import com.bizcore.bizcore_backend.dto.ServiceCatalogueDTO;
 import com.bizcore.bizcore_backend.service.ServiceCatalogueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,16 +69,16 @@ public class ServiceCatalogueController {
     @PostMapping("/business/{businessId}")
     @Operation(summary = "Ajouter un service au catalogue d'un métier")
     public ResponseEntity<ServiceCatalogueDTO> create(@PathVariable UUID businessId,
-                                                       @Valid @RequestBody ServiceCatalogue catalogue) {
-        ServiceCatalogue saved = serviceCatalogueService.save(businessId, catalogue);
+                                                       @Valid @RequestBody CreateServiceCatalogueDTO dto) {
+        ServiceCatalogue saved = serviceCatalogueService.save(businessId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ServiceCatalogueDTO.fromEntity(saved));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Mettre à jour un service du catalogue")
     public ResponseEntity<ServiceCatalogueDTO> update(@PathVariable UUID id,
-                                                       @Valid @RequestBody ServiceCatalogue catalogue) {
-        ServiceCatalogue updated = serviceCatalogueService.update(id, catalogue);
+                                                       @Valid @RequestBody CreateServiceCatalogueDTO dto) {
+        ServiceCatalogue updated = serviceCatalogueService.update(id, dto);
         return ResponseEntity.ok(ServiceCatalogueDTO.fromEntity(updated));
     }
 

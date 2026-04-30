@@ -39,15 +39,18 @@ public class ServiceRequestService {
     private final ActorRepository actorRepository;
     private final ServiceCatalogueRepository serviceCatalogueRepository;
     private final InvoiceRepository invoiceRepository;
+    private final AuditService auditService;
 
     public ServiceRequestService(ServiceRequestRepository serviceRequestRepository,
                                  ActorRepository actorRepository,
                                  ServiceCatalogueRepository serviceCatalogueRepository,
-                                 InvoiceRepository invoiceRepository) {
+                                 InvoiceRepository invoiceRepository,
+                                 AuditService auditService) {
         this.serviceRequestRepository = serviceRequestRepository;
         this.actorRepository = actorRepository;
         this.serviceCatalogueRepository = serviceCatalogueRepository;
         this.invoiceRepository = invoiceRepository;
+        this.auditService = auditService;
     }
 
     // ── Lecture tenant-aware ──────────────────────────────────────────────────
@@ -116,21 +119,26 @@ public class ServiceRequestService {
             request.setTenant(consumer.getUser().getTenant());
         }
 
-        return serviceRequestRepository.save(request);
+        ServiceRequest saved = serviceRequestRepository.save(request);
+        
+        // Logger la création dans l'audit trail
+        auditService.logServiceRequestCreated(saved, consumerId);
+        
+        return saved;
     }
 
     // ── Transitions FSM ───────────────────────────────────────────────────────
 
     public ServiceRequest accept(UUID id, UUID actorId) {
         ServiceRequest sr = findAndValidateActor(id, actorId, "provider");
-        transitionTo(sr, ServiceRequest.Status.ACCEPTED);
+        transitionTo(sr, ServiceRequest.Status.ACCEPTED, actorId);
         sr.setAcceptedAt(java.time.LocalDateTime.now());
         return serviceRequestRepository.save(sr);
     }
 
     public ServiceRequest start(UUID id, UUID actorId) {
         ServiceRequest sr = findAndValidateActor(id, actorId, "provider");
-        transitionTo(sr, ServiceRequest.Status.IN_PROGRESS);
+        transitionTo(sr, ServiceRequest.Status.IN_PROGRESS, actorId);
         sr.setStartedAt(java.time.LocalDateTime.now());
         return serviceRequestRepository.save(sr);
     }
@@ -143,7 +151,7 @@ public class ServiceRequestService {
         ServiceRequest sr = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
 
-        transitionTo(sr, ServiceRequest.Status.FULFILLED);
+        transitionTo(sr, ServiceRequest.Status.FULFILLED, sr.getProvider().getId());
         sr.setFulfilledAt(java.time.LocalDateTime.now());
         serviceRequestRepository.save(sr);
 
@@ -173,7 +181,7 @@ public class ServiceRequestService {
     public ServiceRequest cancel(UUID id, UUID actorId) {
         ServiceRequest sr = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        transitionTo(sr, ServiceRequest.Status.CANCELLED);
+        transitionTo(sr, ServiceRequest.Status.CANCELLED, actorId);
         sr.setCancelledAt(java.time.LocalDateTime.now());
         return serviceRequestRepository.save(sr);
     }
@@ -184,7 +192,9 @@ public class ServiceRequestService {
 
     // ── Helpers privés ────────────────────────────────────────────────────────
 
-    private void transitionTo(ServiceRequest sr, ServiceRequest.Status target) {
+    private void transitionTo(ServiceRequest sr, ServiceRequest.Status target, UUID actorId) {
+        ServiceRequest.Status oldStatus = sr.getStatus();
+        
         List<ServiceRequest.Status> allowed = VALID_TRANSITIONS.get(sr.getStatus());
         if (allowed == null || !allowed.contains(target)) {
             throw new IllegalStateException(
@@ -192,6 +202,9 @@ public class ServiceRequestService {
                     + ". Transitions autorisées depuis cet état : " + allowed);
         }
         sr.setStatus(target);
+        
+        // Logger la transition dans l'audit trail - nouvelle transaction séparée
+        auditService.logServiceRequestStatusChange(sr, oldStatus, actorId);
     }
 
     private ServiceRequest findAndValidateActor(UUID srId, UUID actorId, String expectedRole) {

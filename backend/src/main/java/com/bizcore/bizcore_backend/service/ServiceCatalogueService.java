@@ -3,6 +3,7 @@ package com.bizcore.bizcore_backend.service;
 import com.bizcore.bizcore_backend.domain.Business;
 import com.bizcore.bizcore_backend.domain.ServiceCatalogue;
 import com.bizcore.bizcore_backend.domain.SupportedCurrency;
+import com.bizcore.bizcore_backend.dto.CreateServiceCatalogueDTO;
 import com.bizcore.bizcore_backend.exception.ResourceNotFoundException;
 import com.bizcore.bizcore_backend.repository.BusinessRepository;
 import com.bizcore.bizcore_backend.repository.ServiceCatalogueRepository;
@@ -43,34 +44,52 @@ public class ServiceCatalogueService {
         return serviceCatalogueRepository.findByNameContainingIgnoreCase(name);
     }
 
-    public ServiceCatalogue save(UUID businessId, ServiceCatalogue catalogue) {
+    public ServiceCatalogue save(UUID businessId, CreateServiceCatalogueDTO dto) {
         Business business = businessRepository.findById(businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("Business", businessId.toString()));
 
-        if (catalogue.getCurrency() != null
-                && !SupportedCurrency.isSupported(catalogue.getCurrency())) {
-            throw new RuntimeException("Devise non supportée : " + catalogue.getCurrency()
+        if (dto.getCurrency() != null
+                && !SupportedCurrency.isSupported(dto.getCurrency())) {
+            throw new RuntimeException("Devise non supportée : " + dto.getCurrency()
                     + ". Devises acceptées : XAF, XOF, NGN, KES, GHS, USD, EUR, GBP");
         }
 
+        ServiceCatalogue catalogue = new ServiceCatalogue();
         catalogue.setBusiness(business);
+        catalogue.setName(dto.getName());
+        catalogue.setDescription(dto.getDescription());
+        catalogue.setBasePrice(dto.getBasePrice());
+        catalogue.setCurrency(dto.getCurrency() != null ? dto.getCurrency() : "XAF");
+        catalogue.setIsAvailable(dto.getIsAvailable() != null ? dto.getIsAvailable() : true);
+        
         return serviceCatalogueRepository.save(catalogue);
     }
 
-    public ServiceCatalogue update(UUID id, ServiceCatalogue updated) {
+    public ServiceCatalogue update(UUID id, CreateServiceCatalogueDTO dto) {
         ServiceCatalogue existing = serviceCatalogueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceCatalogue", id.toString()));
 
-        if (updated.getCurrency() != null
-                && !SupportedCurrency.isSupported(updated.getCurrency())) {
-            throw new RuntimeException("Devise non supportée : " + updated.getCurrency());
+        if (dto.getCurrency() != null
+                && !SupportedCurrency.isSupported(dto.getCurrency())) {
+            throw new RuntimeException("Devise non supportée : " + dto.getCurrency());
         }
 
-        existing.setName(updated.getName());
-        existing.setDescription(updated.getDescription());
-        existing.setBasePrice(updated.getBasePrice());
-        existing.setCurrency(updated.getCurrency());
-        existing.setIsAvailable(updated.getIsAvailable());
+        if (dto.getName() != null) {
+            existing.setName(dto.getName());
+        }
+        if (dto.getDescription() != null) {
+            existing.setDescription(dto.getDescription());
+        }
+        if (dto.getBasePrice() != null) {
+            existing.setBasePrice(dto.getBasePrice());
+        }
+        if (dto.getCurrency() != null) {
+            existing.setCurrency(dto.getCurrency());
+        }
+        if (dto.getIsAvailable() != null) {
+            existing.setIsAvailable(dto.getIsAvailable());
+        }
+        
         return serviceCatalogueRepository.save(existing);
     }
 

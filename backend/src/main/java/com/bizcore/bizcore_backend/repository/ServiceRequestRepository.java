@@ -22,4 +22,7 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     List<ServiceRequest> findByConsumerId(UUID consumerId);
     List<ServiceRequest> findByProviderId(UUID providerId);
     List<ServiceRequest> findByStatus(ServiceRequest.Status status);
+    
+    // ── Analytics ───────────────────────────────────────────────────────────
+    List<ServiceRequest> findAllByTenantIdAndRequestedAtBetween(UUID tenantId, java.time.LocalDateTime from, java.time.LocalDateTime to);
 }

@@ -12,4 +12,14 @@
     <!-- Sprint 3 — Données de démonstration (Pharmacie XAF) -->
     <include file="db/changelog/migrations/003-seed-data.xml"/>
 
+    <!-- Sprint 3 — Tables Notifications et Messages -->
+    <include file="db/changelog/migrations/004-add-notifications-table.xml"/>
+    <include file="db/changelog/migrations/005-add-messages-table.xml"/>
+
+    <!-- Sprint 3 — Corrections mappings colonnes entités JPA -->
+    <include file="db/changelog/migrations/006-fix-column-mappings.xml"/>
+
+    <!-- Sprint 3 — Table AuditEvents (traçabilité réseau) -->
+    <include file="db/changelog/migrations/007-add-audit-events-table.xml"/>
+
 </databaseChangeLog>
