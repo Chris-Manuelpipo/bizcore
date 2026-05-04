@@ -29,3 +29,4 @@ docker-volumes/
 
 # Rapport 
 backend/docs/rapport/
+.env.local

@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: "BizCore API"
+  description: "Business as a Service - API générique de gestion des métiers"
+  version: "1.0.0"
+  contact:
+    name: "BizCore Team"
+    email: "support@bizcore.com"
+servers:
+  - url: "http://localhost:8080"
+    description: "Serveur de développement local"
+  - url: "https://api.bizcore.com"
+    description: "Serveur de production"
+security:
+  - bearerAuth: []
+tags:
+  - name: "Authentication"
+    description: "Inscription, connexion et gestion des rôles"
+  - name: "Tenants"
+    description: "Provisionnement des instances métier (couche 3 BCaaS)"
+  - name: "Users"
+    description: "Gestion des utilisateurs"
+  - name: "Actors"
+    description: "Acteurs métier (PROVIDER/CONSUMER)"
+  - name: "Businesses"
+    description: "Entités métier dans un tenant"
+  - name: "Service Catalogues"
+    description: "Catalogue des services disponibles"
+  - name: "Service Requests"
+    description: "Demandes de service entre acteurs"
+  - name: "Invoices"
+    description: "Facturation des services"
+  - name: "Portfolios"
+    description: "Gestion des portefeuilles"
+  - name: "Business Rules"
+    description: "Règles métier configurables"
+  - name: "Resources"
+    description: "Gestion des ressources"
+  - name: "Media"
+    description: "Gestion des fichiers média"
+  - name: "Currencies"
+    description: "Gestion des devises"
+  - name: "Messages"
+    description: "Système de messagerie"
+  - name: "Notifications"
+    description: "Notifications utilisateur"
+  - name: "Audit tail"
+    description: "Journal d'audit"
+  - name: "Analytics"
+    description: "Analyses et statistiques"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT token obtenu via /api/auth/login"
+  
+  schemas:
+    AuthRequest:
+      type: object
+      required: ["email", "password"]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          example: "secret123"
+        firstName:
+          type: string
+          example: "Jean"
+        lastName:
+          type: string
+          example: "Dupont"
+        phone:
+          type: string
+          example: "+237 123 456 789"
+        country:
+          type: string
+          example: "Cameroun"
+        tenantId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        roles:
+          type: array
+          items:
+            type: string
+            enum: ["USER", "ADMIN"]
+          example: ["USER"]
+    
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9..."
+        email:
+          type: string
+          example: "user@example.com"
+        firstName:
+          type: string
+          example: "Jean"
+        lastName:
+          type: string
+          example: "Dupont"
+        roles:
+          type: array
+          items:
+            type: string
+          example: ["USER"]
+    
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Pharmacie Centrale"
+        domain:
+          type: string
+          example: "pharmacie-centrale"
+        plan:
+          type: string
+          enum: ["STARTER", "STANDARD", "PREMIUM"]
+          example: "STANDARD"
+        active:
+          type: boolean
+          example: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Données invalides"
+        path:
+          type: string
+          example: "/api/auth/register"
+
+paths:
+  /api/auth/register:
+    post:
+      tags: ["Authentication"]
+      summary: "Enregistrer un nouvel utilisateur"
+      description: "Crée un nouveau compte utilisateur et retourne un token JWT valide immédiatement."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "201":
+          description: "Utilisateur créé"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: "Données invalides ou email déjà utilisé"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Email déjà utilisé"
+  
+  /api/auth/login:
+    post:
+      tags: ["Authentication"]
+      summary: "Authentification"
+      description: "Authentifie un utilisateur et retourne un token JWT à inclure dans tous les appels suivants."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "200":
+          description: "Token JWT retourné"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: "Identifiants incorrects"
+  
+  /api/tenants:
+    get:
+      tags: ["Tenants"]
+      summary: "Lister tous les tenants actifs"
+      description: "Retourne la liste de tous les tenants actifs."
+      responses:
+        "200":
+          description: "Liste des tenants"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tenant"
+    post:
+      tags: ["Tenants"]
+      summary: "Enregistrer une nouvelle instance métier"
+      description: "Crée un nouvel espace tenant isolé. Chaque tenant représente une instance métier indépendante."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Tenant"
+      responses:
+        "201":
+          description: "Tenant créé"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "409":
+          description: "Domain déjà utilisé"
+  
+  /api/tenants/{id}:
+    get:
+      tags: ["Tenants"]
+      summary: "Récupérer un tenant"
+      description: "Retourne les informations complètes d'un tenant par son identifiant UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: "Tenant trouvé"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: "Tenant introuvable"
+    put:
+      tags: ["Tenants"]
+      summary: "Mettre à jour un tenant"
+      description: "Met à jour les informations d'un tenant existant."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Tenant"
+      responses:
+        "200":
+          description: "Tenant mis à jour"
+        "404":
+          description: "Tenant introuvable"
+    delete:
+      tags: ["Tenants"]
+      summary: "Désactiver un tenant"
+      description: "Désactive un tenant (soft delete)."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: "Tenant désactivé"
+        "404":
+          description: "Tenant introuvable"
+
+  /api/auth/users/{id}/roles:
+    patch:
+      tags: ["Authentication"]
+      summary: "Ajouter un rôle à un utilisateur"
+      description: "Ajoute un rôle à un utilisateur (ADMIN uniquement)."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["USER", "ADMIN"]
+      responses:
+        "200":
+          description: "Rôle ajouté"
+        "404":
+          description: "Utilisateur introuvable"
+    delete:
+      tags: ["Authentication"]
+      summary: "Retirer un rôle d'un utilisateur"
+      description: "Retire un rôle d'un utilisateur (ADMIN uniquement)."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: role
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["USER", "ADMIN"]
+      responses:
+        "200":
+          description: "Rôle retiré"
+        "404":
+          description: "Utilisateur introuvable"
+
+  /actuator/health:
+    get:
+      tags: ["Tenants"]
+      summary: "Health check"
+      description: "Vérifie l'état de santé de l'API."
+      security: []
+      responses:
+        "200":
+          description: "API opérationnelle"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "UP"

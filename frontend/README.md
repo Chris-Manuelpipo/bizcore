@@ -1,48 +1,36 @@
-# BizCore Frontend
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Interface de démonstration pour la plateforme BizCore - Business as a Service.
+## Getting Started
 
-## Installation
-
-```bash
-npm install
-```
-
-## Lancement
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Ouvrez [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Pages
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-- `/` - Page de connexion
-- `/dashboard` - Tableau de bord principal
-- `/dashboard/businesses` - Gestion des métiers (Business)
-- `/dashboard/actors` - Gestion des acteurs (Consumer/Provider)
-- `/dashboard/services` - Catalogue de services
-- `/dashboard/requests` - Demandes de services (CdS → FdS)
-- `/dashboard/invoices` - Factures (ACK)
-- `/dashboard/settings` - Paramètres du tenant
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Fonctionnalités démontrées
+## Learn More
 
-- Authentification JWT (simulée)
-- Interface multi-tenant
-- Flux CdS → FdS complet
-- Gestion des statuts (PENDING → ACCEPTED → IN_PROGRESS → FULFILLED)
-- Génération automatique de factures
-- Analogie réseau visible dans l'UI
+To learn more about Next.js, take a look at the following resources:
 
-## Demo
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Utilisez n'importe quel email et mot de passe pour vous connecter.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Stack technique
+## Deploy on Vercel
 
-- Next.js 14 (App Router)
-- Tailwind CSS
-- Lucide Icons
-- TypeScript
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

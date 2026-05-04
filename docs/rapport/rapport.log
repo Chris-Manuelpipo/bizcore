@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.10.10)  27 APR 2026 18:02
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.10.10)  28 APR 2026 17:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1216,37 +1216,13 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-
-! Package xcolor Error: Undefined color `white '.
-
-See the xcolor package documentation for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.170 			}
-          
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-! Package xcolor Error: Undefined color `white '.
-
-See the xcolor package documentation for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.170 			}
-          
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <12> on input line 176.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <8> on input line 176.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <6> on input line 176.
-[1
+ [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/
 dvips/lm/lm-ec.enc}]
@@ -1457,10 +1433,10 @@ Package rerunfilecheck Info: File `rapport.out' has not changed.
 (rerunfilecheck)             Checksum: 9F70324FFF0B6C594D29588685E1038D;9783.
  ) 
 Here is how much of TeX's memory you used:
- 45098 strings out of 474222
- 1013889 string characters out of 5748732
+ 45060 strings out of 474222
+ 1013147 string characters out of 5748732
  2075975 words of memory out of 5000000
- 66188 multiletter control sequences out of 15000+600000
+ 66150 multiletter control sequences out of 15000+600000
  684640 words of font info for 226 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  84i,13n,87p,1004b,2185s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1479,7 +1455,7 @@ lic/lm/lmri7.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/share
 lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf
 /fonts/type1/public/lm/lmtt12.pfb></usr/share/texmf/fonts/type1/public/lm/lmtti
 10.pfb>
-Output written on rapport.pdf (31 pages, 539068 bytes).
+Output written on rapport.pdf (31 pages, 538488 bytes).
 PDF statistics:
  743 PDF objects out of 1000 (max. 8388607)
  655 compressed objects within 7 object streams

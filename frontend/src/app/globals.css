@@ -1,76 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Variables ──────────────────────────────────── */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --indigo: #4F46E5;
+  --indigo-l: #6366F1;
+  --indigo-dark: #4338CA;
+  --cyan: #06B6D4;
+  --cyan-l: #22D3EE;
+
+  /* Dark (default) */
+  --bg: #0A0A0F;
+  --surface: #111118;
+  --surface-2: #16161F;
+  --border: #1F2028;
+  --text: #F4F4F8;
+  --text-muted: #8B8FA8;
+  --glass: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
 }
+
+.light {
+  --bg: #F8F9FC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F3F9;
+  --border: #E2E6F0;
+  --text: #0F0F1A;
+  --text-muted: #5A6175;
+  --glass: rgba(0,0,0,0.025);
+  --glass-border: rgba(0,0,0,0.07);
+}
+
+/* ── Base ───────────────────────────────────────────── */
+*,*::before,*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@layer components {
-  .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-medium 
-           hover:bg-primary-700 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
-  }
-  
-  .btn-secondary {
-    @apply px-4 py-2 bg-white text-slate-700 rounded-lg font-medium 
-           border border-slate-300 hover:bg-slate-50 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2;
-  }
-  
-  .btn-danger {
-    @apply px-4 py-2 bg-danger-500 text-white rounded-lg font-medium 
-           hover:bg-danger-600 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-2;
-  }
-  
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden;
-  }
-  
-  .input {
-    @apply w-full px-4 py-2.5 rounded-lg border border-slate-300 
-           bg-white text-slate-900 placeholder-slate-400
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-           transition-all duration-200;
-  }
-  
-  .label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
-  }
-  
-  .stat-card {
-    @apply p-6 rounded-xl bg-gradient-to-br from-white to-slate-50 
-           border border-slate-200 hover:border-primary-200 hover:shadow-md
-           transition-all duration-200;
-  }
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Selection ──────────────────────────────────────── */
+::selection { background: rgba(79,70,229,0.2); }
+
+/* ── Utilities ──────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.bg-gradient-brand {
+  background: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%);
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+.glass {
+  background: var(--glass);
+  border: 0.5px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+.border-subtle {
+  border: 0.5px solid var(--glass-border);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.font-display {
+  font-family: 'Syne', sans-serif;
 }
