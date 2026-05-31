@@ -129,16 +129,20 @@ public class ServiceRequestService {
 
     // ── Transitions FSM ───────────────────────────────────────────────────────
 
-    public ServiceRequest accept(UUID id, UUID actorId) {
-        ServiceRequest sr = findAndValidateActor(id, actorId, "provider");
-        transitionTo(sr, ServiceRequest.Status.ACCEPTED, actorId);
+    public ServiceRequest accept(UUID id, String actingUserEmail) {
+        ServiceRequest sr = serviceRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
+        Actor actor = resolveActingActor(sr, actingUserEmail, "provider");
+        transitionTo(sr, ServiceRequest.Status.ACCEPTED, actor.getId());
         sr.setAcceptedAt(java.time.LocalDateTime.now());
         return serviceRequestRepository.save(sr);
     }
 
-    public ServiceRequest start(UUID id, UUID actorId) {
-        ServiceRequest sr = findAndValidateActor(id, actorId, "provider");
-        transitionTo(sr, ServiceRequest.Status.IN_PROGRESS, actorId);
+    public ServiceRequest start(UUID id, String actingUserEmail) {
+        ServiceRequest sr = serviceRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
+        Actor actor = resolveActingActor(sr, actingUserEmail, "provider");
+        transitionTo(sr, ServiceRequest.Status.IN_PROGRESS, actor.getId());
         sr.setStartedAt(java.time.LocalDateTime.now());
         return serviceRequestRepository.save(sr);
     }
@@ -178,10 +182,12 @@ public class ServiceRequestService {
         );
     }
 
-    public ServiceRequest cancel(UUID id, UUID actorId) {
+    public ServiceRequest cancel(UUID id, String actingUserEmail) {
         ServiceRequest sr = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", id.toString()));
-        transitionTo(sr, ServiceRequest.Status.CANCELLED, actorId);
+        // Le consumer OU le provider de la demande peut l'annuler.
+        Actor actor = resolveActingActor(sr, actingUserEmail, "any");
+        transitionTo(sr, ServiceRequest.Status.CANCELLED, actor.getId());
         sr.setCancelledAt(java.time.LocalDateTime.now());
         return serviceRequestRepository.save(sr);
     }
@@ -207,23 +213,36 @@ public class ServiceRequestService {
         auditService.logServiceRequestStatusChange(sr, oldStatus, actorId);
     }
 
-    private ServiceRequest findAndValidateActor(UUID srId, UUID actorId, String expectedRole) {
-        ServiceRequest sr = serviceRequestRepository.findById(srId)
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceRequest", srId.toString()));
-        actorRepository.findById(actorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Actor", actorId.toString()));
-
-        boolean isProvider = sr.getProvider() != null && sr.getProvider().getId().equals(actorId);
-        boolean isConsumer = sr.getConsumer() != null && sr.getConsumer().getId().equals(actorId);
-
-        if ("provider".equals(expectedRole) && !isProvider) {
-            throw new IllegalArgumentException(
-                    "L'acteur " + actorId + " n'est pas le provider de cette demande.");
+    /**
+     * Résout l'acteur agissant à partir de l'utilisateur authentifié (email du JWT),
+     * jamais d'un identifiant fourni par le client (qui pourrait usurper un autre acteur).
+     *
+     * @param expectedRole "provider" (accept/start) ou "any" (cancel : consumer ou provider)
+     * @throws AccessDeniedException si l'utilisateur n'est pas autorisé sur cette demande
+     */
+    private Actor resolveActingActor(ServiceRequest sr, String actingUserEmail, String expectedRole) {
+        if (actingUserEmail == null || actingUserEmail.isBlank()) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Utilisateur non authentifié.");
         }
-        if ("consumer".equals(expectedRole) && !isConsumer) {
-            throw new IllegalArgumentException(
-                    "L'acteur " + actorId + " n'est pas le consumer de cette demande.");
+        Actor provider = sr.getProvider();
+        Actor consumer = sr.getConsumer();
+        boolean isProvider = provider != null && provider.getUser() != null
+                && actingUserEmail.equalsIgnoreCase(provider.getUser().getEmail());
+        boolean isConsumer = consumer != null && consumer.getUser() != null
+                && actingUserEmail.equalsIgnoreCase(consumer.getUser().getEmail());
+
+        if ("provider".equals(expectedRole)) {
+            if (!isProvider) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "Seul le provider de cette demande peut effectuer cette action.");
+            }
+            return provider;
         }
-        return sr;
+        // "any" : consumer ou provider
+        if (isConsumer) return consumer;
+        if (isProvider) return provider;
+        throw new org.springframework.security.access.AccessDeniedException(
+                "Vous n'êtes ni le consumer ni le provider de cette demande.");
     }
 }

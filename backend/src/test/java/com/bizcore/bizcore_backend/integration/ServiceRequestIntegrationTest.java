@@ -74,7 +74,8 @@ class ServiceRequestIntegrationTest {
     private Actor provider;
     private Business business;
     private ServiceCatalogue catalogue;
-    private String authToken;
+    private String authToken;       // consumer
+    private String providerToken;   // provider
 
     @BeforeEach
     void setUp() throws Exception {
@@ -133,6 +134,7 @@ class ServiceRequestIntegrationTest {
         business.setDescription("Healthcare business");
         business.setNeededEducation("Doctorat");
         business.setNeededTraining("Stage");
+        business.setTenant(tenant);
         businessRepository.save(business);
 
         // Créer un catalogue de services
@@ -164,6 +166,24 @@ class ServiceRequestIntegrationTest {
 
         AuthResponse authResponse = objectMapper.readValue(response, AuthResponse.class);
         authToken = authResponse.getToken();
+
+        // Token du provider (nécessaire pour accept/start : l'acteur agissant est
+        // déduit de l'utilisateur authentifié).
+        String providerLogin = """
+            {
+                "email": "provider@test.com",
+                "password": "password123"
+            }
+            """;
+        String providerResponse = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(providerLogin))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        providerToken = objectMapper.readValue(providerResponse, AuthResponse.class).getToken();
     }
 
     @Test
@@ -217,10 +237,9 @@ class ServiceRequestIntegrationTest {
         sr.setTenant(tenant);
         serviceRequestRepository.save(sr);
 
-        mockMvc.perform(put("/api/service-requests/{id}/accept", sr.getId())
+        mockMvc.perform(patch("/api/service-requests/{id}/accept", sr.getId())
                         .with(csrf())
-                        .header("Authorization", "Bearer " + authToken)
-                        .param("actorId", provider.getId().toString()))
+                        .header("Authorization", "Bearer " + providerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACCEPTED"));
     }
@@ -237,10 +256,9 @@ class ServiceRequestIntegrationTest {
         sr.setTenant(tenant);
         serviceRequestRepository.save(sr);
 
-        mockMvc.perform(put("/api/service-requests/{id}/cancel", sr.getId())
+        mockMvc.perform(patch("/api/service-requests/{id}/cancel", sr.getId())
                         .with(csrf())
-                        .header("Authorization", "Bearer " + authToken)
-                        .param("actorId", consumer.getId().toString()))
+                        .header("Authorization", "Bearer " + authToken)) // consumer annule
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
     }

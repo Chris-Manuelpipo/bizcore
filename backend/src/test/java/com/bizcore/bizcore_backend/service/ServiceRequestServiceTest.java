@@ -34,6 +34,7 @@ class ServiceRequestServiceTest {
     @Mock private ActorRepository actorRepository;
     @Mock private ServiceCatalogueRepository serviceCatalogueRepository;
     @Mock private InvoiceRepository invoiceRepository;
+    @Mock private AuditService auditService;
 
     @InjectMocks
     private ServiceRequestService serviceRequestService;
@@ -59,6 +60,7 @@ class ServiceRequestServiceTest {
 
         consumerUser = new User();
         consumerUser.setId(UUID.randomUUID());
+        consumerUser.setEmail("consumer@test.com");
         consumerUser.setTenant(tenant);
 
         consumer = new Actor();
@@ -66,9 +68,15 @@ class ServiceRequestServiceTest {
         consumer.setRole("CONSUMER");
         consumer.setUser(consumerUser);
 
+        User providerUser = new User();
+        providerUser.setId(UUID.randomUUID());
+        providerUser.setEmail("provider@test.com");
+        providerUser.setTenant(tenant);
+
         provider = new Actor();
         provider.setId(providerId);
         provider.setRole("PROVIDER");
+        provider.setUser(providerUser);
 
         catalogue = new ServiceCatalogue();
         catalogue.setId(catalogueId);
@@ -160,10 +168,9 @@ class ServiceRequestServiceTest {
     @Test
     void accept_shouldTransitionPendingToAccepted() {
         when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
-        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
         when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        ServiceRequest result = serviceRequestService.accept(srId, providerId);
+        ServiceRequest result = serviceRequestService.accept(srId, "provider@test.com");
 
         assertEquals(ServiceRequest.Status.ACCEPTED, result.getStatus());
         assertNotNull(result.getAcceptedAt());
@@ -173,10 +180,9 @@ class ServiceRequestServiceTest {
     void start_shouldTransitionAcceptedToInProgress() {
         pendingSr.setStatus(ServiceRequest.Status.ACCEPTED);
         when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
-        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
         when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        ServiceRequest result = serviceRequestService.start(srId, providerId);
+        ServiceRequest result = serviceRequestService.start(srId, "provider@test.com");
 
         assertEquals(ServiceRequest.Status.IN_PROGRESS, result.getStatus());
         assertNotNull(result.getStartedAt());
@@ -205,10 +211,9 @@ class ServiceRequestServiceTest {
     @Test
     void cancel_shouldTransitionToCancelled_fromPending() {
         when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
-        when(actorRepository.findById(consumerId)).thenReturn(Optional.of(consumer));
         when(serviceRequestRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        ServiceRequest result = serviceRequestService.cancel(srId, consumerId);
+        ServiceRequest result = serviceRequestService.cancel(srId, "consumer@test.com");
 
         assertEquals(ServiceRequest.Status.CANCELLED, result.getStatus());
         assertNotNull(result.getCancelledAt());
@@ -218,21 +223,17 @@ class ServiceRequestServiceTest {
     void transition_shouldThrow_whenAlreadyFulfilled() {
         pendingSr.setStatus(ServiceRequest.Status.FULFILLED);
         when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
-        when(actorRepository.findById(providerId)).thenReturn(Optional.of(provider));
 
         assertThrows(IllegalStateException.class,
-                () -> serviceRequestService.accept(srId, providerId));
+                () -> serviceRequestService.accept(srId, "provider@test.com"));
     }
 
     @Test
-    void accept_shouldThrow_whenActorIsNotProvider() {
-        UUID wrongId = UUID.randomUUID();
-        Actor wrong = new Actor();
-        wrong.setId(wrongId);
+    void accept_shouldThrow_whenUserIsNotProvider() {
         when(serviceRequestRepository.findById(srId)).thenReturn(Optional.of(pendingSr));
-        when(actorRepository.findById(wrongId)).thenReturn(Optional.of(wrong));
 
-        assertThrows(IllegalArgumentException.class,
-                () -> serviceRequestService.accept(srId, wrongId));
+        // Un utilisateur qui n'est pas le provider de la demande → accès refusé
+        assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                () -> serviceRequestService.accept(srId, "someone.else@test.com"));
     }
 }

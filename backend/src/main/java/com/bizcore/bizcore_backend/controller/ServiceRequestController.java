@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -80,6 +82,7 @@ public class ServiceRequestController {
             @PathVariable UUID serviceCatalogueId,
             @Valid @RequestBody ServiceRequestDTO dto) {
         ServiceRequest request = new ServiceRequest();
+        request.setServiceName(dto.getServiceName());
         request.setDescription(dto.getDescription());
         ServiceRequest saved = serviceRequestService.save(consumerId, providerId, serviceCatalogueId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ServiceRequestDTO.fromEntity(saved));
@@ -92,21 +95,27 @@ public class ServiceRequestController {
     }
 
     @PatchMapping("/{id}/accept")
-    @Operation(summary = "Accepter une demande de service (PENDING → ACCEPTED). Seul le provider peut accepter.")
-    public ResponseEntity<ServiceRequestDTO> accept(@PathVariable UUID id, @RequestParam UUID actorId) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.accept(id, actorId)));
+    @Operation(summary = "Accepter une demande de service (PENDING → ACCEPTED). Seul le provider (utilisateur authentifié) peut accepter.")
+    public ResponseEntity<ServiceRequestDTO> accept(@PathVariable UUID id,
+                                                    @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
+                serviceRequestService.accept(id, user.getUsername())));
     }
 
     @PatchMapping("/{id}/start")
-    @Operation(summary = "Démarrer le travail (ACCEPTED → IN_PROGRESS). Seul le provider peut démarrer.")
-    public ResponseEntity<ServiceRequestDTO> start(@PathVariable UUID id, @RequestParam UUID actorId) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.start(id, actorId)));
+    @Operation(summary = "Démarrer le travail (ACCEPTED → IN_PROGRESS). Seul le provider (utilisateur authentifié) peut démarrer.")
+    public ResponseEntity<ServiceRequestDTO> start(@PathVariable UUID id,
+                                                   @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
+                serviceRequestService.start(id, user.getUsername())));
     }
 
     @PatchMapping("/{id}/cancel")
-    @Operation(summary = "Annuler une demande. Seul le consumer peut annuler.")
-    public ResponseEntity<ServiceRequestDTO> cancel(@PathVariable UUID id, @RequestParam UUID actorId) {
-        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(serviceRequestService.cancel(id, actorId)));
+    @Operation(summary = "Annuler une demande. Le consumer ou le provider (utilisateur authentifié) peut annuler.")
+    public ResponseEntity<ServiceRequestDTO> cancel(@PathVariable UUID id,
+                                                    @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(ServiceRequestDTO.fromEntity(
+                serviceRequestService.cancel(id, user.getUsername())));
     }
 
     @DeleteMapping("/{id}")

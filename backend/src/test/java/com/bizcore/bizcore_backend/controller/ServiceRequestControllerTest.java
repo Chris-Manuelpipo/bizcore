@@ -23,12 +23,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ServiceRequestController.class)
+@org.springframework.context.annotation.Import(WebMvcSecurityTestConfig.class)
 class ServiceRequestControllerTest {
 
     @Autowired
@@ -167,7 +169,7 @@ class ServiceRequestControllerTest {
     void findByStatus_shouldReturnServiceRequests() throws Exception {
         when(serviceRequestService.findByStatus(ServiceRequest.Status.PENDING)).thenReturn(Arrays.asList(serviceRequest));
 
-        mockMvc.perform(get("/api/service-requests/status").param("status", "PENDING"))
+        mockMvc.perform(get("/api/service-requests/status/{status}", "PENDING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].status").value("PENDING"));
@@ -194,33 +196,31 @@ class ServiceRequestControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "provider@test.com")
     void accept_shouldReturnAcceptedServiceRequest() throws Exception {
         serviceRequest.setStatus(ServiceRequest.Status.ACCEPTED);
-        when(serviceRequestService.accept(srId, providerId)).thenReturn(serviceRequest);
+        when(serviceRequestService.accept(eq(srId), eq("provider@test.com"))).thenReturn(serviceRequest);
 
-        mockMvc.perform(put("/api/service-requests/{id}/accept", srId)
-                        .param("actorId", providerId.toString())
+        mockMvc.perform(patch("/api/service-requests/{id}/accept", srId)
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACCEPTED"));
 
-        verify(serviceRequestService, times(1)).accept(srId, providerId);
+        verify(serviceRequestService, times(1)).accept(srId, "provider@test.com");
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "provider@test.com")
     void start_shouldReturnInProgressServiceRequest() throws Exception {
         serviceRequest.setStatus(ServiceRequest.Status.IN_PROGRESS);
-        when(serviceRequestService.start(srId, providerId)).thenReturn(serviceRequest);
+        when(serviceRequestService.start(eq(srId), eq("provider@test.com"))).thenReturn(serviceRequest);
 
-        mockMvc.perform(put("/api/service-requests/{id}/start", srId)
-                        .param("actorId", providerId.toString())
+        mockMvc.perform(patch("/api/service-requests/{id}/start", srId)
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
 
-        verify(serviceRequestService, times(1)).start(srId, providerId);
+        verify(serviceRequestService, times(1)).start(srId, "provider@test.com");
     }
 
     @Test
@@ -229,7 +229,7 @@ class ServiceRequestControllerTest {
         serviceRequest.setStatus(ServiceRequest.Status.FULFILLED);
         when(serviceRequestService.fulfill(srId)).thenReturn(null); // Simplified for test
 
-        mockMvc.perform(put("/api/service-requests/{id}/fulfill", srId)
+        mockMvc.perform(patch("/api/service-requests/{id}/fulfill", srId)
                         .with(csrf()))
                 .andExpect(status().isOk());
 
@@ -237,18 +237,17 @@ class ServiceRequestControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "consumer@test.com")
     void cancel_shouldReturnCancelledServiceRequest() throws Exception {
         serviceRequest.setStatus(ServiceRequest.Status.CANCELLED);
-        when(serviceRequestService.cancel(srId, consumerId)).thenReturn(serviceRequest);
+        when(serviceRequestService.cancel(eq(srId), eq("consumer@test.com"))).thenReturn(serviceRequest);
 
-        mockMvc.perform(put("/api/service-requests/{id}/cancel", srId)
-                        .param("actorId", consumerId.toString())
+        mockMvc.perform(patch("/api/service-requests/{id}/cancel", srId)
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
 
-        verify(serviceRequestService, times(1)).cancel(srId, consumerId);
+        verify(serviceRequestService, times(1)).cancel(srId, "consumer@test.com");
     }
 
     @Test
