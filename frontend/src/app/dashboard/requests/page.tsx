@@ -5,13 +5,14 @@ import { Header } from '@/components/Header';
 import { StatusBadge, Avatar, CurrencyDisplay, EmptyState } from '@/components/Badges';
 import { api } from '@/lib/api';
 import { ServiceRequest } from '@/lib/types';
-import { Plus, Filter, MoreHorizontal, Check, X, Play, FileText } from 'lucide-react';
+import { Plus, Filter, MoreHorizontal, Check, X, Play, FileText, AlertTriangle } from 'lucide-react';
 
 export default function RequestsPage() {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [showNewModal, setShowNewModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -21,8 +22,9 @@ export default function RequestsPage() {
     try {
       const data = await api.getServiceRequests();
       setRequests(data);
-    } catch (error) {
-      console.error('Failed to load requests');
+      setError(null);
+    } catch {
+      setError("Impossible de charger les demandes. Vérifiez votre connexion et réessayez.");
     } finally {
       setLoading(false);
     }
@@ -31,9 +33,10 @@ export default function RequestsPage() {
   const handleStatusUpdate = async (id: string, action: string) => {
     try {
       await api.updateServiceRequestStatus(id, action);
+      setError(null);
       await loadRequests();
-    } catch (error) {
-      console.error('Failed to update status');
+    } catch {
+      setError("La transition a échoué. Vous n'êtes peut-être pas autorisé sur cette demande, ou la transition est invalide.");
     }
   };
 
@@ -139,6 +142,24 @@ export default function RequestsPage() {
       />
 
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        {/* Bannière d'erreur */}
+        {error && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500"
+          >
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            <span className="flex-1">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="shrink-0 text-red-500/70 hover:text-red-500 transition-colors"
+              aria-label="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Header actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
