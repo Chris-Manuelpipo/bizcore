@@ -92,7 +92,7 @@ export function CurrencyDisplay({ amount, currency, size = 'md' }: CurrencyDispl
 }
 
 interface EmptyStateProps {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
   action?: React.ReactNode;

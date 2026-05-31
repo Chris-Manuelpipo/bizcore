@@ -82,7 +82,7 @@ function ParticleCanvas() {
 export function HeroSection() {
   const stagger = {
     container: { animate:{ transition:{ staggerChildren:0.1 } } },
-    item: { initial:{opacity:0,y:20}, animate:{opacity:1,y:0,transition:{duration:0.6,ease:[0.22,1,0.36,1]}} },
+    item: { initial:{opacity:0,y:20}, animate:{opacity:1,y:0,transition:{duration:0.6,ease:[0.22,1,0.36,1] as const}} },
   };
 
   return (
@@ -138,7 +138,7 @@ export function HeroSection() {
       <motion.div
         initial={{ opacity:0, y:30, scale:0.97 }}
         animate={{ opacity:1, y:0, scale:1 }}
-        transition={{ delay:0.6, duration:0.7, ease:[0.22,1,0.36,1] }}
+        transition={{ delay:0.6, duration:0.7, ease:[0.22,1,0.36,1] as const }}
         className="relative z-10 mt-12 max-w-[520px] w-full mx-auto rounded-2xl overflow-hidden border border-[var(--glass-border)] shadow-[0_32px_64px_rgba(0,0,0,0.6)]"
         style={{ background:"#111118" }}
       >
