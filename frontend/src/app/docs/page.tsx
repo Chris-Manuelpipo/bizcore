@@ -28,7 +28,7 @@ export default function DocsPage() {
           Introduction
         </h2>
         <p className="text-[14px] leading-relaxed mb-4" style={{ color: "var(--text-muted)" }}>
-          BizCore est une plateforme API multi-tenant construite avec Spring Boot. Chaque requête doit inclure un header <code className="text-[12px] px-1.5 py-0.5 rounded font-mono" style={{ background: "var(--surface-2)", color: "#818CF8" }}>X-Tenant-Id</code> pour identifier l'espace de données cible.
+          BizCore est une plateforme API multi-tenant construite avec Spring Boot. Chaque requête authentifiée inclut un <code className="text-[12px] px-1.5 py-0.5 rounded font-mono" style={{ background: "var(--surface-2)", color: "#818CF8" }}>tenantId</code> — embarqué dans le token JWT (claim <code className="text-[12px] px-1.5 py-0.5 rounded font-mono" style={{ background: "var(--surface-2)", color: "#818CF8" }}>tenantId</code>), et non dans un header séparé. L'isolation des données est appliquée automatiquement à partir du token.
         </p>
         <div className="p-4 rounded-xl border font-mono text-[12.5px]" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
           <div className="mb-1"><span style={{ color: "var(--text-muted)" }}>Base URL</span></div>
@@ -48,8 +48,8 @@ export default function DocsPage() {
         </p>
         <div className="p-4 rounded-xl border font-mono text-[12.5px] space-y-1" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
           <div><span className="text-blue-400">Authorization</span><span style={{ color: "var(--text)" }}>: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</span></div>
-          <div><span className="text-blue-400">X-Tenant-Id</span><span style={{ color: "var(--text)" }}>: 550e8400-e29b-41d4-a716-446655440000</span></div>
           <div><span className="text-blue-400">Content-Type</span><span style={{ color: "var(--text)" }}>: application/json</span></div>
+          <div className="pt-1" style={{ color: "var(--text-muted)" }}># le tenantId est porté par le token JWT — pas de header X-Tenant-Id</div>
         </div>
       </div>
 
@@ -60,11 +60,11 @@ export default function DocsPage() {
         </h2>
         <div className="space-y-2">
           {[
-            { code: 400, label: "Bad Request", desc: "Données de requête invalides ou manquantes" },
+            { code: 400, label: "Bad Request", desc: "Données invalides ou transition d'état non autorisée" },
             { code: 401, label: "Unauthorized", desc: "Token JWT absent, invalide ou expiré" },
-            { code: 403, label: "Forbidden", desc: "Rôle insuffisant pour cette opération" },
+            { code: 403, label: "Forbidden", desc: "Rôle insuffisant ou action non autorisée sur cette ressource" },
             { code: 404, label: "Not Found", desc: "Ressource introuvable dans ce tenant" },
-            { code: 409, label: "Conflict", desc: "Transition d'état invalide ou conflit de données" },
+            { code: 409, label: "Conflict", desc: "Conflit — ex. email déjà utilisé à l'inscription" },
             { code: 500, label: "Server Error", desc: "Erreur interne — contactez l'admin" },
           ].map((e) => (
             <div key={e.code} className="flex items-start gap-3 p-3 rounded-xl border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>

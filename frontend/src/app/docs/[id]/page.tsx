@@ -43,12 +43,22 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
 
   const [activeTab, setActiveTab] = useState<"docs" | "try">("docs");
 
+  // Le corps peut être du JSON ou du texte brut (ex. envoi de message) : on
+  // tente un embellissement JSON, sinon on garde la valeur telle quelle.
+  const prettyBody = (() => {
+    if (!endpoint.requestBody) return "";
+    try {
+      return JSON.stringify(JSON.parse(endpoint.requestBody), null, 2);
+    } catch {
+      return endpoint.requestBody;
+    }
+  })();
+
   const curlExample = `curl -X ${endpoint.method} \\
   http://localhost:8080${endpoint.path.replace(/{(\w+)}/g, "uuid-example")} \\${endpoint.requiresAuth ? `
-  -H "Authorization: Bearer <JWT>" \\` : ""}${endpoint.requiresTenant ? `
-  -H "X-Tenant-Id: 550e8400-e29b-41d4" \\` : ""}
+  -H "Authorization: Bearer <JWT>" \\` : ""}
   -H "Content-Type: application/json"${endpoint.requestBody ? ` \\
-  -d '${JSON.stringify(JSON.parse(endpoint.requestBody), null, 2)}'` : ""}`;
+  -d '${prettyBody}'` : ""}`;
 
   return (
     <motion.div

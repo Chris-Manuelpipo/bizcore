@@ -116,6 +116,7 @@ components:
     
     Tenant:
       type: object
+      required: ["name", "domain"]
       properties:
         id:
           type: string
@@ -126,11 +127,10 @@ components:
         domain:
           type: string
           example: "pharmacie-centrale"
-        plan:
+        description:
           type: string
-          enum: ["STARTER", "STANDARD", "PREMIUM"]
-          example: "STANDARD"
-        active:
+          example: "Pharmacie de quartier"
+        isActive:
           type: boolean
           example: true
     
@@ -216,10 +216,13 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Tenant"
+
+  /api/tenants/register:
     post:
       tags: ["Tenants"]
       summary: "Enregistrer une nouvelle instance métier"
-      description: "Crée un nouvel espace tenant isolé. Chaque tenant représente une instance métier indépendante."
+      description: "Crée un nouvel espace tenant isolé (public). Chaque tenant représente une instance métier indépendante."
+      security: []
       requestBody:
         required: true
         content:
@@ -233,9 +236,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
-        "409":
-          description: "Domain déjà utilisé"
-  
+        "400":
+          description: "Nom déjà utilisé ou données invalides"
+
   /api/tenants/{id}:
     get:
       tags: ["Tenants"]
