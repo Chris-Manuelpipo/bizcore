@@ -3,6 +3,7 @@ package com.bizcore.bizcore_backend.security;
 import com.bizcore.bizcore_backend.domain.User;
 import com.bizcore.bizcore_backend.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,8 +85,13 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            // Token expiré, signature invalide ou malformé → considéré invalide
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {

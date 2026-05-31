@@ -94,7 +94,9 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Se connecter et obtenir un token JWT")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+        // Pas de @Valid : la connexion ne requiert qu'email + password.
+        // (firstName/lastName de AuthRequest ne concernent que l'inscription.)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );

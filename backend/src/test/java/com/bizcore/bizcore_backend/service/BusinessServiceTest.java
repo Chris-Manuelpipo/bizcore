@@ -123,7 +123,6 @@ class BusinessServiceTest {
         updated.setNeededEducation("Doctorat + spécialisation");
         updated.setNeededTraining("Stage 12 mois");
 
-        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         when(businessRepository.findById(businessId)).thenReturn(Optional.of(business));
         when(businessRepository.save(any(Business.class))).thenReturn(updated);
 
@@ -135,7 +134,6 @@ class BusinessServiceTest {
 
     @Test
     void update_shouldThrowException_whenNotExists() {
-        when(tenantRepository.findById(any(UUID.class))).thenReturn(Optional.of(tenant));
         when(businessRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class,

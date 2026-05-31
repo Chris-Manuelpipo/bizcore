@@ -56,9 +56,9 @@ class SecurityIntegrationTest {
         userRepository.deleteAll();
         tenantRepository.deleteAll();
 
-        // Créer un tenant par défaut
+        // Créer un tenant (id généré par JPA ; on ne force pas l'UUID afin
+        // d'éviter un merge sur une ligne inexistante avec @GeneratedValue).
         tenant = new Tenant();
-        tenant.setId(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"));
         tenant.setName("Default Tenant");
         tenant.setDomain("Test");
         tenant.setIsActive(true);
@@ -74,6 +74,7 @@ class SecurityIntegrationTest {
         registerRequest.setLastName("User");
         registerRequest.setPhone("+237600000000");
         registerRequest.setCountry("CM");
+        registerRequest.setTenantId(tenant.getId().toString());
 
         String requestContent = objectMapper.writeValueAsString(registerRequest);
 
@@ -230,6 +231,7 @@ class SecurityIntegrationTest {
         registerRequest.setPassword("password123");
         registerRequest.setFirstName("Default");
         registerRequest.setLastName("Role");
+        registerRequest.setTenantId(tenant.getId().toString());
 
         String requestContent = objectMapper.writeValueAsString(registerRequest);
 

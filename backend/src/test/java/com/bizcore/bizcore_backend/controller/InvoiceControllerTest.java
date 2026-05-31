@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(InvoiceController.class)
+@org.springframework.context.annotation.Import(WebMvcSecurityTestConfig.class)
 class InvoiceControllerTest {
 
     @Autowired
@@ -125,7 +126,7 @@ class InvoiceControllerTest {
     void findByStatus_shouldReturnInvoices() throws Exception {
         when(invoiceService.findByStatus(Invoice.Status.PENDING)).thenReturn(Arrays.asList(invoice));
 
-        mockMvc.perform(get("/api/invoices/status").param("status", "PENDING"))
+        mockMvc.perform(get("/api/invoices/status/{status}", "PENDING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].status").value("PENDING"));
@@ -168,7 +169,7 @@ class InvoiceControllerTest {
         invoice.setStatus(Invoice.Status.PAID);
         when(invoiceService.pay(invoiceId)).thenReturn(invoice);
 
-        mockMvc.perform(put("/api/invoices/{id}/pay", invoiceId)
+        mockMvc.perform(patch("/api/invoices/{id}/pay", invoiceId)
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PAID"));
@@ -182,7 +183,7 @@ class InvoiceControllerTest {
         invoice.setStatus(Invoice.Status.CANCELLED);
         when(invoiceService.cancel(invoiceId)).thenReturn(invoice);
 
-        mockMvc.perform(put("/api/invoices/{id}/cancel", invoiceId)
+        mockMvc.perform(patch("/api/invoices/{id}/cancel", invoiceId)
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));

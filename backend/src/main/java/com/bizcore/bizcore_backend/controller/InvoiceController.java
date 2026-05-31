@@ -35,6 +35,12 @@ public class InvoiceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/status/{status}")
+    @Operation(summary = "Lister les factures par statut")
+    public List<Invoice> findByStatus(@PathVariable Invoice.Status status) {
+        return invoiceService.findByStatus(status);
+    }
+
     @GetMapping("/service-request/{serviceRequestId}")
     @Operation(summary = "Trouver la facture d'une demande de service")
     public ResponseEntity<Invoice> findByServiceRequest(@PathVariable UUID serviceRequestId) {
