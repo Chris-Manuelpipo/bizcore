@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { GUIDES, GUIDE_CATEGORIES } from "@/lib/guides";
-import { Clock, ChevronRight } from "lucide-react";
+import { Clock, ChevronRight, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DIFFICULTY_STYLE = {
@@ -27,7 +27,7 @@ export default function GuidesPage() {
         {/* Header */}
         <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.5 }} className="text-center mb-14">
           <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-[12px] mb-5">
-            📖 Guides d'utilisation
+            <BookOpen className="w-3.5 h-3.5" strokeWidth={2} /> Guides d'utilisation
           </span>
           <h1 className="font-display text-[42px] font-extrabold tracking-tight text-[var(--text)] mb-3">
             Guides BizCore

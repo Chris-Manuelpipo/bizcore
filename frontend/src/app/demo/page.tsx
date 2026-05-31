@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Pill, BookOpen, ShieldPlus, Plane, FileText, type LucideIcon } from "lucide-react";
 
 const SR_STATES = ["PENDING", "ACCEPTED", "IN_PROGRESS", "FULFILLED", "PAID"] as const;
 type SRState = typeof SR_STATES[number];
@@ -72,7 +73,7 @@ function WorkflowDemo() {
           {current === "FULFILLED" && (
             <div className="mt-3 pt-3 border-t flex items-center gap-2 text-[12.5px]"
               style={{ borderColor: STATE_META[current].color + "33", color: "#34D399" }}>
-              📄 Invoice générée automatiquement — status: PENDING
+              <FileText className="w-4 h-4" strokeWidth={2} /> Invoice générée automatiquement, status: PENDING
             </div>
           )}
         </motion.div>
@@ -95,11 +96,11 @@ function WorkflowDemo() {
 
 function MultiTenantDemo() {
   const [activeTenant, setActiveTenant] = useState(0);
-  const tenants = [
-    { name: "Pharmacie", emoji: "💊", color: "#34D399", data: { actors: 12, services: 8,  requests: 145, invoices: 132 } },
-    { name: "Bookstore",  emoji: "📚", color: "#60A5FA", data: { actors: 6,  services: 24, requests: 89,  invoices: 81  } },
-    { name: "Assurance",  emoji: "🏥", color: "#A78BFA", data: { actors: 20, services: 15, requests: 203, invoices: 198 } },
-    { name: "Tourisme",   emoji: "✈️", color: "#FCD34D", data: { actors: 9,  services: 32, requests: 67,  invoices: 54  } },
+  const tenants: { name: string; icon: LucideIcon; color: string; data: { actors: number; services: number; requests: number; invoices: number } }[] = [
+    { name: "Pharmacie", icon: Pill,       color: "#34D399", data: { actors: 12, services: 8,  requests: 145, invoices: 132 } },
+    { name: "Bookstore",  icon: BookOpen,   color: "#60A5FA", data: { actors: 6,  services: 24, requests: 89,  invoices: 81  } },
+    { name: "Assurance",  icon: ShieldPlus, color: "#A78BFA", data: { actors: 20, services: 15, requests: 203, invoices: 198 } },
+    { name: "Tourisme",   icon: Plane,      color: "#FCD34D", data: { actors: 9,  services: 32, requests: 67,  invoices: 54  } },
   ];
   const t = tenants[activeTenant];
 
@@ -120,7 +121,7 @@ function MultiTenantDemo() {
               borderColor: activeTenant === i ? ten.color + "55" : "var(--glass-border)",
               color: activeTenant === i ? ten.color : "var(--text-muted)",
             }}>
-            {ten.emoji} {ten.name}
+            <ten.icon className="w-4 h-4" strokeWidth={2} /> {ten.name}
           </button>
         ))}
       </div>
@@ -130,7 +131,7 @@ function MultiTenantDemo() {
           {/* Header */}
           <div className="flex items-center gap-2 mb-4 p-3 rounded-xl border text-[12.5px] font-mono"
             style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
-            <span className="text-blue-400">X-Tenant-Id</span>
+            <span className="text-blue-400">tenantId </span>
             <span style={{ color: "var(--text)" }}>: </span>
             <span style={{ color: t.color }}>550e8400-{activeTenant}000-41d4-a716</span>
           </div>

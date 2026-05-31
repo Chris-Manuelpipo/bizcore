@@ -1,13 +1,14 @@
 "use client";
 import { motion } from "framer-motion";
+import { Building2, ShieldCheck, Workflow, ReceiptText, BrainCircuit, Radio, type LucideIcon } from "lucide-react";
 
-const FEATURES = [
-  { icon:"🏢", title:"Multi-tenant natif",    desc:"Isolation complète par tenant via X-Tenant-Id. Chaque instance configure son propre espace de données sans interférence.", bg:"bg-indigo-400/10" },
-  { icon:"🔐", title:"Sécurité JWT",           desc:"Authentification par token JWT avec gestion fine des rôles PROVIDER, CONSUMER et ADMIN par tenant.",                   bg:"bg-cyan-400/10"   },
-  { icon:"⚡", title:"Workflow complet",       desc:"Cycle de vie ServiceRequest de PENDING à PAID. Transitions d'état contrôlées, traçables et extensibles.",               bg:"bg-orange-400/10" },
-  { icon:"📊", title:"Facturation intégrée",   desc:"Génération automatique de factures à l'accomplissement d'un service. Gestion du cycle de paiement incluse.",             bg:"bg-emerald-400/10"},
-  { icon:"🧠", title:"Règles métier",          desc:"Configurez des règles spécifiques par tenant sans modifier le code source de la plateforme.",                            bg:"bg-violet-400/10" },
-  { icon:"📡", title:"Event-driven",           desc:"Bus événementiel Kafka pour découpler les composants. Audit, notifications et analytics en temps réel.",                  bg:"bg-yellow-400/10" },
+const FEATURES: { icon: LucideIcon; title: string; desc: string; bg: string; accent: string }[] = [
+  { icon:Building2,    title:"Multi-tenant natif",    desc:"Isolation complète par tenant, dérivée du JWT. Chaque instance configure son propre espace de données sans interférence.", bg:"bg-indigo-400/10",  accent:"text-indigo-400"  },
+  { icon:ShieldCheck,  title:"Sécurité JWT",           desc:"Authentification par token JWT avec gestion fine des rôles PROVIDER, CONSUMER et ADMIN par tenant.",                       bg:"bg-cyan-400/10",    accent:"text-cyan-400"    },
+  { icon:Workflow,     title:"Workflow complet",       desc:"Cycle de vie ServiceRequest de PENDING à PAID. Transitions d'état contrôlées, traçables et extensibles.",                   bg:"bg-orange-400/10",  accent:"text-orange-400"  },
+  { icon:ReceiptText,  title:"Facturation intégrée",   desc:"Génération automatique de factures à l'accomplissement d'un service. Gestion du cycle de paiement incluse.",               bg:"bg-emerald-400/10", accent:"text-emerald-400" },
+  { icon:BrainCircuit, title:"Règles métier",          desc:"Configurez des règles spécifiques par tenant sans modifier le code source de la plateforme.",                              bg:"bg-violet-400/10",  accent:"text-violet-400"  },
+  { icon:Radio,        title:"Event-driven",           desc:"Bus événementiel Kafka pour découpler les composants. Audit, notifications et analytics en temps réel.",                    bg:"bg-yellow-400/10",  accent:"text-yellow-400"  },
 ];
 
 export function FeaturesSection() {
@@ -23,7 +24,9 @@ export function FeaturesSection() {
             <motion.div key={i} initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
               transition={{delay:i*0.07,duration:0.5}} whileHover={{y:-4,transition:{duration:0.2}}}
               className="p-5 rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] cursor-default group">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-[17px] mb-4 transition-transform duration-200 group-hover:scale-110 ${f.bg}`}>{f.icon}</div>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110 ${f.bg}`}>
+                <f.icon className={`w-[18px] h-[18px] ${f.accent}`} strokeWidth={2} />
+              </div>
               <h3 className="text-[14px] font-semibold mb-2 text-[var(--text)]">{f.title}</h3>
               <p className="text-[12.5px] leading-relaxed text-[var(--text-muted)]">{f.desc}</p>
             </motion.div>

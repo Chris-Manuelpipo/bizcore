@@ -16,11 +16,11 @@ const MOCK_STATS = [
 ];
 
 const MOCK_REQUESTS = [
-  { id: "SR-001", tenant: "Pharmacie 💊",  service: "Consultation",     status: "PAID",        amount: "25 000" },
-  { id: "SR-002", tenant: "Bookstore 📚",  service: "Livraison express", status: "IN_PROGRESS", amount: "5 000"  },
-  { id: "SR-003", tenant: "Assurance 🏥",  service: "Déclaration sinistre",status: "PENDING",   amount: "50 000" },
-  { id: "SR-004", tenant: "Tourisme ✈️",   service: "Réservation vol",  status: "FULFILLED",   amount: "120 000"},
-  { id: "SR-005", tenant: "Pharmacie 💊",  service: "Ordonnance",       status: "ACCEPTED",    amount: "15 000" },
+  { id: "SR-001", tenant: "Pharmacie", service: "Consultation",        status: "PAID",        amount: "25 000" },
+  { id: "SR-002", tenant: "Bookstore", service: "Livraison express",   status: "IN_PROGRESS", amount: "5 000"  },
+  { id: "SR-003", tenant: "Assurance", service: "Déclaration sinistre", status: "PENDING",     amount: "50 000" },
+  { id: "SR-004", tenant: "Tourisme",  service: "Réservation vol",     status: "FULFILLED",   amount: "120 000"},
+  { id: "SR-005", tenant: "Pharmacie", service: "Ordonnance",          status: "ACCEPTED",    amount: "15 000" },
 ];
 
 const STATUS_STYLES: Record<string, { color: string; bg: string; border: string }> = {
