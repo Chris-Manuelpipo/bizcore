@@ -1,260 +1,285 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Loader2, Trash2 } from "lucide-react";
-import { ENDPOINTS } from "@/lib/endpoints";
-import { GUIDES } from "@/lib/guides";
 
-interface Message { id: string; role: "user" | "assistant"; content: string; }
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import {
+  Bot,
+  User,
+  Trash2,
+  KeyRound,
+  Building2,
+  Workflow,
+  ReceiptText,
+  Sparkles,
+} from "lucide-react";
+import { ChatComposer, TypingDots, type CommandSuggestion } from "@/components/ui/animated-ai-chat";
+import { MessageContent } from "@/components/ui/message-content";
 
-const ENDPOINTS_DOCS = ENDPOINTS.map((e) => {
-  const params = e.params.map((p) => `    • ${p.name} (${p.in}, ${p.required ? "requis" : "optionnel"}, ${p.type}) : ${p.description}`).join("\n");
-  const responses = e.responses.map((r) => `    • ${r.status} : ${r.description}`).join("\n");
-  return `- ${e.method} ${e.path}
-  Catégorie : ${e.category}
-  Résumé : ${e.summary}
-  Description : ${e.description}
-  Auth requise : ${e.requiresAuth} | Tenant requis : ${e.requiresTenant}
-  Paramètres :
-${params || "    (aucun)"}
-  Réponses :
-${responses}`;
-}).join("\n\n");
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  error?: boolean;
+}
 
-const GUIDES_DOCS = GUIDES.map((g) => {
-  const steps = g.steps.map((s, i) => {
-    let stepText = `    Étape ${i + 1} : ${s.title}\n    ${s.content}`;
-    if (s.code) {
-      stepText += `\n    Exemple (${s.code.lang}) :\n${s.code.body}`;
-    }
-    return stepText;
-  }).join("\n\n");
-  return `## ${g.title} (${g.category} - ${g.difficulty} - ${g.duration})
-${g.description}
-Tags : ${g.tags.join(", ")}
-
-${steps}`;
-}).join("\n\n");
-
-const SYSTEM_PROMPT = `Tu es BizCore AI, l'assistant expert de la plateforme BizCore — Business Core as a Service (BCaaS).
-
-CONTEXTE BIZCORE :
-BizCore est une plateforme API générique multi-tenant qui modélise les interactions métier sous forme de protocoles réseau :
-• Émetteur = Consumer Actor (demandeur de service)
-• Récepteur = Provider Actor (fournisseur de service)
-• Protocole = Business Rules (règles métier configurables)
-• Message/Requête = ServiceRequest (demande de service)
-• ACK = Invoice (facture automatique)
-
-ARCHITECTURE :
-- Backend : Spring Boot 3.5.12 (Java 21), PostgreSQL, Redis, JWT
-- Frontend : Next.js 16 avec React 19, Tailwind CSS, Zustand
-- Multi-tenant : isolation totale des données par X-Tenant-Id
-- Workflow ServiceRequest : PENDING → ACCEPTED → IN_PROGRESS → FULFILLED → PAID
-- Facture auto-générée à FULFILLED
-- Devises supportées : XAF, XOF, NGN, KES, GHS, USD, EUR, GBP
-
-TOUS LES ENDPOINTS API (${ENDPOINTS.length} endpoints) :
-${ENDPOINTS_DOCS}
-
-GUIDES D'INTÉGRATION :
-${GUIDES_DOCS}
-
-TYPES D'ENTITÉS :
-• Tenant : espace métier isolé (id, name, domain, plan)
-• Person : personne physique (id, firstName, lastName, email, phone)
-• Actor : rôle dans un tenant (PROVIDER ou CONSUMER lié à une Person)
-• Business : entreprise métier (id, name, type, description)
-• ServiceCatalogue : services disponibles (id, name, price, currency, providerId)
-• ServiceRequest : demande de service (id, status, serviceId, consumerId, notes)
-• Invoice : facture (id, status, amount, currency, serviceRequestId)
-• BusinessRule : règle configurable (name, value, type, description)
-
-RÈGLES DE RÉPONSE :
-1. Toujours répondre en français, clairement et professionnellement
-2. Donner des exemples concrets (curl, JSON, JavaScript/TypeScript)
-3. Expliquer le concept réseau (émetteur/récepteur/protocole) quand pertinent
-4. Préciser les headers requis (Authorization, X-Tenant-Id)
-5. Si hors périmètre BizCore, expliquer poliment ta spécialisation
-6. Pour les erreurs 409 (conflit), expliquer les transitions d'état valides
-7. Utiliser des emojis pertinents pour structurer la réponse (📡, 🔐, 📋, ✅, ❌)`;
+const COMMANDS: CommandSuggestion[] = [
+  {
+    icon: <KeyRound className="h-4 w-4" />,
+    label: "Authentification",
+    description: "Obtenir un token JWT",
+    prefix: "/auth",
+    prompt: "Comment s'authentifier et obtenir un token JWT ?",
+  },
+  {
+    icon: <Building2 className="h-4 w-4" />,
+    label: "Tenant",
+    description: "Créer un tenant et un acteur PROVIDER",
+    prefix: "/tenant",
+    prompt: "Comment créer un tenant et configurer un acteur PROVIDER ?",
+  },
+  {
+    icon: <Workflow className="h-4 w-4" />,
+    label: "Workflow",
+    description: "Cycle de vie d'un ServiceRequest",
+    prefix: "/workflow",
+    prompt: "Explique-moi le cycle de vie d'un ServiceRequest avec les transitions d'état.",
+  },
+  {
+    icon: <ReceiptText className="h-4 w-4" />,
+    label: "Facture",
+    description: "Exemple complet de facturation",
+    prefix: "/facture",
+    prompt: "Donne-moi un exemple complet de création et de paiement d'une facture.",
+  },
+];
 
 const SUGGESTIONS = [
   "Comment s'authentifier et obtenir un token JWT ?",
   "Explique-moi le cycle de vie d'un ServiceRequest",
   "Comment créer un tenant et configurer un acteur PROVIDER ?",
-  "Donne-moi un exemple complet de création de facture",
   "Qu'est-ce que le multi-tenant dans BizCore ?",
 ];
 
 export default function ChatPage() {
+  const reduceMotion = useReducedMotion();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+    bottomRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  }, [messages, loading, reduceMotion]);
 
   const send = async (text?: string) => {
-    const content = text ?? input.trim();
+    const content = (text ?? input).trim();
     if (!content || loading) return;
     setInput("");
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    const userMsg: Message = { id: crypto.randomUUID(), role: "user", content };
+    const next = [...messages, userMsg];
+    setMessages(next);
     setLoading(true);
 
     try {
-      const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            ...newMessages.map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.content })),
-          ],
-          max_tokens: 1000,
-          temperature: 0.7,
-          stream: false,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next.map((m) => ({ role: m.role, content: m.content })) }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `Erreur ${res.status}`);
-      }
-
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "Désolé, je n'ai pas pu générer de réponse.";
-      setMessages((prev) => [...prev, { id: Date.now().toString(), role: "assistant", content: reply }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: data.reply || "Désolé, je n'ai pas pu générer de réponse.",
+        },
+      ]);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-      setMessages((prev) => [...prev, {
-        id: Date.now().toString(),
-        role: "assistant",
-        content: `Erreur de connexion à BizCore AI : ${errorMessage}. Vérifiez votre clé API.`
-      }]);
+      const msg = error instanceof Error ? error.message : "Erreur inconnue";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `Erreur de connexion à BizCore AI : ${msg}`,
+          error: true,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+  const isEmpty = messages.length === 0;
+
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)] max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0" style={{ borderColor: "var(--border)" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center">
-            <Bot size={17} className="text-white" />
-          </div>
-          <div>
-            <h1 className="font-display font-bold text-[16px]">BizCore AI</h1>
-            <p className="text-[11px] text-emerald-400">● En ligne — Spécialiste de l'API BizCore</p>
-          </div>
-        </div>
-        {messages.length > 0 && (
-          <button onClick={() => setMessages([])}
-            className="flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-lg transition-colors"
-            style={{ color: "var(--text-muted)" }}>
-            <Trash2 size={12} /> Effacer
-          </button>
-        )}
+    <div className="relative flex h-[100dvh] flex-col overflow-hidden pt-14">
+      {/* Ambient background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className={`absolute -top-32 left-1/4 h-80 w-80 rounded-full blur-[120px] ${
+            reduceMotion ? "" : "animate-pulse"
+          }`}
+          style={{ background: "rgba(79,70,229,0.12)" }}
+        />
+        <div
+          className={`absolute -bottom-32 right-1/4 h-80 w-80 rounded-full blur-[120px] ${
+            reduceMotion ? "" : "animate-pulse"
+          }`}
+          style={{ background: "rgba(6,182,212,0.10)", animationDelay: "1.2s" }}
+        />
       </div>
+
+      {/* Bouton flottant « Effacer » — uniquement en conversation */}
+      <AnimatePresence>
+        {!isEmpty && (
+          <motion.button
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            onClick={() => setMessages([])}
+            className="glass absolute right-4 top-3 z-20 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors hover:bg-white/[0.06]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <Trash2 size={12} /> Effacer
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-        {messages.length === 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-brand flex items-center justify-center mx-auto mb-4">
-              <Bot size={28} className="text-white" />
-            </div>
-            <h2 className="font-display text-[22px] font-bold mb-2">BizCore AI</h2>
-            <p className="text-[14px] mb-8 max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
-              Je connais toute la documentation de l'API BizCore. Posez-moi vos questions sur les endpoints, l'intégration ou l'architecture.
-            </p>
-            <div className="flex flex-col gap-2 max-w-sm mx-auto">
-              {SUGGESTIONS.map((s) => (
-                <button key={s} onClick={() => send(s)}
-                  className="text-left text-[13px] px-4 py-2.5 rounded-xl border transition-all hover:-translate-y-px"
-                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        <AnimatePresence>
-          {messages.map((msg) => (
+      <div className="relative z-10 flex-1 overflow-y-auto" aria-live="polite">
+        <div className="mx-auto w-full max-w-3xl px-4 py-6">
+          {isEmpty ? (
             <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+              transition={{ duration: 0.5 }}
+              className="flex min-h-[55vh] flex-col items-center justify-center text-center"
             >
-              <div className={`w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center ${
-                msg.role === "assistant" ? "bg-gradient-brand" : "border"
-              }`} style={msg.role === "user" ? { background: "var(--surface-2)", borderColor: "var(--border)" } : {}}>
-                {msg.role === "assistant" ? <Bot size={13} className="text-white" /> : <User size={13} style={{ color: "var(--text-muted)" }} />}
-              </div>
-              <div className={`max-w-[78%] px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed whitespace-pre-wrap ${
-                msg.role === "user"
-                  ? "bg-[var(--indigo)] text-white rounded-br-sm"
-                  : "rounded-bl-sm border"
-              }`} style={msg.role === "assistant" ? { background: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" } : {}}>
-                {msg.content}
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 18 }}
+                className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-brand shadow-xl shadow-indigo-500/25"
+              >
+                <Sparkles size={28} className="text-white" />
+              </motion.div>
+              <h2 className="font-display text-[26px] font-bold">
+                Comment puis-je <span className="gradient-text">vous aider</span> ?
+              </h2>
+              <p className="mt-2 max-w-md text-[14px]" style={{ color: "var(--text-muted)" }}>
+                Je connais toute la documentation de l&apos;API BizCore — endpoints, intégration,
+                architecture multi-tenant et workflows.
+              </p>
+
+              <div className="mt-8 grid w-full max-w-lg grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {SUGGESTIONS.map((s, i) => (
+                  <motion.button
+                    key={s}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + i * 0.06 }}
+                    onClick={() => send(s)}
+                    className="glass rounded-xl px-4 py-3 text-left text-[13px] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {s}
+                  </motion.button>
+                ))}
               </div>
             </motion.div>
-          ))}
-        </AnimatePresence>
+          ) : (
+            <div className="space-y-5">
+              <AnimatePresence initial={false}>
+                {messages.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    layout={!reduceMotion}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+                  >
+                    <div
+                      className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
+                        msg.role === "assistant" ? "bg-gradient-brand" : "border"
+                      }`}
+                      style={
+                        msg.role === "user"
+                          ? { background: "var(--surface-2)", borderColor: "var(--border)" }
+                          : undefined
+                      }
+                    >
+                      {msg.role === "assistant" ? (
+                        <Bot size={15} className="text-white" />
+                      ) : (
+                        <User size={15} style={{ color: "var(--text-muted)" }} />
+                      )}
+                    </div>
 
-        {loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 items-center">
-            <div className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center flex-shrink-0">
-              <Bot size={13} className="text-white" />
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                        msg.role === "user"
+                          ? "rounded-br-sm bg-gradient-brand text-white"
+                          : "glass rounded-bl-sm"
+                      }`}
+                      style={msg.error ? { borderColor: "var(--destructive, #EF4444)" } : undefined}
+                    >
+                      {msg.role === "assistant" ? (
+                        <MessageContent content={msg.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">{msg.content}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {loading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-brand">
+                      <Bot size={15} className="text-white" />
+                    </div>
+                    <div className="glass flex items-center gap-2.5 rounded-2xl rounded-bl-sm px-4 py-3">
+                      <span className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                        BizCore AI réfléchit
+                      </span>
+                      <TypingDots />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="px-4 py-3 rounded-2xl rounded-bl-sm border flex items-center gap-2"
-              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--text-muted)" }}>
-              <Loader2 size={13} className="animate-spin" />
-              <span className="text-[13px]">BizCore AI réfléchit…</span>
-            </div>
-          </motion.div>
-        )}
-        <div ref={bottomRef} />
+          )}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* Input */}
-      <div className="px-6 pb-6 pt-2 flex-shrink-0 border-t" style={{ borderColor: "var(--border)" }}>
-        <div className="flex gap-3 items-center px-4 py-3 rounded-2xl border transition-colors focus-within:border-[var(--indigo)]"
-          style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-          <input
-            ref={inputRef}
+      {/* Composer */}
+      <div className="relative z-10 flex-shrink-0 px-4 pb-5 pt-1">
+        <div className="mx-auto w-full max-w-3xl">
+          <ChatComposer
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
+            onChange={setInput}
+            onSend={() => send()}
+            loading={loading}
+            commands={COMMANDS}
             placeholder="Posez votre question sur l'API BizCore…"
-            className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-[var(--text-muted)]"
-            style={{ color: "var(--text)" }}
           />
-          <button onClick={() => send()} disabled={!input.trim() || loading}
-            className="w-8 h-8 rounded-xl bg-[var(--indigo)] hover:bg-[#4338CA] flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95">
-            <Send size={13} className="text-white" />
-          </button>
+          <p className="mt-2 text-center text-[11px]" style={{ color: "var(--text-muted)" }}>
+            BizCore AI peut faire des erreurs — vérifiez les informations importantes.
+          </p>
         </div>
-        <p className="text-[11px] text-center mt-2" style={{ color: "var(--text-muted)" }}>
-          BizCore AI est entraîné sur la documentation de l'API — les réponses peuvent varier.
-        </p>
       </div>
     </div>
   );

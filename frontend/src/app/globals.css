@@ -82,3 +82,10 @@ body {
 .font-display {
   font-family: 'Syne', sans-serif;
 }
+
+.lab-bg::before {
+  overflow: hidden;
+  max-width: 100vw;
+  max-height: 100vh;
+  box-sizing: border-box;
+}

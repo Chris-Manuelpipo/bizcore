@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Menu, X } from "lucide-react";
@@ -16,6 +17,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -53,12 +55,25 @@ export function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((l) => (
-            <Link key={l.href} href={l.href}
-              className="text-[13px] text-gray-400 hover:text-white transition-colors duration-200">
-              {l.label}
-            </Link>
-          ))}
+          {NAV_LINKS.map((l) => {
+            const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+            return (
+              <Link key={l.href} href={l.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative text-[13px] transition-colors duration-200",
+                  active ? "text-white font-medium" : "text-gray-400 hover:text-white"
+                )}>
+                {l.label}
+                {active && (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-gradient-brand"
+                  />
+                )}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-2">
@@ -98,13 +113,20 @@ export function Navbar() {
         {mobileOpen && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
             className="fixed top-14 left-0 right-0 z-40 bg-[#111118]/95 backdrop-blur-xl border-b border-white/10 py-4 px-6 flex flex-col gap-3 md:hidden">
-            {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href}
-                className="text-[14px] text-gray-400 hover:text-white py-1 transition-colors"
-                onClick={() => setMobileOpen(false)}>
-                {l.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((l) => {
+              const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+              return (
+                <Link key={l.href} href={l.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "text-[14px] py-1 transition-colors",
+                    active ? "text-white font-medium" : "text-gray-400 hover:text-white"
+                  )}
+                  onClick={() => setMobileOpen(false)}>
+                  {l.label}
+                </Link>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>

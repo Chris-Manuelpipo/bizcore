@@ -1,6 +1,12 @@
 import axios from "axios";
+import type { Actor, Business, Invoice, ServiceCatalogue, ServiceRequest } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+// Réponse paginée Spring Data (Page<T>)
+interface Page<T> {
+  content: T[];
+}
 
 export const apiClient = axios.create({
   baseURL: API_BASE,
@@ -28,3 +34,35 @@ apiClient.interceptors.response.use(
     return Promise.reject(err);
   }
 );
+
+// Façade typée de l'API BizCore consommée par le dashboard.
+// Les endpoints de liste paginés (Page<T>) renvoient leur tableau `content`.
+export const api = {
+  async getActors(): Promise<Actor[]> {
+    const { data } = await apiClient.get<Page<Actor>>("/api/actors");
+    return data.content;
+  },
+  async getBusinesses(): Promise<Business[]> {
+    const { data } = await apiClient.get<Page<Business>>("/api/businesses");
+    return data.content;
+  },
+  async getServiceRequests(): Promise<ServiceRequest[]> {
+    const { data } = await apiClient.get<Page<ServiceRequest>>("/api/service-requests");
+    return data.content;
+  },
+  async getInvoices(): Promise<Invoice[]> {
+    const { data } = await apiClient.get<Invoice[]>("/api/invoices");
+    return data;
+  },
+  async getServices(): Promise<ServiceCatalogue[]> {
+    const { data } = await apiClient.get<ServiceCatalogue[]>("/api/service-catalogues");
+    return data;
+  },
+  // Transitions d'état : action ∈ { accept, start, fulfill, cancel }
+  async updateServiceRequestStatus(id: string, action: string): Promise<void> {
+    await apiClient.patch(`/api/service-requests/${id}/${action}`);
+  },
+  async payInvoice(id: string): Promise<void> {
+    await apiClient.patch(`/api/invoices/${id}/pay`);
+  },
+};
