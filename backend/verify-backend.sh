@@ -22,7 +22,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-EXPECTED_TESTS=31
+EXPECTED_TESTS=151
 APP_PORT=8080
 APP_URL="http://localhost:${APP_PORT}"
 STARTUP_TIMEOUT=60
@@ -30,13 +30,14 @@ HEALTH_CHECK_RETRIES=30
 PROFILE="${SPRING_PROFILES_ACTIVE:-dev}"
 
 # Maven command detection - prefer Maven Wrapper if available
-#if [ -f "./mvnw" ]; then
-#    MVN_CMD="./mvnw"
-#    print_info "Maven Wrapper détecté: $MVN_CMD"
-#else
-#    MVN_CMD="mvn"
-#    print_info "Maven Wrapper non trouvé, utilisation de: $MVN_CMD"
-#fi
+if [ -f "./mvnw" ]; then
+    MVN_CMD="./mvnw"
+elif command -v mvn &> /dev/null; then
+    MVN_CMD="mvn"
+else
+    echo "Maven introuvable (ni ./mvnw ni mvn dans le PATH)." >&2
+    exit 1
+fi
 
 # Counters
 PASSED=0
