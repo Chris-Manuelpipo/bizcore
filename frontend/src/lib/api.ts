@@ -17,9 +17,8 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("bizcore_token");
-    const tenantId = localStorage.getItem("bizcore_tenant");
+    // Le tenant est porté par le JWT (claim "tenantId") : aucun en-tête à envoyer.
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    if (tenantId) config.headers["X-Tenant-Id"] = tenantId;
   }
   return config;
 });
