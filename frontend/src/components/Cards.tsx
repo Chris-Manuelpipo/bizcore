@@ -14,15 +14,15 @@ interface StatCardProps {
 
 export function StatCard({ title, value, subtitle, icon: Icon, trend, variant = 'default' }: StatCardProps) {
   const variants = {
-    default: 'from-slate-50 to-white border-slate-200',
-    primary: 'from-primary-50 to-white border-primary-200',
+    default: 'from-[var(--surface-2)] to-white border-[var(--border)]',
+    primary: 'from-indigo-500/10 to-white border-indigo-500/30',
     success: 'from-success-50 to-white border-success-200',
     warning: 'from-warning-50 to-white border-warning-200',
   };
 
   const iconVariants = {
-    default: 'bg-slate-100 text-slate-600',
-    primary: 'bg-primary-100 text-primary-600',
+    default: 'bg-[var(--surface-2)] text-[var(--text-muted)]',
+    primary: 'bg-indigo-500/15 text-indigo-400',
     success: 'bg-success-100 text-success-600',
     warning: 'bg-warning-100 text-warning-600',
   };
@@ -31,10 +31,10 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, variant = 
     <div className={clsx('card stat-card group', variants[variant])}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">{title}</p>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">{value}</p>
+          <p className="text-sm font-medium text-[var(--text-muted)]">{title}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--text)] mt-2">{value}</p>
           {subtitle && (
-            <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">{subtitle}</p>
           )}
           {trend && (
             <div className="flex items-center gap-1 mt-2">
@@ -46,7 +46,7 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, variant = 
               >
                 {trend.value >= 0 ? '+' : ''}{trend.value}%
               </span>
-              <span className="text-xs text-slate-400">{trend.label}</span>
+              <span className="text-xs text-[var(--text-muted)]">{trend.label}</span>
             </div>
           )}
         </div>
@@ -68,8 +68,8 @@ interface InfoCardProps {
 export function InfoCard({ title, children, action, className }: InfoCardProps) {
   return (
     <div className={`card ${className || ''}`}>
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-        <h3 className="font-semibold text-slate-900">{title}</h3>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
+        <h3 className="font-semibold text-[var(--text)]">{title}</h3>
         {action}
       </div>
       <div className="p-6">{children}</div>

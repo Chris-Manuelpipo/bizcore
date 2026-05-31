@@ -20,11 +20,11 @@ export function ProtocolStack() {
   const L = LAYERS[sel];
 
   return (
-    <section className="py-24 px-6 bg-[#0A0A0F]">
+    <section className="py-24 px-6 bg-[var(--bg)]">
       <div className="max-w-5xl mx-auto">
         <motion.div initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.6}} className="text-center mb-14">
           <p className="text-[11.5px] font-semibold tracking-[1.6px] uppercase text-indigo-400 mb-3">Analogie protocolaire</p>
-          <h2 className="font-display text-[32px] font-bold tracking-tight text-white leading-tight">
+          <h2 className="font-display text-[32px] font-bold tracking-tight text-[var(--text)] leading-tight">
             Une pile comme OSI,<br/><span className="gradient-text">mais pour le métier</span>
           </h2>
         </motion.div>
@@ -33,7 +33,7 @@ export function ProtocolStack() {
           <div className="flex flex-col gap-2">
             {LAYERS.map((layer,i) => (
               <motion.div key={i} initial={{opacity:0,x:-20}} whileInView={{opacity:1,x:0}} viewport={{once:true}} transition={{delay:i*0.07,duration:0.5}}>
-                <button onClick={()=>setSel(i)} className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${sel===i ? "border-white/20 -translate-x-1" : "border-white/[0.06] hover:border-white/10"}`}
+                <button onClick={()=>setSel(i)} className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${sel===i ? "border-[var(--glass-border)] -translate-x-1" : "border-[var(--glass-border)] hover:border-[var(--glass-border)]"}`}
                   style={{ background: sel===i ? `${layer.color}12` : "rgba(255,255,255,0.02)" }}>
                   <div className="flex items-center gap-3 px-4 py-3.5">
                     <div className="w-0.5 h-8 rounded-full flex-shrink-0" style={{background:layer.color}} />
@@ -41,13 +41,13 @@ export function ProtocolStack() {
                       style={{background:`${layer.color}20`, color:layer.color}}>{layer.num}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[13.5px] font-semibold text-white">{layer.name}</span>
+                        <span className="text-[13.5px] font-semibold text-[var(--text)]">{layer.name}</span>
                         <span className="text-[10.5px] px-2 py-0.5 rounded-md ml-2 flex-shrink-0"
                           style={{background:`${layer.color}18`, color:layer.color}}>↔ {layer.osi}</span>
                       </div>
                       <div className="flex gap-1.5 flex-wrap">
                         {layer.tags.map(t=>(
-                          <span key={t} className="text-[10.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/[0.07] text-gray-500">{t}</span>
+                          <span key={t} className="text-[10.5px] px-1.5 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--glass-border)] text-[var(--text-muted)]">{t}</span>
                         ))}
                       </div>
                     </div>
@@ -57,7 +57,7 @@ export function ProtocolStack() {
                     </svg>
                   </div>
                 </button>
-                {i<LAYERS.length-1 && <div className="ml-[34px] w-px h-2 bg-white/10" />}
+                {i<LAYERS.length-1 && <div className="ml-[34px] w-px h-2 bg-[var(--surface-2)]" />}
               </motion.div>
             ))}
           </div>
@@ -70,11 +70,11 @@ export function ProtocolStack() {
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center text-[15px] font-bold"
                     style={{background:`${L.color}22`, color:L.color}}>{L.num}</div>
                   <div>
-                    <div className="text-[14px] font-semibold text-white">{L.name}</div>
+                    <div className="text-[14px] font-semibold text-[var(--text)]">{L.name}</div>
                     <div className="text-[11px]" style={{color:L.color}}>↔ Couche {L.osi}</div>
                   </div>
                 </div>
-                <p className="text-[13px] leading-relaxed text-gray-400">{L.detail}</p>
+                <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">{L.detail}</p>
                 <div className="mt-4 pt-4 flex flex-wrap gap-1.5" style={{borderTop:`1px solid ${L.color}22`}}>
                   {L.tags.map(t=>(
                     <span key={t} className="text-[11px] px-2 py-0.5 rounded-md font-mono"

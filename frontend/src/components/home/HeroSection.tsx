@@ -86,7 +86,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 overflow-hidden bg-[#0A0A0F]">
+    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 overflow-hidden bg-[var(--bg)]">
       {/* Particles */}
       <ParticleCanvas />
 
@@ -111,12 +111,12 @@ export function HeroSection() {
         </motion.div>
 
         <motion.h1 variants={stagger.item}
-          className="font-display text-5xl md:text-6xl font-extrabold tracking-[-2.5px] leading-[1.07] mb-5 text-white">
+          className="font-display text-5xl md:text-6xl font-extrabold tracking-[-2.5px] leading-[1.07] mb-5 text-[var(--text)]">
           Le noyau métier<br />
           <span className="gradient-text">pour tout métier</span>
         </motion.h1>
 
-        <motion.p variants={stagger.item} className="text-[17px] leading-relaxed mb-8 max-w-[500px] mx-auto text-gray-400">
+        <motion.p variants={stagger.item} className="text-[17px] leading-relaxed mb-8 max-w-[500px] mx-auto text-[var(--text-muted)]">
           BizCore abstrait les briques communes — acteurs, ressources, workflows, facturation — en un socle API réutilisable, générique et multi-tenant.
         </motion.p>
 
@@ -127,7 +127,7 @@ export function HeroSection() {
             Voir la documentation
           </Link>
           <Link href="/demo"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 text-gray-200 text-[14px] font-medium transition-all hover:scale-[1.02] hover:bg-white/10">
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--glass-border)] bg-[var(--surface-2)] text-[var(--text)] text-[14px] font-medium transition-all hover:scale-[1.02] hover:bg-[var(--surface-2)]">
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 4.5L1 6.5l1.5 2M10.5 4.5L12 6.5l-1.5 2M7.5 1.5l-2 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Explorer les exemples
           </Link>
@@ -139,25 +139,25 @@ export function HeroSection() {
         initial={{ opacity:0, y:30, scale:0.97 }}
         animate={{ opacity:1, y:0, scale:1 }}
         transition={{ delay:0.6, duration:0.7, ease:[0.22,1,0.36,1] }}
-        className="relative z-10 mt-12 max-w-[520px] w-full mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-[0_32px_64px_rgba(0,0,0,0.6)]"
+        className="relative z-10 mt-12 max-w-[520px] w-full mx-auto rounded-2xl overflow-hidden border border-[var(--glass-border)] shadow-[0_32px_64px_rgba(0,0,0,0.6)]"
         style={{ background:"#111118" }}
       >
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.07]" style={{ background:"#16161F" }}>
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--glass-border)]" style={{ background:"#16161F" }}>
           <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56]" />
           <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
           <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F]" />
-          <span className="ml-2 text-[11px] font-mono text-gray-500">POST /api/service-requests</span>
+          <span className="ml-2 text-[11px] font-mono text-[var(--text-muted)]">POST /api/service-requests</span>
         </div>
-        <div className="p-4 font-mono text-[11.5px] leading-relaxed bg-[#0A0A0F]">
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-gray-500">1</span><span className="text-violet-400">POST</span><span className="text-emerald-400"> /api/service-requests</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-gray-500">2</span><span className="text-gray-600">{"// Headers requis"}</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-gray-500">3</span><span className="text-blue-400">Authorization</span><span className="text-gray-300">: </span><span className="text-emerald-400">Bearer &lt;JWT&gt;</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-gray-500">4</span><span className="text-blue-400">X-Tenant-Id</span><span className="text-gray-300">: </span><span className="text-amber-400">550e8400-e29b-41d4</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-gray-500">5</span><span className="text-blue-400">Content-Type</span><span className="text-gray-300">: </span><span className="text-emerald-400">application/json</span></div>
-          <div className="mt-2"><span className="opacity-30 mr-3 text-[10.5px] text-gray-500">7</span><span className="text-gray-200">{"{ "}</span><span className="text-blue-400">"serviceId"</span><span className="text-gray-200">: </span><span className="text-emerald-400">"uuid"</span><span className="text-gray-200">{", "}</span><span className="text-blue-400">"consumerId"</span><span className="text-gray-200">: </span><span className="text-emerald-400">"uuid"</span><span className="text-gray-200">{" }"}</span></div>
-          <div className="mt-3 pt-3 border-t border-white/[0.07] flex items-center gap-2">
+        <div className="p-4 font-mono text-[11.5px] leading-relaxed bg-[var(--bg)]">
+          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">1</span><span className="text-violet-400">POST</span><span className="text-emerald-400"> /api/service-requests</span></div>
+          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">2</span><span className="text-[var(--text-muted)]">{"// Headers requis"}</span></div>
+          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">3</span><span className="text-blue-400">Authorization</span><span className="text-[var(--text-muted)]">: </span><span className="text-emerald-400">Bearer &lt;JWT&gt;</span></div>
+          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">4</span><span className="text-blue-400">X-Tenant-Id</span><span className="text-[var(--text-muted)]">: </span><span className="text-amber-400">550e8400-e29b-41d4</span></div>
+          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">5</span><span className="text-blue-400">Content-Type</span><span className="text-[var(--text-muted)]">: </span><span className="text-emerald-400">application/json</span></div>
+          <div className="mt-2"><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">7</span><span className="text-[var(--text)]">{"{ "}</span><span className="text-blue-400">"serviceId"</span><span className="text-[var(--text)]">: </span><span className="text-emerald-400">"uuid"</span><span className="text-[var(--text)]">{", "}</span><span className="text-blue-400">"consumerId"</span><span className="text-[var(--text)]">: </span><span className="text-emerald-400">"uuid"</span><span className="text-[var(--text)]">{" }"}</span></div>
+          <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex items-center gap-2">
             <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">201 Created</span>
-            <span className="text-[11px] text-gray-500">ServiceRequest {"{"} status: PENDING {"}"}</span>
+            <span className="text-[11px] text-[var(--text-muted)]">ServiceRequest {"{"} status: PENDING {"}"}</span>
           </div>
         </div>
       </motion.div>

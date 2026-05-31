@@ -96,15 +96,15 @@ export default function DashboardPage() {
           {/* Recent Requests */}
           <div className="lg:col-span-2">
             <div className="card">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                <h2 className="font-semibold text-slate-900">Demandes récentes</h2>
-                <Link href="/dashboard/requests" className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
+                <h2 className="font-semibold text-[var(--text)]">Demandes récentes</h2>
+                <Link href="/dashboard/requests" className="text-sm text-indigo-400 hover:text-indigo-400 font-medium flex items-center gap-1">
                   Voir tout <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
               
               {loading ? (
-                <div className="p-6 text-center text-slate-500">Chargement...</div>
+                <div className="p-6 text-center text-[var(--text-muted)]">Chargement...</div>
               ) : recentRequests.length === 0 ? (
                 <EmptyState
                   icon={ShoppingCart}
@@ -112,18 +112,18 @@ export default function DashboardPage() {
                   description="Les demandes de services apparaîtront ici"
                 />
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-[var(--border)]">
                   {recentRequests.map((request) => (
-                    <div key={request.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
+                    <div key={request.id} className="px-6 py-4 hover:bg-[var(--surface-2)] transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3">
                           <Avatar name={`${request.consumer.person.firstName} ${request.consumer.person.lastName}`} size="sm" />
                           <div>
-                            <p className="font-medium text-slate-900">{request.serviceName}</p>
-                            <p className="text-sm text-slate-500 mt-0.5">
+                            <p className="font-medium text-[var(--text)]">{request.serviceName}</p>
+                            <p className="text-sm text-[var(--text-muted)] mt-0.5">
                               {request.consumer.person.firstName} {request.consumer.person.lastName} → {request.provider.person.firstName}
                             </p>
-                            <p className="text-xs text-slate-400 mt-1">{formatDate(request.requestedAt)}</p>
+                            <p className="text-xs text-[var(--text-muted)] mt-1">{formatDate(request.requestedAt)}</p>
                           </div>
                         </div>
                         <StatusBadge status={request.status} size="sm" />
@@ -139,7 +139,7 @@ export default function DashboardPage() {
           <div className="space-y-6">
             {/* Quick Actions */}
             <div className="card p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Actions rapides</h3>
+              <h3 className="font-semibold text-[var(--text)] mb-4">Actions rapides</h3>
               <div className="space-y-3">
                 <Link href="/dashboard/requests?action=new" className="btn-primary w-full flex items-center justify-center gap-2">
                   <Plus className="w-4 h-4" />
@@ -154,7 +154,7 @@ export default function DashboardPage() {
 
             {/* Providers Stats */}
             <div className="card p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Acteurs actifs</h3>
+              <h3 className="font-semibold text-[var(--text)] mb-4">Acteurs actifs</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -162,11 +162,11 @@ export default function DashboardPage() {
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">Prestataires</p>
-                      <p className="text-sm text-slate-500">actifs</p>
+                      <p className="font-medium text-[var(--text)]">Prestataires</p>
+                      <p className="text-sm text-[var(--text-muted)]">actifs</p>
                     </div>
                   </div>
-                  <span className="text-xl font-bold text-slate-900">{mockStats.activeProviders}</span>
+                  <span className="text-xl font-bold text-[var(--text)]">{mockStats.activeProviders}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -174,11 +174,11 @@ export default function DashboardPage() {
                       <Users className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">Consommateurs</p>
-                      <p className="text-sm text-slate-500">actifs</p>
+                      <p className="font-medium text-[var(--text)]">Consommateurs</p>
+                      <p className="text-sm text-[var(--text-muted)]">actifs</p>
                     </div>
                   </div>
-                  <span className="text-xl font-bold text-slate-900">{mockStats.activeConsumers}</span>
+                  <span className="text-xl font-bold text-[var(--text)]">{mockStats.activeConsumers}</span>
                 </div>
               </div>
             </div>

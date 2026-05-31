@@ -142,7 +142,7 @@ export default function ChatPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             onClick={() => setMessages([])}
-            className="glass absolute right-4 top-3 z-20 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors hover:bg-white/[0.06]"
+            className="glass absolute right-4 top-3 z-20 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] transition-colors hover:bg-[var(--surface-2)]"
             style={{ color: "var(--text-muted)" }}
           >
             <Trash2 size={12} /> Effacer

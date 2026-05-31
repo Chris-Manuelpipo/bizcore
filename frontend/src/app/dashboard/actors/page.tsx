@@ -50,8 +50,8 @@ export default function ActorsPage() {
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Total</p>
-              <p className="text-2xl font-bold text-slate-900">{actors.length}</p>
+              <p className="text-sm text-[var(--text-muted)]">Total</p>
+              <p className="text-2xl font-bold text-[var(--text)]">{actors.length}</p>
             </div>
           </div>
           <div className="card p-4 flex items-center gap-4">
@@ -59,8 +59,8 @@ export default function ActorsPage() {
               <Shield className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Prestataires</p>
-              <p className="text-2xl font-bold text-slate-900">{providers.length}</p>
+              <p className="text-sm text-[var(--text-muted)]">Prestataires</p>
+              <p className="text-2xl font-bold text-[var(--text)]">{providers.length}</p>
             </div>
           </div>
           <div className="card p-4 flex items-center gap-4">
@@ -68,8 +68,8 @@ export default function ActorsPage() {
               <User className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Consommateurs</p>
-              <p className="text-2xl font-bold text-slate-900">{consumers.length}</p>
+              <p className="text-sm text-[var(--text-muted)]">Consommateurs</p>
+              <p className="text-2xl font-bold text-[var(--text)]">{consumers.length}</p>
             </div>
           </div>
         </div>
@@ -87,8 +87,8 @@ export default function ActorsPage() {
                 onClick={() => setFilter(f.value as typeof filter)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === f.value
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border)] hover:bg-[var(--surface-2)]'
                 }`}
               >
                 {f.label}
@@ -104,7 +104,7 @@ export default function ActorsPage() {
         {/* Table */}
         <div className="card overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-slate-500">Chargement...</div>
+            <div className="p-8 text-center text-[var(--text-muted)]">Chargement...</div>
           ) : filteredActors.length === 0 ? (
             <div className="p-8">
               <EmptyState
@@ -117,18 +117,18 @@ export default function ActorsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Acteur</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Téléphone</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Rôle</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Bio</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                  <tr className="bg-[var(--surface-2)] border-b border-[var(--border)]">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Acteur</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Téléphone</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Rôle</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Bio</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[var(--border)]">
                   {filteredActors.map((actor) => (
-                    <tr key={actor.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={actor.id} className="hover:bg-[var(--surface-2)] transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <Avatar 
@@ -136,20 +136,20 @@ export default function ActorsPage() {
                             size="md" 
                           />
                           <div>
-                            <p className="font-medium text-slate-900">
+                            <p className="font-medium text-[var(--text)]">
                               {actor.person.firstName} {actor.person.lastName}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-[var(--text-muted)]">
                               {actor.person.country} • {actor.isActive ? 'Actif' : 'Inactif'}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600">{actor.person.email}</p>
+                        <p className="text-sm text-[var(--text-muted)]">{actor.person.email}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600">{actor.person.phone}</p>
+                        <p className="text-sm text-[var(--text-muted)]">{actor.person.phone}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -166,10 +166,10 @@ export default function ActorsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-500 line-clamp-1 max-w-xs">{actor.bio || '-'}</p>
+                        <p className="text-sm text-[var(--text-muted)] line-clamp-1 max-w-xs">{actor.bio || '-'}</p>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                        <button className="text-sm text-indigo-400 hover:text-indigo-400 font-medium">
                           Modifier
                         </button>
                       </td>
@@ -182,27 +182,27 @@ export default function ActorsPage() {
         </div>
 
         {/* Network Analogy */}
-        <div className="card mt-8 p-6 border-primary-200 bg-primary-50/50">
-          <h3 className="font-semibold text-primary-900 mb-4">L'analogie réseau</h3>
+        <div className="card mt-8 p-6 border-indigo-500/30 bg-indigo-500/10/50">
+          <h3 className="font-semibold text-indigo-300 mb-4">L'analogie réseau</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-primary-200">
+            <div className="flex items-center gap-4 p-4 bg-[var(--surface)] rounded-lg border border-indigo-500/30">
               <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
                 <span className="text-white font-bold">C</span>
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Consumer (Consommateur)</p>
-                <p className="text-sm text-slate-600">= Émetteur dans le réseau</p>
-                <p className="text-xs text-slate-500 mt-1">Initiateur de la demande de service</p>
+                <p className="font-semibold text-[var(--text)]">Consumer (Consommateur)</p>
+                <p className="text-sm text-[var(--text-muted)]">= Émetteur dans le réseau</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Initiateur de la demande de service</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-primary-200">
+            <div className="flex items-center gap-4 p-4 bg-[var(--surface)] rounded-lg border border-indigo-500/30">
               <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
                 <span className="text-white font-bold">P</span>
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Provider (Prestataire)</p>
-                <p className="text-sm text-slate-600">= Récepteur dans le réseau</p>
-                <p className="text-xs text-slate-500 mt-1">Exécuteur du service demandé</p>
+                <p className="font-semibold text-[var(--text)]">Provider (Prestataire)</p>
+                <p className="text-sm text-[var(--text-muted)]">= Récepteur dans le réseau</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Exécuteur du service demandé</p>
               </div>
             </div>
           </div>

@@ -64,17 +64,17 @@ export default function InvoicesPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="card p-4">
-            <p className="text-sm text-slate-500">Total émises</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{invoices.length}</p>
+            <p className="text-sm text-[var(--text-muted)]">Total émises</p>
+            <p className="text-2xl font-bold text-[var(--text)] mt-1">{invoices.length}</p>
           </div>
           <div className="card p-4">
-            <p className="text-sm text-slate-500">En attente</p>
+            <p className="text-sm text-[var(--text-muted)]">En attente</p>
             <p className="text-2xl font-bold text-amber-600 mt-1">
               {invoices.filter(i => i.status === 'PENDING').length}
             </p>
           </div>
           <div className="card p-4">
-            <p className="text-sm text-slate-500">Payées</p>
+            <p className="text-sm text-[var(--text-muted)]">Payées</p>
             <p className="text-2xl font-bold text-green-600 mt-1">
               {invoices.filter(i => i.status === 'PAID').length}
             </p>
@@ -90,8 +90,8 @@ export default function InvoicesPage() {
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === f
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border)] hover:bg-[var(--surface-2)]'
                 }`}
               >
                 {f === 'all' ? 'Toutes' : f === 'PENDING' ? 'En attente' : f === 'PAID' ? 'Payées' : 'Annulées'}
@@ -103,7 +103,7 @@ export default function InvoicesPage() {
         {/* Table */}
         <div className="card overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-slate-500">Chargement...</div>
+            <div className="p-8 text-center text-[var(--text-muted)]">Chargement...</div>
           ) : filteredInvoices.length === 0 ? (
             <div className="p-8">
               <EmptyState
@@ -116,23 +116,23 @@ export default function InvoicesPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">N° Facture</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Service</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Montant</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Émise le</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                  <tr className="bg-[var(--surface-2)] border-b border-[var(--border)]">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">N° Facture</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Service</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Montant</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Émise le</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[var(--border)]">
                   {filteredInvoices.map((invoice, index) => (
-                    <tr key={invoice.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={invoice.id} className="hover:bg-[var(--surface-2)] transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-medium text-slate-900">INV-{String(index + 1).padStart(5, '0')}</p>
+                        <p className="font-medium text-[var(--text)]">INV-{String(index + 1).padStart(5, '0')}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-medium text-slate-900">{getServiceName(invoice)}</p>
+                        <p className="font-medium text-[var(--text)]">{getServiceName(invoice)}</p>
                       </td>
                       <td className="px-6 py-4">
                         <CurrencyDisplay amount={invoice.amount} currency={invoice.currency} />
@@ -141,11 +141,11 @@ export default function InvoicesPage() {
                         <StatusBadge status={invoice.status} />
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600">{formatDate(invoice.issuedAt)}</p>
+                        <p className="text-sm text-[var(--text-muted)]">{formatDate(invoice.issuedAt)}</p>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" title="Télécharger">
+                          <button className="p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-2)] rounded-lg transition-colors" title="Télécharger">
                             <Download className="w-4 h-4" />
                           </button>
                           {invoice.status === 'PENDING' && (

@@ -112,7 +112,7 @@ export default function RequestsPage() {
         );
       case 'FULFILLED':
         return (
-          <button className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" title="Voir facture">
+          <button className="p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-2)] rounded-lg transition-colors" title="Voir facture">
             <FileText className="w-4 h-4" />
           </button>
         );
@@ -148,8 +148,8 @@ export default function RequestsPage() {
                 onClick={() => setFilter(sf.value)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                   filter === sf.value
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border)] hover:bg-[var(--surface-2)]'
                 }`}
               >
                 {sf.label}
@@ -168,7 +168,7 @@ export default function RequestsPage() {
         {/* Table */}
         <div className="card overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-slate-500">Chargement...</div>
+            <div className="p-8 text-center text-[var(--text-muted)]">Chargement...</div>
           ) : filteredRequests.length === 0 ? (
             <div className="p-8">
               <EmptyState
@@ -186,32 +186,32 @@ export default function RequestsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Service</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Consommateur</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Prestataire</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                  <tr className="bg-[var(--surface-2)] border-b border-[var(--border)]">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Service</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Consommateur</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Prestataire</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[var(--border)]">
                   {filteredRequests.map((request) => (
-                    <tr key={request.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={request.id} className="hover:bg-[var(--surface-2)] transition-colors">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-slate-900">{request.serviceName}</p>
-                          <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{request.description}</p>
+                          <p className="font-medium text-[var(--text)]">{request.serviceName}</p>
+                          <p className="text-sm text-[var(--text-muted)] mt-0.5 line-clamp-1">{request.description}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <Avatar name={`${request.consumer.person.firstName} ${request.consumer.person.lastName}`} size="sm" />
                           <div>
-                            <p className="font-medium text-slate-900">
+                            <p className="font-medium text-[var(--text)]">
                               {request.consumer.person.firstName} {request.consumer.person.lastName}
                             </p>
-                            <p className="text-xs text-slate-500">Consommateur</p>
+                            <p className="text-xs text-[var(--text-muted)]">Consommateur</p>
                           </div>
                         </div>
                       </td>
@@ -219,10 +219,10 @@ export default function RequestsPage() {
                         <div className="flex items-center gap-3">
                           <Avatar name={`${request.provider.person.firstName} ${request.provider.person.lastName}`} size="sm" />
                           <div>
-                            <p className="font-medium text-slate-900">
+                            <p className="font-medium text-[var(--text)]">
                               {request.provider.person.firstName} {request.provider.person.lastName}
                             </p>
-                            <p className="text-xs text-slate-500">Prestataire</p>
+                            <p className="text-xs text-[var(--text-muted)]">Prestataire</p>
                           </div>
                         </div>
                       </td>
@@ -230,7 +230,7 @@ export default function RequestsPage() {
                         <StatusBadge status={request.status} />
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600">{formatDate(request.requestedAt)}</p>
+                        <p className="text-sm text-[var(--text-muted)]">{formatDate(request.requestedAt)}</p>
                       </td>
                       <td className="px-6 py-4 text-right">
                         {getStatusActions(request.status, request.id)}
@@ -247,10 +247,10 @@ export default function RequestsPage() {
         {showNewModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowNewModal(false)} />
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg">
-              <div className="px-6 py-4 border-b border-slate-200">
-                <h2 className="text-lg font-semibold text-slate-900">Nouvelle demande de service</h2>
-                <p className="text-sm text-slate-500 mt-1">CdS → FdS</p>
+            <div className="relative bg-[var(--surface)] rounded-2xl shadow-xl w-full max-w-lg">
+              <div className="px-6 py-4 border-b border-[var(--border)]">
+                <h2 className="text-lg font-semibold text-[var(--text)]">Nouvelle demande de service</h2>
+                <p className="text-sm text-[var(--text-muted)] mt-1">CdS → FdS</p>
               </div>
               <form className="p-6 space-y-4">
                 <div>
@@ -278,7 +278,7 @@ export default function RequestsPage() {
                   />
                 </div>
               </form>
-              <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+              <div className="px-6 py-4 border-t border-[var(--border)] flex justify-end gap-3">
                 <button onClick={() => setShowNewModal(false)} className="btn-secondary">
                   Annuler
                 </button>

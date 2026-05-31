@@ -166,7 +166,7 @@ export function ChatComposer({
                 onMouseEnter={() => setActiveIndex(i)}
                 className={cn(
                   "flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13px] transition-colors",
-                  activeIndex === i ? "bg-white/[0.06]" : "hover:bg-white/[0.03]",
+                  activeIndex === i ? "bg-[var(--surface-2)]" : "hover:bg-[var(--surface-2)]",
                 )}
               >
                 <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-brand text-white">

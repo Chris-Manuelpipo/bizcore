@@ -9,7 +9,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
-  const colors = statusColors[status] || { bg: 'bg-slate-100', text: 'text-slate-800', dot: 'bg-slate-500' };
+  const colors = statusColors[status] || { bg: 'bg-[var(--surface-2)]', text: 'text-[var(--text)]', dot: 'bg-[var(--surface-2)]0' };
   
   const sizes = {
     sm: 'text-xs px-2 py-0.5',
@@ -45,7 +45,7 @@ export function Avatar({ name, size = 'md', className }: AvatarProps) {
   };
 
   const colors = [
-    'from-primary-400 to-primary-600',
+    'from-indigo-400 to-indigo-600',
     'from-emerald-400 to-emerald-600',
     'from-amber-400 to-amber-600',
     'from-rose-400 to-rose-600',
@@ -85,7 +85,7 @@ export function CurrencyDisplay({ amount, currency, size = 'md' }: CurrencyDispl
   };
 
   return (
-    <span className={clsx('font-semibold text-slate-900', sizes[size])}>
+    <span className={clsx('font-semibold text-[var(--text)]', sizes[size])}>
       {currencySymbols[currency] || currency} {formatted}
     </span>
   );
@@ -101,11 +101,11 @@ interface EmptyStateProps {
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <Icon className="w-8 h-8 text-slate-400" />
+      <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-[var(--text-muted)]" />
       </div>
-      <h3 className="text-lg font-medium text-slate-900">{title}</h3>
-      <p className="text-sm text-slate-500 mt-1 max-w-sm">{description}</p>
+      <h3 className="text-lg font-medium text-[var(--text)]">{title}</h3>
+      <p className="text-sm text-[var(--text-muted)] mt-1 max-w-sm">{description}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

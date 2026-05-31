@@ -37,7 +37,7 @@ export function Navbar() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 h-14 px-6 flex items-center justify-between transition-all duration-300",
-          scrolled ? "bg-[#0A0A0F]/85 dark:bg-[#0A0A0F]/85 backdrop-blur-xl border-b border-white/[0.06] shadow-sm" : "bg-transparent"
+          scrolled ? "bg-[var(--bg)]/90 supports-[backdrop-filter]:bg-[var(--bg)]/75 backdrop-blur-xl border-b border-[var(--glass-border)] shadow-sm" : "bg-transparent"
         )}
       >
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -49,7 +49,7 @@ export function Navbar() {
               <rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1.2" fill="white" opacity="0.25"/>
             </svg>
           </div>
-          <span className="font-display font-bold text-[15px] tracking-tight text-white dark:text-white group-hover:opacity-80 transition-opacity">
+          <span className="font-display font-bold text-[15px] tracking-tight text-[var(--text)] group-hover:opacity-80 transition-opacity">
             BizCore
           </span>
         </Link>
@@ -62,7 +62,7 @@ export function Navbar() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative text-[13px] transition-colors duration-200",
-                  active ? "text-white font-medium" : "text-gray-400 hover:text-white"
+                  active ? "text-[var(--text)] font-medium" : "text-[var(--text-muted)] hover:text-[var(--text)]"
                 )}>
                 {l.label}
                 {active && (
@@ -80,7 +80,7 @@ export function Navbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white border border-white/10 bg-white/5 transition-all hover:scale-105"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] border border-[var(--glass-border)] bg-[var(--surface-2)] transition-all hover:scale-105"
               aria-label="Toggle theme"
             >
               <AnimatePresence mode="wait">
@@ -95,14 +95,14 @@ export function Navbar() {
             </button>
           )}
           <Link href="/admin/login"
-            className="hidden md:block text-[13px] px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 transition-all">
+            className="hidden md:block text-[13px] px-3 py-1.5 rounded-lg border border-[var(--glass-border)] bg-[var(--surface-2)] text-[var(--text)] hover:bg-[var(--surface-2)] transition-all">
             Se connecter
           </Link>
           <Link href="/docs"
             className="hidden md:block text-[13px] px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all font-medium">
             Commencer →
           </Link>
-          <button className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center border border-white/10 bg-white/5 text-white"
+          <button className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center border border-[var(--glass-border)] bg-[var(--surface-2)] text-[var(--text)]"
             onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X size={14} /> : <Menu size={14} />}
           </button>
@@ -112,7 +112,7 @@ export function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="fixed top-14 left-0 right-0 z-40 bg-[#111118]/95 backdrop-blur-xl border-b border-white/10 py-4 px-6 flex flex-col gap-3 md:hidden">
+            className="fixed top-14 left-0 right-0 z-40 bg-[var(--surface)]/95 backdrop-blur-xl border-b border-[var(--glass-border)] py-4 px-6 flex flex-col gap-3 md:hidden">
             {NAV_LINKS.map((l) => {
               const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
               return (
@@ -120,7 +120,7 @@ export function Navbar() {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "text-[14px] py-1 transition-colors",
-                    active ? "text-white font-medium" : "text-gray-400 hover:text-white"
+                    active ? "text-[var(--text)] font-medium" : "text-[var(--text-muted)] hover:text-[var(--text)]"
                   )}
                   onClick={() => setMobileOpen(false)}>
                   {l.label}

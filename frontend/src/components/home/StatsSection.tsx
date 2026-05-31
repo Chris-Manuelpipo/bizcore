@@ -24,13 +24,13 @@ function Counter({ value, suffix }: { value:number; suffix:string }) {
 
 export function StatsSection() {
   return (
-    <section className="py-16 px-6 border-y border-white/[0.06]">
+    <section className="py-16 px-6 border-y border-[var(--glass-border)]">
       <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-white/[0.06]">
         {STATS.map((s,i) => (
           <motion.div key={i} initial={{opacity:0,y:16}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-            transition={{delay:i*0.08,duration:0.5}} className="px-6 py-8 text-center bg-[#111118]">
+            transition={{delay:i*0.08,duration:0.5}} className="px-6 py-8 text-center bg-[var(--surface)]">
             <Counter value={s.value} suffix={s.suffix} />
-            <p className="text-[12.5px] mt-1 text-gray-500">{s.label}</p>
+            <p className="text-[12.5px] mt-1 text-[var(--text-muted)]">{s.label}</p>
           </motion.div>
         ))}
       </div>

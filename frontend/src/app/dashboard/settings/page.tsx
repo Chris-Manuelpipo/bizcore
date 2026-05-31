@@ -34,8 +34,8 @@ export default function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-indigo-500/10 text-indigo-400'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)]'
                   }`}
                 >
                   <tab.icon className="w-5 h-5" />
@@ -49,9 +49,9 @@ export default function SettingsPage() {
           <div className="flex-1">
             {activeTab === 'tenant' && (
               <div className="card">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">Configuration du Tenant</h2>
-                  <p className="text-sm text-slate-500 mt-1">Informations de votre instance BizCore</p>
+                <div className="px-6 py-4 border-b border-[var(--border)]">
+                  <h2 className="font-semibold text-[var(--text)]">Configuration du Tenant</h2>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">Informations de votre instance BizCore</p>
                 </div>
                 <div className="p-6 space-y-6">
                   <div>
@@ -61,7 +61,7 @@ export default function SettingsPage() {
                   <div>
                     <label className="label">Domaine</label>
                     <div className="flex max-w-md">
-                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-muted)] text-sm">
                         bizcore.io/
                       </span>
                       <input type="text" defaultValue={mockTenant.domain} className="input rounded-l-none flex-1" />
@@ -71,7 +71,7 @@ export default function SettingsPage() {
                     <label className="label">Description</label>
                     <textarea defaultValue={mockTenant.description} className="input max-w-md min-h-24" />
                   </div>
-                  <div className="pt-4 border-t border-slate-100">
+                  <div className="pt-4 border-t border-[var(--border)]">
                     <button className="btn-primary">Enregistrer</button>
                   </div>
                 </div>
@@ -80,21 +80,21 @@ export default function SettingsPage() {
 
             {activeTab === 'api' && (
               <div className="card">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">Clés API</h2>
-                  <p className="text-sm text-slate-500 mt-1">Gérez les clés pour accéder à votre API</p>
+                <div className="px-6 py-4 border-b border-[var(--border)]">
+                  <h2 className="font-semibold text-[var(--text)]">Clés API</h2>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">Gérez les clés pour accéder à votre API</p>
                 </div>
                 <div className="p-6 space-y-6">
-                  <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="p-4 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-700">Clé API principale</span>
+                      <span className="text-sm font-medium text-[var(--text)]">Clé API principale</span>
                       <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Active</span>
                     </div>
-                    <code className="text-sm text-slate-600 font-mono break-all">
+                    <code className="text-sm text-[var(--text-muted)] font-mono break-all">
                       bcs_live_550e8400e29b41d4a716446655440000...
                     </code>
                   </div>
-                  <div className="pt-4 border-t border-slate-100">
+                  <div className="pt-4 border-t border-[var(--border)]">
                     <button className="btn-secondary">Régénérer la clé</button>
                   </div>
                 </div>
@@ -103,9 +103,9 @@ export default function SettingsPage() {
 
             {activeTab === 'notifications' && (
               <div className="card">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">Notifications</h2>
-                  <p className="text-sm text-slate-500 mt-1">Configurez vos préférences de notification</p>
+                <div className="px-6 py-4 border-b border-[var(--border)]">
+                  <h2 className="font-semibold text-[var(--text)]">Notifications</h2>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">Configurez vos préférences de notification</p>
                 </div>
                 <div className="p-6 space-y-4">
                   {[
@@ -114,14 +114,14 @@ export default function SettingsPage() {
                     { label: 'Facture créée', desc: 'Alerte lors de la génération d\'une nouvelle facture' },
                     { label: 'Paiement reçu', desc: 'Confirmation de paiement d\'une facture' },
                   ].map((item, index) => (
-                    <div key={index} className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                    <div key={index} className="flex items-center justify-between py-3 border-b border-[var(--border)] last:border-0">
                       <div>
-                        <p className="font-medium text-slate-900">{item.label}</p>
-                        <p className="text-sm text-slate-500">{item.desc}</p>
+                        <p className="font-medium text-[var(--text)]">{item.label}</p>
+                        <p className="text-sm text-[var(--text-muted)]">{item.desc}</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" className="sr-only peer" defaultChecked />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                        <div className="w-11 h-6 bg-[var(--surface-2)] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[var(--surface)] after:border-[var(--border)] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                       </label>
                     </div>
                   ))}
@@ -131,26 +131,26 @@ export default function SettingsPage() {
 
             {activeTab === 'security' && (
               <div className="card">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">Sécurité</h2>
-                  <p className="text-sm text-slate-500 mt-1">Paramètres de sécurité pour votre tenant</p>
+                <div className="px-6 py-4 border-b border-[var(--border)]">
+                  <h2 className="font-semibold text-[var(--text)]">Sécurité</h2>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">Paramètres de sécurité pour votre tenant</p>
                 </div>
                 <div className="p-6 space-y-6">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-2)]">
                     <div>
-                      <p className="font-medium text-slate-900">Authentification JWT</p>
-                      <p className="text-sm text-slate-500">Tokens signés avec HMAC-SHA256</p>
+                      <p className="font-medium text-[var(--text)]">Authentification JWT</p>
+                      <p className="text-sm text-[var(--text-muted)]">Tokens signés avec HMAC-SHA256</p>
                     </div>
                     <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Activé</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--surface-2)]">
                     <div>
-                      <p className="font-medium text-slate-900">Multi-Factor Authentication</p>
-                      <p className="text-sm text-slate-500">2FA pour les administrateurs</p>
+                      <p className="font-medium text-[var(--text)]">Multi-Factor Authentication</p>
+                      <p className="text-sm text-[var(--text-muted)]">2FA pour les administrateurs</p>
                     </div>
                     <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded">Optionnel</span>
                   </div>
-                  <div className="pt-4 border-t border-slate-100">
+                  <div className="pt-4 border-t border-[var(--border)]">
                     <button className="btn-secondary">Configurer 2FA</button>
                   </div>
                 </div>

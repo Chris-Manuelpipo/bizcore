@@ -36,7 +36,7 @@ export default function ServicesPage() {
 
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-slate-600">
+          <p className="text-[var(--text-muted)]">
             Chaque provider peut proposer des services via son catalogue.
           </p>
           <button className="btn-primary flex items-center gap-2">
@@ -46,7 +46,7 @@ export default function ServicesPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-500">Chargement...</div>
+          <div className="text-center py-12 text-[var(--text-muted)]">Chargement...</div>
         ) : services.length === 0 ? (
           <EmptyState
             icon={Briefcase}
@@ -76,20 +76,20 @@ export default function ServicesPage() {
                     )}
                   </div>
                   
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">{service.name}</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text)] mb-1">{service.name}</h3>
                   <p className="text-sm text-emerald-600 font-medium mb-3">{service.business.name}</p>
-                  <p className="text-sm text-slate-500 mb-4 line-clamp-2">{service.description}</p>
+                  <p className="text-sm text-[var(--text-muted)] mb-4 line-clamp-2">{service.description}</p>
                   
-                  <div className="pt-4 border-t border-slate-100">
+                  <div className="pt-4 border-t border-[var(--border)]">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Prix de base</span>
+                      <span className="text-sm text-[var(--text-muted)]">Prix de base</span>
                       <CurrencyDisplay amount={service.basePrice} currency={service.currency} size="lg" />
                     </div>
                   </div>
                 </div>
-                <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-                  <button className="text-sm text-slate-600 hover:text-slate-900">Modifier</button>
-                  <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                <div className="px-6 py-3 bg-[var(--surface-2)] border-t border-[var(--border)] flex justify-end gap-2">
+                  <button className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">Modifier</button>
+                  <button className="text-sm text-indigo-400 hover:text-indigo-400 font-medium">
                     Commander
                   </button>
                 </div>
@@ -100,7 +100,7 @@ export default function ServicesPage() {
 
         {/* Service Flow */}
         <div className="card mt-8 p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">Flux d&apos;un service</h3>
+          <h3 className="font-semibold text-[var(--text)] mb-4">Flux d&apos;un service</h3>
           <div className="flex items-center justify-between overflow-x-auto">
             {[
               { step: 1, label: 'Consumer', desc: 'Recherche un service' },
@@ -111,14 +111,14 @@ export default function ServicesPage() {
             ].map((item, index) => (
               <div key={item.step} className="flex items-center">
                 <div className="text-center min-w-32">
-                  <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mx-auto mb-2">
+                  <div className="w-10 h-10 rounded-full bg-indigo-500/15 text-indigo-400 flex items-center justify-center mx-auto mb-2">
                     <span className="font-bold">{item.step}</span>
                   </div>
-                  <p className="font-medium text-slate-900 text-sm">{item.label}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+                  <p className="font-medium text-[var(--text)] text-sm">{item.label}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{item.desc}</p>
                 </div>
                 {index < 4 && (
-                  <div className="w-8 h-0.5 bg-slate-200 mx-2 flex-shrink-0" />
+                  <div className="w-8 h-0.5 bg-[var(--surface-2)] mx-2 flex-shrink-0" />
                 )}
               </div>
             ))}
