@@ -1,6 +1,7 @@
 package com.bizcore.bizcore_backend.controller;
 
 import com.bizcore.bizcore_backend.domain.Invoice;
+import com.bizcore.bizcore_backend.dto.InvoiceDTO;
 import com.bizcore.bizcore_backend.service.InvoiceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,50 +24,52 @@ public class InvoiceController {
 
     @GetMapping
     @Operation(summary = "Lister toutes les factures")
-    public List<Invoice> findAll() {
-        return invoiceService.findAll();
+    public List<InvoiceDTO> findAll() {
+        return invoiceService.findAll().stream().map(InvoiceDTO::fromEntity).toList();
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Trouver une facture par ID")
-    public ResponseEntity<Invoice> findById(@PathVariable UUID id) {
+    public ResponseEntity<InvoiceDTO> findById(@PathVariable UUID id) {
         return invoiceService.findById(id)
+                .map(InvoiceDTO::fromEntity)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/status/{status}")
     @Operation(summary = "Lister les factures par statut")
-    public List<Invoice> findByStatus(@PathVariable Invoice.Status status) {
-        return invoiceService.findByStatus(status);
+    public List<InvoiceDTO> findByStatus(@PathVariable Invoice.Status status) {
+        return invoiceService.findByStatus(status).stream().map(InvoiceDTO::fromEntity).toList();
     }
 
     @GetMapping("/service-request/{serviceRequestId}")
     @Operation(summary = "Trouver la facture d'une demande de service")
-    public ResponseEntity<Invoice> findByServiceRequest(@PathVariable UUID serviceRequestId) {
+    public ResponseEntity<InvoiceDTO> findByServiceRequest(@PathVariable UUID serviceRequestId) {
         return invoiceService.findByServiceRequestId(serviceRequestId)
+                .map(InvoiceDTO::fromEntity)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/service-request/{serviceRequestId}")
     @Operation(summary = "Créer une facture pour une demande de service")
-    public ResponseEntity<Invoice> create(@PathVariable UUID serviceRequestId,
+    public ResponseEntity<InvoiceDTO> create(@PathVariable UUID serviceRequestId,
                                           @RequestBody Invoice invoice) {
         Invoice saved = invoiceService.save(serviceRequestId, invoice);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(InvoiceDTO.fromEntity(saved));
     }
 
     @PatchMapping("/{id}/pay")
     @Operation(summary = "Marquer une facture comme payée")
-    public ResponseEntity<Invoice> pay(@PathVariable UUID id) {
-        return ResponseEntity.ok(invoiceService.pay(id));
+    public ResponseEntity<InvoiceDTO> pay(@PathVariable UUID id) {
+        return ResponseEntity.ok(InvoiceDTO.fromEntity(invoiceService.pay(id)));
     }
 
     @PatchMapping("/{id}/cancel")
     @Operation(summary = "Annuler une facture")
-    public ResponseEntity<Invoice> cancel(@PathVariable UUID id) {
-        return ResponseEntity.ok(invoiceService.cancel(id));
+    public ResponseEntity<InvoiceDTO> cancel(@PathVariable UUID id) {
+        return ResponseEntity.ok(InvoiceDTO.fromEntity(invoiceService.cancel(id)));
     }
 
     @DeleteMapping("/{id}")
