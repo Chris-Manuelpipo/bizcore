@@ -32,6 +32,15 @@ public class SecurityConfig {
     private final TenantFilter tenantFilter;
     private final UserDetailsService userDetailsService;
 
+    /**
+     * Origines autorisées pour le CORS, séparées par des virgules.
+     * Surchargée en prod via la variable d'env APP_CORS_ALLOWED_ORIGINS
+     * (ex : "https://mon-front.vercel.app,https://*.vercel.app").
+     * Utilise des patterns → compatible avec allowCredentials=true.
+     */
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
                           TenantFilter tenantFilter,
                           UserDetailsService userDetailsService) {
@@ -59,6 +68,11 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // Requête sans authentification valide → 401 (et non 403 par défaut).
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED))
                 )
                 .authenticationProvider(authenticationProvider())
                 // Chaîne de filtres :
@@ -92,11 +106,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "http://127.0.0.1:3000"
-        ));
+        config.setAllowedOriginPatterns(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

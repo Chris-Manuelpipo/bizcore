@@ -1,6 +1,11 @@
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
+
+### Secrets / variables d'environnement (ne jamais committer) ###
+.env
+.env.*
+!.env.example
 !**/src/main/**/target/
 !**/src/test/**/target/
 

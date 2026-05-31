@@ -145,6 +145,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-bizcore_secret_key_must_be_at_least_256_bits_long_for_hmac_sha}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
 
+      # CORS — domaines frontend autorisés (séparés par des virgules)
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+
       # Server
       SERVER_PORT: 8080
 
