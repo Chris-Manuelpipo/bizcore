@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/nalytics")
+@RequestMapping("/api/analytics")
 @Tag(name = "Analytics", description = "Métriques & KPIs métiers")
 public class AnalyticsController {
 
