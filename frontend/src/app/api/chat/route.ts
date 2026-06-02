@@ -15,7 +15,7 @@ const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = process.env.GROQ_MODEL ?? "llama-3.1-8b-instant";
 
 // Résumé compact des endpoints (une ligne chacun) pour rester sous la limite
-// de tokens du modèle Groq. Le détail complet reste consultable sur /Reference-API.
+// de tokens du modèle Groq.
 const ENDPOINTS_DOCS = ENDPOINTS.map((e) => {
   const flags = [e.requiresAuth ? "auth" : null, e.requiresTenant ? "tenant" : null]
     .filter(Boolean)

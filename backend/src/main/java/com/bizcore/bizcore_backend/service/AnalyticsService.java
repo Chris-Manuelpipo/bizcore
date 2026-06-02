@@ -6,6 +6,8 @@ import com.bizcore.bizcore_backend.repository.InvoiceRepository;
 import com.bizcore.bizcore_backend.repository.ServiceRequestRepository;
 import org.springframework.stereotype.Service;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -23,15 +25,25 @@ public class AnalyticsService {
         this.invoiceRepository = invoiceRepository;
     }
 
+    @Schema(description = "Indicateurs clés de performance (KPIs) pour un tenant sur une période")
     public static class KPIs {
+        @Schema(description = "Taux de conversion (demandes fulfillées / total)", example = "75.0")
         public double conversionRate;
+        @Schema(description = "Temps moyen de réalisation (minutes)", example = "12.5")
         public double averageProcessingTimeMinutes;
+        @Schema(description = "Chiffre d'affaires total sur la période", example = "15000.00")
         public BigDecimal totalRevenue;
+        @Schema(description = "Panier moyen", example = "250.00")
         public double averageBasket;
+        @Schema(description = "Taux de paiement (factures payées / total)", example = "80.0")
         public double paymentRate;
+        @Schema(description = "Nombre total de demandes", example = "120")
         public long totalRequests;
+        @Schema(description = "Demandes fulfillées", example = "90")
         public long fulfilledRequests;
+        @Schema(description = "Nombre total de factures", example = "100")
         public long totalInvoices;
+        @Schema(description = "Factures payées", example = "80")
         public long paidInvoices;
     }
 

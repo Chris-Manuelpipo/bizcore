@@ -15,6 +15,11 @@ export interface EndpointResponse {
   example?: string;
 }
 
+export interface UsageStep {
+  title: string;
+  description: string;
+}
+
 export interface Endpoint {
   id: string;
   method: HttpMethod;
@@ -29,6 +34,11 @@ export interface Endpoint {
   // Le tenant est porté par le JWT (claim "tenantId"), jamais par un en-tête :
   // ce champ reste à false (aucun X-Tenant-Id attendu par l'API).
   requiresTenant: boolean;
+  usage?: {
+    prerequisites?: string[];
+    steps?: UsageStep[];
+    notes?: string[];
+  };
 }
 
 export const API_CATEGORIES = [
@@ -55,6 +65,103 @@ const pageParams: EndpointParam[] = [
   { name: "page", in: "query", required: false, type: "integer", description: "Numéro de page (défaut: 0)", example: "0" },
   { name: "size", in: "query", required: false, type: "integer", description: "Taille de page", example: "10" },
 ];
+
+function genUsage(ep: Endpoint): Endpoint["usage"] {
+  const steps: UsageStep[] = [];
+  const prerequisites: string[] = [];
+
+  if (ep.requiresAuth) {
+    prerequisites.push("Authentifiez-vous via `POST /api/auth/login` et récupérez un JWT.");
+  }
+
+  // Generate steps from path params
+  const pathParams = ep.params.filter((p) => p.in === "path");
+  if (pathParams.length > 0) {
+    const ids: string[] = [];
+    for (const p of pathParams) {
+      ids.push(`\`${p.example ?? "{" + p.name + "}"}\``);
+    }
+    steps.push({
+      title: "Prérequis : IDs nécessaires",
+      description: `Cet endpoint nécessite ${pathParams.length > 1 ? "les" : "un"} paramètre${pathParams.length > 1 ? "s" : ""} de chemin : ${ids.join(", ")}. ${pathParams.map((p) => `**${p.name}** : ${p.description}`).join(". ")}`,
+    });
+  }
+
+  // Generate auth step
+  if (ep.requiresAuth) {
+    steps.push({
+      title: "Authentification",
+      description: "Ajoutez l'en-tête `Authorization: Bearer <votre_token>` à votre requête. Le token JWT est obtenu via `POST /api/auth/login` ou `POST /api/auth/register`.",
+    });
+  }
+
+  // Method-specific guidance
+  const base = "http://localhost:8080" + ep.path;
+
+  switch (ep.method) {
+    case "GET":
+      steps.push({
+        title: "Exécution",
+        description: `Effectuez une requête GET sur \`${base}\`. ${ep.params.filter(p => p.in === "query").length > 0 ? "Les paramètres de requête sont passés dans l'URL après `?`." : "Aucun paramètre de requête n'est requis."} La réponse contient ${ep.responses.find(r => r.status === 200)?.description?.toLowerCase() || "les données demandées"} au format JSON.`,
+      });
+      break;
+    case "POST":
+      steps.push({
+        title: "Préparation de la requête",
+        description: `Envoyez une requête POST sur \`${base}\` avec un corps JSON. ${ep.requestBody ? "Utilisez l'exemple ci-dessous comme modèle en remplaçant les valeurs par vos propres données." : "Aucun corps n'est requis."} N'oubliez pas l'en-tête \`Content-Type: application/json\`.`,
+      });
+      steps.push({
+        title: "Validation",
+        description: `En cas de succès (201), la réponse contient l'entité créée. En cas d'erreur (400), vérifiez les champs obligatoires et le format des données.`,
+      });
+      break;
+    case "PUT":
+      steps.push({
+        title: "Mise à jour",
+        description: `Envoyez une requête PUT sur \`${base}\` avec les champs à mettre à jour dans le corps JSON. L'ID de l'entité est passé dans l'URL.`,
+      });
+      break;
+    case "PATCH":
+      steps.push({
+        title: "Action",
+        description: `Envoyez une requête PATCH sur \`${base}\`. Cette méthode déclenche une action spécifique (changement d'état, mise àjour partielle).`,
+      });
+      break;
+    case "DELETE":
+      steps.push({
+        title: "Suppression",
+        description: `Envoyez une requête DELETE sur \`${base}\`. ${ep.responses.find(r => r.status === 204) ? "En cas de succès (204), la ressource est supprimée et le corps de la réponse est vide." : ""}`,
+      });
+      break;
+  }
+
+  // Response guidance
+  const successResp = ep.responses.find(r => r.status < 300);
+  const errorResp = ep.responses.filter(r => r.status >= 400);
+  if (successResp) {
+    steps.push({
+      title: "Réponse attendue",
+      description: `Code **${successResp.status}** : ${successResp.description}. ${successResp.example ? "La réponse est un objet JSON structuré comme l'exemple ci-dessous." : ""}`,
+    });
+  }
+  if (errorResp.length > 0) {
+    steps.push({
+      title: "Gestion des erreurs",
+      description: errorResp.map((r) => `**${r.status}** : ${r.description}`).join(". "),
+    });
+  }
+
+  // Notes based on category
+  const notes: string[] = [];
+  if (ep.method === "PATCH" && ep.path.includes("{id}")) {
+    notes.push("Cette action est irréversible dans la plupart des cas. Assurez-vous que l'ID est correct.");
+  }
+  if (ep.path.includes("/register") || ep.path.includes("/create")) {
+    notes.push("Les IDs (UUID) sont générés automatiquement par le serveur. Vous n'avez pas besoin de les fournir dans le corps de la requête.");
+  }
+
+  return { prerequisites, steps, notes };
+}
 
 export const ENDPOINTS: Endpoint[] = [
   // ── AUTH (public) ─────────────────────────────────────
@@ -306,7 +413,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-list",
     method: "GET",
     path: "/api/businesses",
-    summary: "Lister les entreprises",
+    summary: "Lister les métiers",
     description: "Liste paginée des businesses du tenant courant.",
     category: "Business",
     requiresAuth: true,
@@ -318,7 +425,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-get",
     method: "GET",
     path: "/api/businesses/{id}",
-    summary: "Récupérer une entreprise",
+    summary: "Récupérer un métier",
     description: "Retourne un business par son UUID.",
     category: "Business",
     requiresAuth: true,
@@ -330,7 +437,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-by-domain",
     method: "GET",
     path: "/api/businesses/domain/{domain}",
-    summary: "Entreprises par domaine",
+    summary: "Métiers par domaine",
     description: "Retourne les businesses d'un domaine donné.",
     category: "Business",
     requiresAuth: true,
@@ -342,7 +449,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-search",
     method: "GET",
     path: "/api/businesses/search",
-    summary: "Rechercher une entreprise",
+    summary: "Rechercher un métier",
     description: "Recherche des businesses par nom.",
     category: "Business",
     requiresAuth: true,
@@ -354,7 +461,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-create",
     method: "POST",
     path: "/api/businesses",
-    summary: "Créer une entreprise",
+    summary: "Créer un métier",
     description: "Crée une entité métier (business) dans le tenant courant.",
     category: "Business",
     requiresAuth: true,
@@ -367,7 +474,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-update",
     method: "PUT",
     path: "/api/businesses/{id}",
-    summary: "Mettre à jour une entreprise",
+    summary: "Mettre à jour un métier",
     description: "Met à jour un business.",
     category: "Business",
     requiresAuth: true,
@@ -380,7 +487,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "business-delete",
     method: "DELETE",
     path: "/api/businesses/{id}",
-    summary: "Supprimer une entreprise",
+    summary: "Supprimer un métier",
     description: "Supprime un business.",
     category: "Business",
     requiresAuth: true,
@@ -418,7 +525,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "service-by-business",
     method: "GET",
     path: "/api/service-catalogues/business/{businessId}",
-    summary: "Services d'une entreprise",
+    summary: "Services d'un métier",
     description: "Retourne les services d'un business.",
     category: "ServiceCatalogue",
     requiresAuth: true,
@@ -776,7 +883,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "rule-by-business",
     method: "GET",
     path: "/api/business-rules/business/{businessId}",
-    summary: "Règles d'une entreprise",
+    summary: "Règles d'un métier",
     description: "Retourne les règles d'un business.",
     category: "BusinessRule",
     requiresAuth: true,
@@ -945,7 +1052,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "media-by-business",
     method: "GET",
     path: "/api/media/business/{businessId}",
-    summary: "Médias d'une entreprise",
+    summary: "Médias d'un métier",
     description: "Retourne les médias d'un business.",
     category: "Media",
     requiresAuth: true,
@@ -1033,7 +1140,7 @@ export const ENDPOINTS: Endpoint[] = [
     id: "resource-by-business",
     method: "GET",
     path: "/api/resources/business/{businessId}",
-    summary: "Ressources d'une entreprise",
+    summary: "Ressources d'un métier",
     description: "Retourne les ressources d'un business.",
     category: "Resource",
     requiresAuth: true,
@@ -1312,3 +1419,7 @@ export const ENDPOINTS: Endpoint[] = [
     responses: [{ status: 200, description: "SupportedCurrencyDTO" }, { status: 404, description: "Devise non supportée" }],
   },
 ];
+
+ENDPOINTS.forEach((ep) => {
+  if (!ep.usage) ep.usage = genUsage(ep);
+});
