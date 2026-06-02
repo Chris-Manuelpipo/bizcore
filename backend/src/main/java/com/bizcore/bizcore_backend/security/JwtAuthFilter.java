@@ -41,7 +41,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        final String userEmail = jwtService.extractUsername(jwt);
+
+        final String userEmail;
+        try {
+            userEmail = jwtService.extractUsername(jwt);
+        } catch (Exception e) {
+            // Token malformé, signature invalide ou expiré : on ne pose pas
+            // d'authentification. L'AuthenticationEntryPoint renverra un 401
+            // propre sur les endpoints protégés (au lieu d'un 500).
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);

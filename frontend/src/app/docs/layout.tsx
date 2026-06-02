@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ENDPOINTS, API_CATEGORIES } from "@/lib/endpoints";
@@ -9,7 +9,19 @@ import { getMethodColor } from "@/lib/utils";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [hash, setHash] = useState("");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash);
+    onHash();
+    window.addEventListener("hashchange", onHash);
+    window.addEventListener("popstate", onHash);
+    return () => {
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("popstate", onHash);
+    };
+  }, []);
 
   const filtered = ENDPOINTS.filter(
     (e) =>
@@ -60,14 +72,14 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
              <p className="text-[10.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
                Démarrage
              </p>
-             {["Introduction", "Authentification", "Multi-tenant", "Erreurs"].map((item) => (
-               <Link key={item} href={`/docs#${item.toLowerCase()}`}
-                 className={cn("block px-2 py-1.5 rounded-lg text-[12.5px] mb-0.5 transition-colors",
-                   pathname === `/docs#${item}` ? "bg-[var(--indigo)] text-white" : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--glass)]"
-                 )}>
-                 {item}
-               </Link>
-             ))}
+              {["Introduction", "Authentification", "Multi-tenant", "Erreurs"].map((item) => (
+                <Link key={item} href={`/docs#${item.toLowerCase()}`}
+                  className={cn("block px-2 py-1.5 rounded-lg text-[12.5px] mb-0.5 transition-colors",
+                    hash === `#${item.toLowerCase()}` ? "bg-[var(--indigo)] text-white" : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--glass)]"
+                  )}>
+                  {item}
+                </Link>
+              ))}
            </div>
 
           {/* Endpoints grouped by category */}

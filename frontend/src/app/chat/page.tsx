@@ -22,6 +22,85 @@ interface Message {
   error?: boolean;
 }
 
+function getFriendlyChatError() {
+  return "Vous avez atteint la limite d'utilisation de BizCore AI. Réessayez plus tard.";
+}
+
+function AssistantResponseBubble({ content, error }: { content: string; error?: boolean }) {
+  const reduceMotion = useReducedMotion();
+  const [visibleContent, setVisibleContent] = useState("");
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setVisibleContent(content);
+      return;
+    }
+
+    setVisibleContent("");
+
+    let index = 0;
+    let frame = 0;
+    let timer: number | undefined;
+    let cancelled = false;
+
+    const step = () => {
+      if (cancelled) return;
+
+      frame += 1;
+      const nextIndex = Math.min(
+        content.length,
+        frame < 18 ? Math.ceil(index + 2) : Math.ceil(index + Math.max(1, content.length / 70)),
+      );
+
+      if (nextIndex !== index) {
+        index = nextIndex;
+        setVisibleContent(content.slice(0, index));
+      }
+
+      if (index < content.length) {
+        timer = window.setTimeout(step, frame < 18 ? 18 : 14);
+      }
+    };
+
+    timer = window.setTimeout(step, 12);
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [content, reduceMotion]);
+
+  return (
+    <motion.div
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.985, filter: "blur(8px)" }}
+      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+      transition={reduceMotion ? { duration: 0.18 } : { type: "spring", stiffness: 260, damping: 24, mass: 0.9 }}
+      className="relative overflow-hidden rounded-2xl rounded-bl-sm px-4 py-3 glass"
+      style={error ? { borderColor: "var(--destructive, #EF4444)" } : undefined}
+    >
+      {!reduceMotion && (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          initial={{ x: "-120%", opacity: 0 }}
+          animate={{ x: "320%", opacity: [0, 0.55, 0] }}
+          transition={{ duration: 1.1, ease: "easeOut", delay: 0.08 }}
+        />
+      )}
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.24, delay: 0.05 }}
+        className="relative"
+      >
+        <MessageContent content={visibleContent} />
+      </motion.div>
+    </motion.div>
+  );
+}
+
 const COMMANDS: CommandSuggestion[] = [
   {
     icon: <KeyRound className="h-4 w-4" />,
@@ -99,13 +178,12 @@ export default function ChatPage() {
         },
       ]);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Erreur inconnue";
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: `Erreur de connexion à BizCore AI : ${msg}`,
+          content: getFriendlyChatError(),
           error: true,
         },
       ]);
@@ -222,15 +300,12 @@ export default function ChatPage() {
                     </div>
 
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                        msg.role === "user"
-                          ? "rounded-br-sm bg-gradient-brand text-white"
-                          : "glass rounded-bl-sm"
+                      className={`max-w-[80%] rounded-2xl ${
+                        msg.role === "user" ? "rounded-br-sm bg-gradient-brand px-4 py-3 text-white" : "p-0"
                       }`}
-                      style={msg.error ? { borderColor: "var(--destructive, #EF4444)" } : undefined}
                     >
                       {msg.role === "assistant" ? (
-                        <MessageContent content={msg.content} />
+                        <AssistantResponseBubble content={msg.content} error={msg.error} />
                       ) : (
                         <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">{msg.content}</p>
                       )}
@@ -277,7 +352,7 @@ export default function ChatPage() {
             placeholder="Posez votre question sur l'API BizCore…"
           />
           <p className="mt-2 text-center text-[11px]" style={{ color: "var(--text-muted)" }}>
-            BizCore AI peut faire des erreurs — vérifiez les informations importantes.
+            BizCore AI peut faire des erreurs, vérifiez les informations importantes.
           </p>
         </div>
       </div>

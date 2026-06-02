@@ -1,365 +1,2034 @@
 openapi: 3.0.3
 info:
-  title: "BizCore API"
-  description: "Business as a Service - API générique de gestion des métiers"
+  title: BizCore API
+  description: "Business as a Service — API générique de gestion des métiers"
   version: "1.0.0"
   contact:
-    name: "BizCore Team"
-    email: "support@bizcore.com"
+    name: BizCore Team
+    email: support@bizcore.com
 servers:
-  - url: "http://localhost:8080"
-    description: "Serveur de développement local"
-  - url: "https://api.bizcore.com"
-    description: "Serveur de production"
+  - url: http://localhost:8080
+    description: Serveur de développement local
+  - url: https://api.bizcore.com
+    description: Serveur de production
 security:
   - bearerAuth: []
-tags:
-  - name: "Authentication"
-    description: "Inscription, connexion et gestion des rôles"
-  - name: "Tenants"
-    description: "Provisionnement des instances métier (couche 3 BCaaS)"
-  - name: "Users"
-    description: "Gestion des utilisateurs"
-  - name: "Actors"
-    description: "Acteurs métier (PROVIDER/CONSUMER)"
-  - name: "Businesses"
-    description: "Entités métier dans un tenant"
-  - name: "Service Catalogues"
-    description: "Catalogue des services disponibles"
-  - name: "Service Requests"
-    description: "Demandes de service entre acteurs"
-  - name: "Invoices"
-    description: "Facturation des services"
-  - name: "Portfolios"
-    description: "Gestion des portefeuilles"
-  - name: "Business Rules"
-    description: "Règles métier configurables"
-  - name: "Resources"
-    description: "Gestion des ressources"
-  - name: "Media"
-    description: "Gestion des fichiers média"
-  - name: "Currencies"
-    description: "Gestion des devises"
-  - name: "Messages"
-    description: "Système de messagerie"
-  - name: "Notifications"
-    description: "Notifications utilisateur"
-  - name: "Audit tail"
-    description: "Journal d'audit"
-  - name: "Analytics"
-    description: "Analyses et statistiques"
-
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: "JWT token obtenu via /api/auth/login"
-  
-  schemas:
-    AuthRequest:
-      type: object
-      required: ["email", "password"]
-      properties:
-        email:
-          type: string
-          format: email
-          example: "user@example.com"
-        password:
-          type: string
-          format: password
-          example: "secret123"
-        firstName:
-          type: string
-          example: "Jean"
-        lastName:
-          type: string
-          example: "Dupont"
-        phone:
-          type: string
-          example: "+237 123 456 789"
-        country:
-          type: string
-          example: "Cameroun"
-        tenantId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        roles:
-          type: array
-          items:
-            type: string
-            enum: ["USER", "ADMIN"]
-          example: ["USER"]
-    
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
-          example: "eyJhbGciOiJIUzI1NiJ9..."
-        email:
-          type: string
-          example: "user@example.com"
-        firstName:
-          type: string
-          example: "Jean"
-        lastName:
-          type: string
-          example: "Dupont"
-        roles:
-          type: array
-          items:
-            type: string
-          example: ["USER"]
-    
-    Tenant:
-      type: object
-      required: ["name", "domain"]
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-          example: "Pharmacie Centrale"
-        domain:
-          type: string
-          example: "pharmacie-centrale"
-        description:
-          type: string
-          example: "Pharmacie de quartier"
-        isActive:
-          type: boolean
-          example: true
-    
-    ErrorResponse:
-      type: object
-      properties:
-        timestamp:
-          type: string
-          format: date-time
-        status:
-          type: integer
-          example: 400
-        error:
-          type: string
-          example: "Bad Request"
-        message:
-          type: string
-          example: "Données invalides"
-        path:
-          type: string
-          example: "/api/auth/register"
-
+      description: JWT token obtenu via POST /api/auth/login
+tags:
+  - name: "Auth"
+  - name: "Tenant"
+  - name: "User"
+  - name: "Actor"
+  - name: "Business"
+  - name: "ServiceCatalogue"
+  - name: "ServiceRequest"
+  - name: "Invoice"
+  - name: "BusinessRule"
+  - name: "Portfolio"
+  - name: "Media"
+  - name: "Resource"
+  - name: "Message"
+  - name: "Notification"
+  - name: "Audit"
+  - name: "Analytics"
+  - name: "Currency"
 paths:
-  /api/auth/register:
+  "/api/auth/register":
     post:
-      tags: ["Authentication"]
+      tags: ["Auth"]
       summary: "Enregistrer un nouvel utilisateur"
-      description: "Crée un nouveau compte utilisateur et retourne un token JWT valide immédiatement."
+      description: "Crée un compte utilisateur et retourne immédiatement un token JWT."
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/AuthRequest"
+            example: {
+          "email": "user@example.com",
+          "password": "secret123",
+          "firstName": "Jean",
+          "lastName": "Dupont"
+}{
+                "email": "user@example.com",
+                "password": "secret123",
+                "firstName": "Jean",
+                "lastName": "Dupont"
+              }
       responses:
-        "201":
-          description: "Utilisateur créé"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
+        "200":
+          description: Succès
         "400":
-          description: "Données invalides ou email déjà utilisé"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: "Email déjà utilisé"
-  
-  /api/auth/login:
+          description: Erreur de validation
+  "/api/auth/login":
     post:
-      tags: ["Authentication"]
+      tags: ["Auth"]
       summary: "Authentification"
-      description: "Authentifie un utilisateur et retourne un token JWT à inclure dans tous les appels suivants."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AuthRequest"
-      responses:
-        "200":
-          description: "Token JWT retourné"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "401":
-          description: "Identifiants incorrects"
-  
-  /api/tenants:
-    get:
-      tags: ["Tenants"]
-      summary: "Lister tous les tenants actifs"
-      description: "Retourne la liste de tous les tenants actifs."
-      responses:
-        "200":
-          description: "Liste des tenants"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Tenant"
-
-  /api/tenants/register:
-    post:
-      tags: ["Tenants"]
-      summary: "Enregistrer une nouvelle instance métier"
-      description: "Crée un nouvel espace tenant isolé (public). Chaque tenant représente une instance métier indépendante."
+      description: "Authentifie un utilisateur et retourne un token JWT."
       security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/Tenant"
+            example: {
+          "email": "user@example.com",
+          "password": "secret123"
+}{
+                "email": "user@example.com",
+                "password": "secret123"
+              }
       responses:
-        "201":
-          description: "Tenant créé"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Tenant"
+        "200":
+          description: Succès
         "400":
-          description: "Nom déjà utilisé ou données invalides"
-
-  /api/tenants/{id}:
-    get:
-      tags: ["Tenants"]
-      summary: "Récupérer un tenant"
-      description: "Retourne les informations complètes d'un tenant par son identifiant UUID."
+          description: Erreur de validation
+  "/api/auth/users/{id}/roles":
+    patch:
+      tags: ["Auth"]
+      summary: "Ajouter un rôle"
+      description: "Ajoute un rôle à un utilisateur."
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+            type: "string"
+            format: "uuid"
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: "string"
+            enum: "USER,ADMIN"
       responses:
         "200":
-          description: "Tenant trouvé"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Tenant"
-        "404":
-          description: "Tenant introuvable"
-    put:
-      tags: ["Tenants"]
-      summary: "Mettre à jour un tenant"
-      description: "Met à jour les informations d'un tenant existant."
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Auth"]
+      summary: "Retirer un rôle"
+      description: "Retire un rôle d'un utilisateur."
       parameters:
         - name: id
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: "string"
+            format: "uuid"
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: "string"
+            enum: "USER,ADMIN"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/tenants":
+    get:
+      tags: ["Tenant"]
+      summary: "Lister les tenants"
+      description: "Liste des tenants actifs."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/tenants/register":
+    post:
+      tags: ["Tenant"]
+      summary: "Créer un tenant"
+      description: "Crée un espace tenant isolé (public)."
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/Tenant"
+            example: {
+          "name": "Pharmacie Centrale",
+          "domain": "pharmacie-centrale"
+}{
+                "name": "Pharmacie Centrale",
+                "domain": "pharmacie-centrale"
+              }
       responses:
         "200":
-          description: "Tenant mis à jour"
-        "404":
-          description: "Tenant introuvable"
-    delete:
-      tags: ["Tenants"]
-      summary: "Désactiver un tenant"
-      description: "Désactive un tenant (soft delete)."
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "204":
-          description: "Tenant désactivé"
-        "404":
-          description: "Tenant introuvable"
-
-  /api/auth/users/{id}/roles:
-    patch:
-      tags: ["Authentication"]
-      summary: "Ajouter un rôle à un utilisateur"
-      description: "Ajoute un rôle à un utilisateur (ADMIN uniquement)."
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: role
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: ["USER", "ADMIN"]
-      responses:
-        "200":
-          description: "Rôle ajouté"
-        "404":
-          description: "Utilisateur introuvable"
-    delete:
-      tags: ["Authentication"]
-      summary: "Retirer un rôle d'un utilisateur"
-      description: "Retire un rôle d'un utilisateur (ADMIN uniquement)."
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: role
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: ["USER", "ADMIN"]
-      responses:
-        "200":
-          description: "Rôle retiré"
-        "404":
-          description: "Utilisateur introuvable"
-
-  /actuator/health:
+          description: Succès
+        "400":
+          description: Erreur de validation
+  "/api/tenants/{id}":
     get:
-      tags: ["Tenants"]
+      tags: ["Tenant"]
+      summary: "Récupérer un tenant"
+      description: "Retourne un tenant par son UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    put:
+      tags: ["Tenant"]
+      summary: "Mettre à jour un tenant"
+      description: "Met à jour un tenant."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Pharmacie",
+          "domain": "pharmacie",
+          "isActive": true
+}{
+                "name": "Pharmacie",
+                "domain": "pharmacie",
+                "isActive": true
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Tenant"]
+      summary: "Désactiver un tenant"
+      description: "Désactive (soft delete) un tenant."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/users":
+    get:
+      tags: ["User"]
+      summary: "Lister les utilisateurs"
+      description: "Liste paginée des utilisateurs."
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: "integer"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/users/{id}":
+    get:
+      tags: ["User"]
+      summary: "Récupérer un utilisateur"
+      description: "Retourne un utilisateur par son UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/users/email/{email}":
+    get:
+      tags: ["User"]
+      summary: "Utilisateur par email"
+      description: "Retourne un utilisateur par email."
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "email"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/actors":
+    get:
+      tags: ["Actor"]
+      summary: "Lister les acteurs"
+      description: "Liste paginée des acteurs."
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: "integer"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/actors/{id}":
+    get:
+      tags: ["Actor"]
+      summary: "Récupérer un acteur"
+      description: "Retourne un acteur par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Actor"]
+      summary: "Supprimer un acteur"
+      description: "Supprime un acteur."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/actors/user/{userId}":
+    get:
+      tags: ["Actor"]
+      summary: "Acteurs d'un utilisateur"
+      description: "Acteurs associés à un utilisateur."
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Actor"]
+      summary: "Créer un acteur"
+      description: "Crée un acteur associé à un utilisateur."
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "role": "PROVIDER"
+}{
+                "role": "PROVIDER"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/actors/role/{role}":
+    get:
+      tags: ["Actor"]
+      summary: "Acteurs par rôle"
+      description: "Acteurs par rôle (PROVIDER/CONSUMER)."
+      parameters:
+        - name: role
+          in: path
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/businesses":
+    get:
+      tags: ["Business"]
+      summary: "Lister les entreprises"
+      description: "Liste paginée des businesses."
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Business"]
+      summary: "Créer une entreprise"
+      description: "Crée un business."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Pharmacie",
+          "domain": "Santé"
+}{
+                "name": "Pharmacie",
+                "domain": "Santé"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/businesses/{id}":
+    get:
+      tags: ["Business"]
+      summary: "Récupérer une entreprise"
+      description: "Retourne un business par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    put:
+      tags: ["Business"]
+      summary: "Mettre à jour"
+      description: "Met à jour un business."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Pharmacie",
+          "domain": "Santé"
+}{
+                "name": "Pharmacie",
+                "domain": "Santé"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Business"]
+      summary: "Supprimer"
+      description: "Supprime un business."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/businesses/domain/{domain}":
+    get:
+      tags: ["Business"]
+      summary: "Entreprises par domaine"
+      description: "Businesses d'un domaine."
+      parameters:
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/businesses/search":
+    get:
+      tags: ["Business"]
+      summary: "Rechercher une entreprise"
+      description: "Recherche par nom."
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-catalogues":
+    get:
+      tags: ["ServiceCatalogue"]
+      summary: "Lister le catalogue"
+      description: "Tous les services."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-catalogues/{id}":
+    get:
+      tags: ["ServiceCatalogue"]
+      summary: "Récupérer un service"
+      description: "Service par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    put:
+      tags: ["ServiceCatalogue"]
+      summary: "Mettre à jour un service"
+      description: "Met à jour un service."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Consultation",
+          "basePrice": 30000
+}{
+                "name": "Consultation",
+                "basePrice": 30000
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["ServiceCatalogue"]
+      summary: "Supprimer"
+      description: "Supprime un service."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-catalogues/business/{businessId}":
+    get:
+      tags: ["ServiceCatalogue"]
+      summary: "Services d'un business"
+      description: "Services d'une entreprise."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["ServiceCatalogue"]
+      summary: "Créer un service"
+      description: "Ajoute un service au catalogue."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Consultation",
+          "basePrice": 25000,
+          "currency": "XAF"
+}{
+                "name": "Consultation",
+                "basePrice": 25000,
+                "currency": "XAF"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-catalogues/available":
+    get:
+      tags: ["ServiceCatalogue"]
+      summary: "Services disponibles"
+      description: "Services marqués disponibles."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-catalogues/search":
+    get:
+      tags: ["ServiceCatalogue"]
+      summary: "Rechercher un service"
+      description: "Recherche par nom."
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests":
+    get:
+      tags: ["ServiceRequest"]
+      summary: "Lister les demandes"
+      description: "Liste paginée des demandes."
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: "integer"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{id}":
+    get:
+      tags: ["ServiceRequest"]
+      summary: "Récupérer une demande"
+      description: "Demande par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["ServiceRequest"]
+      summary: "Supprimer"
+      description: "Supprime une demande."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/consumer/{consumerId}":
+    get:
+      tags: ["ServiceRequest"]
+      summary: "Demandes d'un consumer"
+      description: "Demandes d'un acteur CONSUMER."
+      parameters:
+        - name: consumerId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/provider/{providerId}":
+    get:
+      tags: ["ServiceRequest"]
+      summary: "Demandes d'un provider"
+      description: "Demandes d'un acteur PROVIDER."
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/status/{status}":
+    get:
+      tags: ["ServiceRequest"]
+      summary: "Demandes par statut"
+      description: "Filtre par statut (PENDING, ACCEPTED, etc.)."
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/consumer/{consumerId}/provider/{providerId}/catalogue/{serviceCatalogueId}":
+    post:
+      tags: ["ServiceRequest"]
+      summary: "Créer une demande"
+      description: "Crée une demande de service."
+      parameters:
+        - name: consumerId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: serviceCatalogueId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "serviceName": "Consultation"
+}{
+                "serviceName": "Consultation"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{id}/accept":
+    patch:
+      tags: ["ServiceRequest"]
+      summary: "Accepter une demande"
+      description: "PENDING → ACCEPTED."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{id}/start":
+    patch:
+      tags: ["ServiceRequest"]
+      summary: "Démarrer"
+      description: "ACCEPTED → IN_PROGRESS."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{id}/fulfill":
+    patch:
+      tags: ["ServiceRequest"]
+      summary: "Accomplir"
+      description: "→ FULFILLED. Facture générée."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{id}/cancel":
+    patch:
+      tags: ["ServiceRequest"]
+      summary: "Annuler"
+      description: "Annule une demande."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/invoices":
+    get:
+      tags: ["Invoice"]
+      summary: "Lister les factures"
+      description: "Toutes les factures du tenant."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/invoices/{id}":
+    get:
+      tags: ["Invoice"]
+      summary: "Récupérer une facture"
+      description: "Facture par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Invoice"]
+      summary: "Supprimer"
+      description: "Supprime une facture."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/invoices/status/{status}":
+    get:
+      tags: ["Invoice"]
+      summary: "Factures par statut"
+      description: "Filtre par statut (PENDING, PAID, CANCELLED)."
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/invoices/service-request/{serviceRequestId}":
+    get:
+      tags: ["Invoice"]
+      summary: "Facture d'une demande"
+      description: "Facture liée à une demande."
+      parameters:
+        - name: serviceRequestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Invoice"]
+      summary: "Créer une facture"
+      description: "Crée une facture pour une demande."
+      parameters:
+        - name: serviceRequestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "amount": 25000,
+          "currency": "XAF"
+}{
+                "amount": 25000,
+                "currency": "XAF"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/invoices/{id}/pay":
+    patch:
+      tags: ["Invoice"]
+      summary: "Payer"
+      description: "PENDING → PAID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/invoices/{id}/cancel":
+    patch:
+      tags: ["Invoice"]
+      summary: "Annuler une facture"
+      description: "Annule une facture."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/business-rules":
+    get:
+      tags: ["BusinessRule"]
+      summary: "Lister les règles"
+      description: "Toutes les règles métier."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/business-rules/{id}":
+    get:
+      tags: ["BusinessRule"]
+      summary: "Récupérer une règle"
+      description: "Règle par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    put:
+      tags: ["BusinessRule"]
+      summary: "Mettre à jour"
+      description: "Met à jour une règle."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "ruleKey": "MAX_DAILY",
+          "ruleValue": "20"
+}{
+                "ruleKey": "MAX_DAILY",
+                "ruleValue": "20"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["BusinessRule"]
+      summary: "Supprimer"
+      description: "Supprime une règle."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/business-rules/business/{businessId}":
+    get:
+      tags: ["BusinessRule"]
+      summary: "Règles d'un business"
+      description: "Règles d'une entreprise."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["BusinessRule"]
+      summary: "Créer une règle"
+      description: "Définit une règle métier."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "ruleKey": "MAX_DAILY",
+          "ruleValue": "10"
+}{
+                "ruleKey": "MAX_DAILY",
+                "ruleValue": "10"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/portfolios":
+    get:
+      tags: ["Portfolio"]
+      summary: "Lister les portfolios"
+      description: "Tous les portfolios."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/portfolios/{id}":
+    get:
+      tags: ["Portfolio"]
+      summary: "Récupérer un portfolio"
+      description: "Portfolio par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Portfolio"]
+      summary: "Supprimer"
+      description: "Supprime un portfolio."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/portfolios/actor/{actorId}":
+    get:
+      tags: ["Portfolio"]
+      summary: "Portfolio d'un acteur"
+      description: "Portfolio par acteur."
+      parameters:
+        - name: actorId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Portfolio"]
+      summary: "Créer un portfolio"
+      description: "Crée un portfolio."
+      parameters:
+        - name: actorId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "title": "Mon portfolio"
+}{
+                "title": "Mon portfolio"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/portfolios/{portfolioId}/businesses/{businessId}":
+    patch:
+      tags: ["Portfolio"]
+      summary: "Ajouter un business"
+      description: "Rattache un business."
+      parameters:
+        - name: portfolioId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Portfolio"]
+      summary: "Retirer un business"
+      description: "Détache un business."
+      parameters:
+        - name: portfolioId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/media":
+    get:
+      tags: ["Media"]
+      summary: "Lister les médias"
+      description: "Tous les médias."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/media/{id}":
+    get:
+      tags: ["Media"]
+      summary: "Récupérer un média"
+      description: "Média par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    put:
+      tags: ["Media"]
+      summary: "Mettre à jour"
+      description: "Met à jour un média."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Logo",
+          "type": "IMAGE"
+}{
+                "name": "Logo",
+                "type": "IMAGE"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Media"]
+      summary: "Supprimer"
+      description: "Supprime un média."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/media/business/{businessId}":
+    get:
+      tags: ["Media"]
+      summary: "Médias d'un business"
+      description: "Médias d'une entreprise."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Media"]
+      summary: "Ajouter un média"
+      description: "Ajoute un média."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Logo",
+          "url": "https://...",
+          "type": "IMAGE"
+}{
+                "name": "Logo",
+                "url": "https://...",
+                "type": "IMAGE"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/media/type/{type}":
+    get:
+      tags: ["Media"]
+      summary: "Médias par type"
+      description: "Filtre par type (IMAGE, VIDEO...)."
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/resources":
+    get:
+      tags: ["Resource"]
+      summary: "Lister les ressources"
+      description: "Toutes les ressources."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/resources/{id}":
+    get:
+      tags: ["Resource"]
+      summary: "Récupérer une ressource"
+      description: "Ressource par UUID."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    put:
+      tags: ["Resource"]
+      summary: "Mettre à jour"
+      description: "Met à jour une ressource."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Salle",
+          "quantityAvailable": 5
+}{
+                "name": "Salle",
+                "quantityAvailable": 5
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    delete:
+      tags: ["Resource"]
+      summary: "Supprimer"
+      description: "Supprime une ressource."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/resources/business/{businessId}":
+    get:
+      tags: ["Resource"]
+      summary: "Ressources d'un business"
+      description: "Ressources d'une entreprise."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Resource"]
+      summary: "Créer une ressource"
+      description: "Ajoute une ressource."
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: {
+          "name": "Salle",
+          "type": "ROOM"
+}{
+                "name": "Salle",
+                "type": "ROOM"
+              }
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{requestId}/messages":
+    get:
+      tags: ["Message"]
+      summary: "Messages d'une demande"
+      description: "Messages échangés (paginés)."
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: "integer"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+    post:
+      tags: ["Message"]
+      summary: "Envoyer un message"
+      description: "Envoie un message texte."
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: actorId
+          in: query
+          required: false
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: "Bonjour, votre commande est prête."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{requestId}/messages/unread-count":
+    get:
+      tags: ["Message"]
+      summary: "Messages non lus"
+      description: "Compte les messages non lus."
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: actorId
+          in: query
+          required: false
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{requestId}/messages/read-all":
+    patch:
+      tags: ["Message"]
+      summary: "Marquer tout lu"
+      description: "Marque tous les messages comme lus."
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: actorId
+          in: query
+          required: false
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/service-requests/{requestId}/messages/{messageId}":
+    delete:
+      tags: ["Message"]
+      summary: "Supprimer un message"
+      description: "Supprime un message."
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: actorId
+          in: query
+          required: false
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/notifications":
+    get:
+      tags: ["Notification"]
+      summary: "Mes notifications"
+      description: "Notifications de l'utilisateur (paginées)."
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: "integer"
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: "integer"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/notifications/unread-count":
+    get:
+      tags: ["Notification"]
+      summary: "Non lues"
+      description: "Compte les notifications non lues."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/notifications/{notificationId}/read":
+    patch:
+      tags: ["Notification"]
+      summary: "Marquer lue"
+      description: "Marque une notification comme lue."
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/notifications/read-all":
+    patch:
+      tags: ["Notification"]
+      summary: "Tout marquer lu"
+      description: "Marque tout comme lu."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/notifications/{notificationId}":
+    delete:
+      tags: ["Notification"]
+      summary: "Supprimer"
+      description: "Supprime une notification."
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/audit/service-requests/{serviceRequestId}":
+    get:
+      tags: ["Audit"]
+      summary: "Audit d'une demande"
+      description: "Événements d'audit d'une demande."
+      parameters:
+        - name: serviceRequestId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/audit/actors/{actorId}":
+    get:
+      tags: ["Audit"]
+      summary: "Audit d'un acteur"
+      description: "Événements d'audit d'un acteur."
+      parameters:
+        - name: actorId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/audit/trace/{traceId}":
+    get:
+      tags: ["Audit"]
+      summary: "Audit par traceId"
+      description: "Événements d'audit corrélés."
+      parameters:
+        - name: traceId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/audit/tenants/{tenantId}":
+    get:
+      tags: ["Audit"]
+      summary: "Audit d'un tenant"
+      description: "Événements d'audit d'un tenant."
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/analytics/tenants/{tenantId}/kpis":
+    get:
+      tags: ["Analytics"]
+      summary: "KPIs d'un tenant"
+      description: "Indicateurs clés sur une période."
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: "string"
+            format: "date-time"
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: "string"
+            format: "date-time"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/currencies":
+    get:
+      tags: ["Currency"]
+      summary: "Lister les devises"
+      description: "Devises supportées."
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/api/currencies/validate/{code}":
+    get:
+      tags: ["Currency"]
+      summary: "Valider une devise"
+      description: "Vérifie si un code devise est supporté."
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: Succès
+        "400":
+          description: Erreur de validation
+        "401":
+          description: Token absent ou invalide
+  "/actuator/health":
+    get:
+      tags: ["Tenant"]
       summary: "Health check"
-      description: "Vérifie l'état de santé de l'API."
+      description: "Vérifie l'état de l'API."
       security: []
       responses:
         "200":
-          description: "API opérationnelle"
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: "UP"
+          description: Succès
+        "400":
+          description: Erreur de validation

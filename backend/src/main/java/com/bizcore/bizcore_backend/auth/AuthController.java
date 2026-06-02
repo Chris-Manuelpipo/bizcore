@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -113,6 +114,7 @@ public class AuthController {
     }
 
     @PatchMapping("/users/{id}/roles")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter un rôle à un utilisateur (ADMIN uniquement)")
     public ResponseEntity<Void> addRole(@PathVariable UUID id,
                                         @RequestParam String role) {
@@ -124,6 +126,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/users/{id}/roles")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Retirer un rôle d'un utilisateur (ADMIN uniquement)")
     public ResponseEntity<Void> removeRole(@PathVariable UUID id,
                                            @RequestParam String role) {

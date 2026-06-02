@@ -39,7 +39,7 @@ export function Navbar() {
         initial={{ y: -64, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
-        className="fixed top-2 inset-x-0 z-50 px-4"
+        className="fixed top-3 inset-x-0 z-50 px-4"
       >
         <div
           className={cn(
@@ -149,7 +149,7 @@ export function Navbar() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="fixed inset-x-4 top-[60px] z-40 flex flex-col gap-1 rounded-2xl border border-[var(--glass-border)] bg-white/80 dark:bg-[#111118]/85 backdrop-blur-xl p-3 shadow-xl shadow-black/10 md:hidden"
+            className="fixed inset-x-4 top-[64px] z-40 flex flex-col gap-1 rounded-2xl border border-[var(--glass-border)] bg-white/80 dark:bg-[#111118]/85 backdrop-blur-xl p-3 shadow-xl shadow-black/10 md:hidden"
           >
             {NAV_LINKS.map((l) => {
               const active = isActive(l.href);

@@ -4,6 +4,7 @@ import com.bizcore.bizcore_backend.security.JwtAuthFilter;
 import com.bizcore.bizcore_backend.security.TenantFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -57,12 +58,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/tenants/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/actuator/health"
                         ).permitAll()
+                        // Auto-provisionnement d'un tenant : seul l'enregistrement est public.
+                        // Lister / consulter / modifier / désactiver un tenant exige un token valide.
+                        .requestMatchers(HttpMethod.POST, "/api/tenants/register").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

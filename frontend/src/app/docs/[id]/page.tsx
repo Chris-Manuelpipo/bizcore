@@ -54,8 +54,14 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
     }
   })();
 
+  const replaceParams = (val: string) =>
+    endpoint.path.replace(/{(\w+)}/g, (_, name) => {
+      const p = endpoint.params.find((x) => x.name === name);
+      return p?.example ?? `{${name}}`;
+    });
+
   const curlExample = `curl -X ${endpoint.method} \\
-  http://localhost:8080${endpoint.path.replace(/{(\w+)}/g, "uuid-example")} \\${endpoint.requiresAuth ? `
+  http://localhost:8080${replaceParams("uuid")} \\${endpoint.requiresAuth ? `
   -H "Authorization: Bearer <JWT>" \\` : ""}
   -H "Content-Type: application/json"${endpoint.requestBody ? ` \\
   -d '${prettyBody}'` : ""}`;
@@ -205,8 +211,13 @@ function TryItOut({ endpoint }: { endpoint: typeof ENDPOINTS[0] }) {
       if (jwt) headers["Authorization"] = `Bearer ${jwt}`;
       if (tenantId) headers["X-Tenant-Id"] = tenantId;
 
+      const replaceParams = (val: string) =>
+        endpoint.path.replace(/{(\w+)}/g, (_, name) => {
+          const p = endpoint.params.find((x) => x.name === name);
+          return p?.example ?? `{${name}}`;
+        });
       const res = await fetch(
-        `http://localhost:8080${endpoint.path.replace(/{(\w+)}/g, "uuid")}`,
+        `http://localhost:8080${replaceParams("uuid")}`,
         { method: endpoint.method, headers, body: body || undefined }
       );
       const text = await res.text();
