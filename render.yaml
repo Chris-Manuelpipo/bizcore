@@ -1,0 +1,68 @@
+# =============================================================================
+# BizCore Backend — Render Blueprint (Infrastructure as Code)
+# =============================================================================
+
+services:
+  # --- Web Service : API Spring Boot -----------------------------------------
+  - type: web
+    name: bizcore-api
+    runtime: image
+    repo: https://github.com/votre-org/bizcore
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SERVER_PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: bizcore-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: bizcore-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: bizcore-db
+          property: password
+      - key: JWT_SECRET
+        generateValue:
+          length: 64
+      - key: JWT_EXPIRATION
+        value: 86400000
+      - key: APP_CORS_ALLOWED_ORIGINS
+        value: https://votre-frontend.vercel.app
+      - key: SPRING_DATA_REDIS_HOST
+        fromService:
+          type: redis
+          name: bizcore-redis
+          property: host
+      - key: SPRING_DATA_REDIS_PORT
+        fromService:
+          type: redis
+          name: bizcore-redis
+          property: port
+      - key: LOGGING_LEVEL_ROOT
+        value: WARN
+      - key: LOGGING_LEVEL_COM_BIZCORE
+        value: INFO
+
+databases:
+  # --- PostgreSQL ------------------------------------------------------------
+  - name: bizcore-db
+    databaseName: bizcore
+    user: bizcore
+    region: frankfurt
+    plan: starter
+    postgresMajorVersion: 16
+
+redis:
+  # --- Redis -----------------------------------------------------------------
+  - name: bizcore-redis
+    plan: starter
+    region: frankfurt
+    maxmemoryPolicy: allkeys-lru
