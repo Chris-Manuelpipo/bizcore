@@ -38,8 +38,11 @@ WORKDIR /app
 # Copy the built JAR file from builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Set ownership
-RUN chown -R spring:spring /app
+# Copy the entrypoint (convertit l'URL Postgres de Render en JDBC au démarrage)
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+
+# Set ownership and make the entrypoint executable
+RUN chmod +x ./docker-entrypoint.sh && chown -R spring:spring /app
 
 # Switch to non-root user
 USER spring:spring
@@ -54,5 +57,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # JVM optimization for containers
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
 
-# Run the application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Run the application via the entrypoint
+ENTRYPOINT ["./docker-entrypoint.sh"]

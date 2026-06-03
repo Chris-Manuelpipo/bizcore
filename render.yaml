@@ -20,19 +20,12 @@ services:
         value: 8080
 
       # --- Base de données ---
-      # Render fournit une URL au format postgresql:// (NON compatible avec spring.datasource.url
-      # qui exige jdbc:postgresql://...). À renseigner manuellement dans le dashboard une fois la
-      # base créée :  jdbc:postgresql://<internal-host>:5432/bizcore   (voir étapes de déploiement)
-      - key: SPRING_DATASOURCE_URL
-        sync: false
-      - key: SPRING_DATASOURCE_USERNAME
+      # Render fournit l'URL au format postgresql:// via connectionString (réseau privé).
+      # docker-entrypoint.sh la convertit en jdbc:postgresql://... + user/password au démarrage.
+      - key: DATABASE_URL
         fromDatabase:
           name: bizcore-db
-          property: user
-      - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase:
-          name: bizcore-db
-          property: password
+          property: connectionString
 
       # --- JWT ---
       - key: JWT_SECRET
