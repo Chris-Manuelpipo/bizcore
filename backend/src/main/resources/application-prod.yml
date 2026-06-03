@@ -78,10 +78,7 @@ logging:
     org.springframework.security: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: /var/log/bizcore/application.log
-    max-size: 10MB
-    max-history: 30
+  # Pas de fichier de log sur Render : la sortie console (stdout) est capturée par la plateforme.
 
 # =============================================================================
 # Server Configuration
