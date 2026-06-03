@@ -124,13 +124,13 @@ management:
 
 # =============================================================================
 # SpringDoc OpenAPI Configuration
-# Production: disabled for security
+# Activé en prod (projet vitrine). Pour le couper : SPRINGDOC_SWAGGER_UI_ENABLED=false
 # =============================================================================
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
   api-docs:
-    enabled: false
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
   show-actuator: false
 
 # =============================================================================
