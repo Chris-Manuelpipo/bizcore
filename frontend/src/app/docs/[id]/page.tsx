@@ -93,7 +93,7 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
         </span>
         <div className="flex-1 min-w-0">
           <code className="text-[18px] font-mono font-semibold break-all">{endpoint.path}</code>
-          <h1 className="text-[28px] font-bold tracking-tight mt-1">{endpoint.summary}</h1>
+          <h1 className="text-[22px] sm:text-[28px] font-bold tracking-tight mt-1 break-words">{endpoint.summary}</h1>
         </div>
       </div>
 

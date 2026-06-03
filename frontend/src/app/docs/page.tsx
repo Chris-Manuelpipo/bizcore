@@ -14,7 +14,7 @@ export default function DocsPage() {
           style={{ background: "rgba(79,70,229,0.08)", borderColor: "rgba(79,70,229,0.25)", color: "#818CF8" }}>
           API v1.0 — REST · JSON · JWT
         </div>
-        <h1 className="font-display text-[40px] font-extrabold tracking-tight mb-3">
+        <h1 className="font-display text-[26px] sm:text-[34px] md:text-[40px] font-extrabold tracking-tight mb-3 break-words">
           Documentation BizCore
         </h1>
         <p className="text-[16px] leading-relaxed mb-8" style={{ color: "var(--text-muted)" }}>
