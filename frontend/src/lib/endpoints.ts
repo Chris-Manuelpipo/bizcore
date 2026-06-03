@@ -1,3 +1,5 @@
+import { API_BASE } from "./config";
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface EndpointParam {
@@ -96,7 +98,7 @@ function genUsage(ep: Endpoint): Endpoint["usage"] {
   }
 
   // Method-specific guidance
-  const base = "http://localhost:8080" + ep.path;
+  const base = API_BASE + ep.path;
 
   switch (ep.method) {
     case "GET":

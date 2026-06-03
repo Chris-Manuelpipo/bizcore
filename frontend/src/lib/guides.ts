@@ -1,3 +1,5 @@
+import { API_BASE } from "./config";
+
 export interface GuideStep {
   title: string;
   content: string;
@@ -19,8 +21,8 @@ export interface Guide {
 
 export const GUIDE_CATEGORIES = ["Démarrage", "Authentification", "Multi-tenant", "Workflow", "Intégration"] as const;
 
-// NOTE : les exemples utilisent http://localhost:8080 (backend en local).
-// En production, remplacez par la valeur de NEXT_PUBLIC_API_URL.
+// NOTE : les exemples interpolent API_BASE (= NEXT_PUBLIC_API_URL, sinon
+// l'URL de prod Render) — voir src/lib/config.ts.
 // Le tenant n'est JAMAIS passé en en-tête : il est embarqué dans le JWT
 // (claim "tenantId") au moment de l'inscription de l'utilisateur, puis
 // appliqué automatiquement par le backend à chaque requête authentifiée.
@@ -42,7 +44,7 @@ export const GUIDES: Guide[] = [
           lang: "bash",
           filename: "terminal",
           body: `# Vérifier que l'API répond
-curl http://localhost:8080/actuator/health
+curl ${API_BASE}/actuator/health
 
 # Réponse attendue
 # {"status":"UP"}`
@@ -55,7 +57,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X POST http://localhost:8080/api/auth/register \\
+          body: `curl -X POST ${API_BASE}/api/auth/register \\
   -H "Content-Type: application/json" \\
   -d '{
     "email": "admin@bizcore.io",
@@ -81,7 +83,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X POST http://localhost:8080/api/auth/login \\
+          body: `curl -X POST ${API_BASE}/api/auth/login \\
   -H "Content-Type: application/json" \\
   -d '{
     "email": "admin@bizcore.io",
@@ -105,7 +107,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl http://localhost:8080/api/businesses \\
+          body: `curl ${API_BASE}/api/businesses \\
   -H "Authorization: Bearer <VOTRE_TOKEN>"
 
 # Réponse : page Spring Data
@@ -132,7 +134,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X POST http://localhost:8080/api/tenants/register \\
+          body: `curl -X POST ${API_BASE}/api/tenants/register \\
   -H "Content-Type: application/json" \\
   -d '{
     "name": "Pharmacie Centrale",
@@ -154,7 +156,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X POST http://localhost:8080/api/auth/register \\
+          body: `curl -X POST ${API_BASE}/api/auth/register \\
   -H "Content-Type: application/json" \\
   -d '{
     "email": "marie@pharmacie.cm",
@@ -172,7 +174,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl http://localhost:8080/api/users/email/marie@pharmacie.cm \\
+          body: `curl ${API_BASE}/api/users/email/marie@pharmacie.cm \\
   -H "Authorization: Bearer <TOKEN>"
 
 # Réponse : { "id": "<USER_ID>", "email": "marie@pharmacie.cm", ... }`
@@ -184,7 +186,7 @@ curl http://localhost:8080/actuator/health
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X POST http://localhost:8080/api/actors/user/<USER_ID> \\
+          body: `curl -X POST ${API_BASE}/api/actors/user/<USER_ID> \\
   -H "Authorization: Bearer <TOKEN>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -200,18 +202,18 @@ curl http://localhost:8080/actuator/health
           lang: "bash",
           filename: "terminal",
           body: `# 1. Inscrire l'utilisateur consumer (avec tenantId)
-curl -X POST http://localhost:8080/api/auth/register \\
+curl -X POST ${API_BASE}/api/auth/register \\
   -H "Content-Type: application/json" \\
   -d '{ "email": "paul@client.cm", "password": "secret123",
         "firstName": "Paul", "lastName": "Martin",
         "tenantId": "550e8400-e29b-41d4-a716-446655440000" }'
 
 # 2. Récupérer son id
-curl http://localhost:8080/api/users/email/paul@client.cm \\
+curl ${API_BASE}/api/users/email/paul@client.cm \\
   -H "Authorization: Bearer <TOKEN>"
 
 # 3. Créer l'acteur CONSUMER
-curl -X POST http://localhost:8080/api/actors/user/<USER_ID_PAUL> \\
+curl -X POST ${API_BASE}/api/actors/user/<USER_ID_PAUL> \\
   -H "Authorization: Bearer <TOKEN>" \\
   -H "Content-Type: application/json" \\
   -d '{ "role": "CONSUMER", "bio": "Client régulier" }'`
@@ -224,7 +226,7 @@ curl -X POST http://localhost:8080/api/actors/user/<USER_ID_PAUL> \\
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl "http://localhost:8080/api/actors?page=0&size=10" \\
+          body: `curl "${API_BASE}/api/actors?page=0&size=10" \\
   -H "Authorization: Bearer <TOKEN>"
 # → { "content": [{ "id": "...", "role": "PROVIDER" }, ...] }`
         }
@@ -249,7 +251,7 @@ curl -X POST http://localhost:8080/api/actors/user/<USER_ID_PAUL> \\
           lang: "bash",
           filename: "terminal",
           body: `# 1. Créer le business
-curl -X POST http://localhost:8080/api/businesses \\
+curl -X POST ${API_BASE}/api/businesses \\
   -H "Authorization: Bearer <TOKEN>" \\
   -H "Content-Type: application/json" \\
   -d '{ "name": "Officine", "domain": "Santé",
@@ -259,7 +261,7 @@ curl -X POST http://localhost:8080/api/businesses \\
 # → { "id": "<BUSINESS_ID>", ... }
 
 # 2. Ajouter un service à ce business
-curl -X POST http://localhost:8080/api/service-catalogues/business/<BUSINESS_ID> \\
+curl -X POST ${API_BASE}/api/service-catalogues/business/<BUSINESS_ID> \\
   -H "Authorization: Bearer <TOKEN>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -278,7 +280,7 @@ curl -X POST http://localhost:8080/api/service-catalogues/business/<BUSINESS_ID>
           lang: "bash",
           filename: "terminal",
           body: `curl -X POST \\
-  "http://localhost:8080/api/service-requests/consumer/<CONSUMER_ID>/provider/<PROVIDER_ID>/catalogue/<CATALOGUE_ID>" \\
+  "${API_BASE}/api/service-requests/consumer/<CONSUMER_ID>/provider/<PROVIDER_ID>/catalogue/<CATALOGUE_ID>" \\
   -H "Authorization: Bearer <TOKEN>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -297,11 +299,11 @@ curl -X POST http://localhost:8080/api/service-catalogues/business/<BUSINESS_ID>
           lang: "bash",
           filename: "terminal",
           body: `# Voir les demandes PENDING
-curl http://localhost:8080/api/service-requests/status/PENDING \\
+curl ${API_BASE}/api/service-requests/status/PENDING \\
   -H "Authorization: Bearer <TOKEN_PROVIDER>"
 
 # Accepter (authentifié en tant que provider de la demande)
-curl -X PATCH http://localhost:8080/api/service-requests/<SR_ID>/accept \\
+curl -X PATCH ${API_BASE}/api/service-requests/<SR_ID>/accept \\
   -H "Authorization: Bearer <TOKEN_PROVIDER>"
 
 # Réponse : { "status": "ACCEPTED" }`
@@ -313,7 +315,7 @@ curl -X PATCH http://localhost:8080/api/service-requests/<SR_ID>/accept \\
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X PATCH http://localhost:8080/api/service-requests/<SR_ID>/start \\
+          body: `curl -X PATCH ${API_BASE}/api/service-requests/<SR_ID>/start \\
   -H "Authorization: Bearer <TOKEN_PROVIDER>"
 
 # Réponse : { "status": "IN_PROGRESS" }`
@@ -325,7 +327,7 @@ curl -X PATCH http://localhost:8080/api/service-requests/<SR_ID>/accept \\
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X PATCH http://localhost:8080/api/service-requests/<SR_ID>/fulfill \\
+          body: `curl -X PATCH ${API_BASE}/api/service-requests/<SR_ID>/fulfill \\
   -H "Authorization: Bearer <TOKEN>"
 
 # Réponse
@@ -348,11 +350,11 @@ curl -X PATCH http://localhost:8080/api/service-requests/<SR_ID>/accept \\
           lang: "bash",
           filename: "terminal",
           body: `# Voir les factures en attente
-curl http://localhost:8080/api/invoices/status/PENDING \\
+curl ${API_BASE}/api/invoices/status/PENDING \\
   -H "Authorization: Bearer <TOKEN>"
 
 # Payer la facture
-curl -X PATCH http://localhost:8080/api/invoices/<INVOICE_ID>/pay \\
+curl -X PATCH ${API_BASE}/api/invoices/<INVOICE_ID>/pay \\
   -H "Authorization: Bearer <TOKEN>"
 
 # Réponse : { "status": "PAID", ... }`
@@ -378,7 +380,7 @@ curl -X PATCH http://localhost:8080/api/invoices/<INVOICE_ID>/pay \\
         code: {
           lang: "typescript",
           filename: "bizcore-client.ts",
-          body: `const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+          body: `const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "${API_BASE}";
 
 class BizCoreClient {
   constructor(private token: string) {}
@@ -491,7 +493,7 @@ async function fullWorkflow(
         code: {
           lang: "bash",
           filename: "terminal",
-          body: `curl -X POST http://localhost:8080/api/business-rules/business/<BUSINESS_ID> \\
+          body: `curl -X POST ${API_BASE}/api/business-rules/business/<BUSINESS_ID> \\
   -H "Authorization: Bearer <TOKEN>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -508,7 +510,7 @@ async function fullWorkflow(
           lang: "bash",
           filename: "terminal",
           body: `# Toutes les règles d'un business
-curl http://localhost:8080/api/business-rules/business/<BUSINESS_ID> \\
+curl ${API_BASE}/api/business-rules/business/<BUSINESS_ID> \\
   -H "Authorization: Bearer <TOKEN>"
 
 # Réponse

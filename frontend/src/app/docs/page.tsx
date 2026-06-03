@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ENDPOINTS, API_CATEGORIES } from "@/lib/endpoints";
 import { getMethodColor } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { API_BASE } from "@/lib/config";
 
 export default function DocsPage() {
   return (
@@ -32,9 +33,9 @@ export default function DocsPage() {
         </p>
         <div className="p-4 rounded-xl border font-mono text-[12.5px]" style={{ background: "var(--surface-2)", borderColor: "var(--border)" }}>
           <div className="mb-1"><span style={{ color: "var(--text-muted)" }}>Base URL</span></div>
-          <div className="text-emerald-400">http://localhost:8080</div>
+          <div className="text-emerald-400">{API_BASE}</div>
           <div className="mt-3 mb-1"><span style={{ color: "var(--text-muted)" }}>Swagger UI</span></div>
-          <div className="text-blue-400">http://localhost:8080/swagger-ui.html</div>
+          <div className="text-blue-400">{API_BASE}/swagger-ui.html</div>
         </div>
       </div>
 

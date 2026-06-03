@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { getMethodColor, cn } from "@/lib/utils";
 import { Copy, Check, Lock, ChevronDown, ChevronRight } from "lucide-react";
+import { API_BASE } from "@/lib/config";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -72,7 +73,7 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
     });
 
   const curlExample = `curl -X ${endpoint.method} \\
-  http://localhost:8080${replaceParams("uuid")} \\${endpoint.requiresAuth ? `
+  ${API_BASE}${replaceParams("uuid")} \\${endpoint.requiresAuth ? `
   -H "Authorization: Bearer <JWT>" \\` : ""}
   -H "Content-Type: application/json"${endpoint.requestBody ? ` \\
   -d '${prettyBody}'` : ""}`;

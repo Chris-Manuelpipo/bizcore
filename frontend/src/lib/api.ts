@@ -1,7 +1,8 @@
 import axios from "axios";
 import type { Actor, Business, Invoice, ServiceCatalogue, ServiceRequest } from "./types";
+import { API_BASE } from "./config";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+export { API_BASE };
 
 // Réponse paginée Spring Data (Page<T>)
 interface Page<T> {
