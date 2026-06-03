@@ -83,7 +83,7 @@ export default function InvoicesPage() {
 
         {/* Filters */}
         <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {['all', 'PENDING', 'PAID', 'CANCELLED'].map((f) => (
               <button
                 key={f}

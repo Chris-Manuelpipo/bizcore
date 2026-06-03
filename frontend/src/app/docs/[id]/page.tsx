@@ -178,8 +178,8 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
       <div className="space-y-4">
         <CollapsibleSection title="Paramètres" defaultOpen={endpoint.params.length > 0}>
           {endpoint.params.length > 0 ? (
-            <div className="border rounded-xl overflow-hidden" style={{ borderColor: "var(--border)" }}>
-              <table className="w-full text-[12.5px]">
+            <div className="border rounded-xl overflow-x-auto" style={{ borderColor: "var(--border)" }}>
+              <table className="w-full min-w-[480px] text-[12.5px]">
                 <thead style={{ background: "var(--surface-2)" }}>
                   <tr>
                     {["Nom", "Emplacement", "Type", "Requis", "Description"].map((h) => (

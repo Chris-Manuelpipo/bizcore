@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { Menu, Bell, Search, Globe, ChevronDown } from 'lucide-react';
 import { mockTenant } from '@/lib/mock-data';
+import { useSidebar } from '@/components/SidebarContext';
 
 interface HeaderProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
   title: string;
   subtitle?: string;
 }
 
 export function Header({ onMenuClick, title, subtitle }: HeaderProps) {
+  const { openSidebar } = useSidebar();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLang, setShowLang] = useState(false);
 
@@ -25,7 +27,8 @@ export function Header({ onMenuClick, title, subtitle }: HeaderProps) {
       <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
           <button
-            onClick={onMenuClick}
+            onClick={() => { onMenuClick?.(); openSidebar(); }}
+            aria-label="Ouvrir le menu"
             className="lg:hidden p-2 text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] rounded-lg"
           >
             <Menu className="w-5 h-5" />

@@ -111,7 +111,7 @@ export function HeroSection() {
         </motion.div>
 
         <motion.h1 variants={stagger.item}
-          className="font-display text-5xl md:text-6xl font-extrabold tracking-[-2.5px] leading-[1.07] mb-5 text-[var(--text)]">
+          className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-[-1.5px] sm:tracking-[-2.5px] leading-[1.07] mb-5 text-[var(--text)]">
           Le noyau métier<br />
           <span className="gradient-text">pour tout métier</span>
         </motion.h1>
