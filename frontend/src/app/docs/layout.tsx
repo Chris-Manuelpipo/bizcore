@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ENDPOINTS, API_CATEGORIES } from "@/lib/endpoints";
 import { cn } from "@/lib/utils";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, ChevronDown } from "lucide-react";
 import { getMethodColor } from "@/lib/utils";
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
@@ -125,12 +125,19 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
       {/* Contenu */}
       <div className="flex-1 min-w-0">
-        {/* Bouton d'ouverture de la nav (mobile uniquement) */}
-        <button onClick={() => setNavOpen(true)}
-          className="lg:hidden sticky top-14 z-30 flex w-full items-center gap-2 px-4 py-2.5 border-b text-[13px] font-medium"
-          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}>
-          <Menu size={16} /> Parcourir les endpoints
-        </button>
+        {/* Barre d'ouverture de la nav (mobile uniquement) */}
+        <div className="lg:hidden sticky top-14 z-30 border-b px-4 py-3 backdrop-blur-md"
+          style={{ borderColor: "var(--border)", background: "color-mix(in srgb, var(--surface) 85%, transparent)" }}>
+          <button onClick={() => setNavOpen(true)}
+            className="group flex w-full items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-[13px] font-medium transition-colors hover:border-[var(--indigo)]/40"
+            style={{ borderColor: "var(--border)", background: "var(--surface-2)", color: "var(--text)" }}>
+            <span className="flex items-center gap-2.5">
+              <Menu size={15} className="transition-colors group-hover:text-[var(--indigo)]" style={{ color: "var(--text-muted)" }} />
+              Parcourir les endpoints
+            </span>
+            <ChevronDown size={15} style={{ color: "var(--text-muted)" }} />
+          </button>
+        </div>
 
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
           {children}
