@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import * as THREE from "three";
 import Link from "next/link";
+import { ApiTerminal } from "./ApiTerminal";
 
 function WireShape({ geometry, position, color, speed }: {
   geometry: THREE.BufferGeometry;
@@ -117,7 +118,7 @@ export function HeroSection() {
         </motion.h1>
 
         <motion.p variants={stagger.item} className="text-[17px] leading-relaxed mb-8 max-w-[500px] mx-auto text-[var(--text-muted)]">
-          BizCore abstrait les briques communes — acteurs, ressources, workflows, facturation — en un socle API réutilisable, générique et multi-tenant.
+          BizCore abstrait les briques communes: acteurs, ressources, workflows, facturation en un socle API réutilisable, générique et multi-tenant.
         </motion.p>
 
         <motion.div variants={stagger.item} className="flex items-center gap-3 justify-center flex-wrap">
@@ -134,32 +135,14 @@ export function HeroSection() {
         </motion.div>
       </motion.div>
 
-      {/* API Card */}
+      {/* API Terminal animé */}
       <motion.div
         initial={{ opacity:0, y:30, scale:0.97 }}
         animate={{ opacity:1, y:0, scale:1 }}
         transition={{ delay:0.6, duration:0.7, ease:[0.22,1,0.36,1] as const }}
-        className="relative z-10 mt-12 max-w-[520px] w-full mx-auto rounded-2xl overflow-hidden border border-[var(--glass-border)] shadow-[0_32px_64px_rgba(0,0,0,0.6)]"
-        style={{ background:"#111118" }}
+        className="relative z-10 mt-12 max-w-[520px] w-full mx-auto"
       >
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--glass-border)]" style={{ background:"#16161F" }}>
-          <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56]" />
-          <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
-          <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F]" />
-          <span className="ml-2 text-[11px] font-mono text-[var(--text-muted)]">POST /api/service-requests</span>
-        </div>
-        <div className="p-4 font-mono text-[11.5px] leading-relaxed bg-[var(--bg)]">
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">1</span><span className="text-violet-400">POST</span><span className="text-emerald-400"> /api/service-requests</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">2</span><span className="text-[var(--text-muted)]">{"// Headers requis"}</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">3</span><span className="text-blue-400">Authorization</span><span className="text-[var(--text-muted)]">: </span><span className="text-emerald-400">Bearer &lt;JWT&gt;</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">4</span><span className="text-blue-400">X-Tenant-Id</span><span className="text-[var(--text-muted)]">: </span><span className="text-amber-400">550e8400-e29b-41d4</span></div>
-          <div><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">5</span><span className="text-blue-400">Content-Type</span><span className="text-[var(--text-muted)]">: </span><span className="text-emerald-400">application/json</span></div>
-          <div className="mt-2"><span className="opacity-30 mr-3 text-[10.5px] text-[var(--text-muted)]">7</span><span className="text-[var(--text)]">{"{ "}</span><span className="text-blue-400">"serviceId"</span><span className="text-[var(--text)]">: </span><span className="text-emerald-400">"uuid"</span><span className="text-[var(--text)]">{", "}</span><span className="text-blue-400">"consumerId"</span><span className="text-[var(--text)]">: </span><span className="text-emerald-400">"uuid"</span><span className="text-[var(--text)]">{" }"}</span></div>
-          <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex items-center gap-2">
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">201 Created</span>
-            <span className="text-[11px] text-[var(--text-muted)]">ServiceRequest {"{"} status: PENDING {"}"}</span>
-          </div>
-        </div>
+        <ApiTerminal />
       </motion.div>
     </section>
   );
