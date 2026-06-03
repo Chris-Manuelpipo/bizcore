@@ -28,7 +28,6 @@ apiClient.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401 && typeof window !== "undefined") {
       localStorage.removeItem("bizcore_token");
-      window.location.href = "/admin/login";
     }
     return Promise.reject(err);
   }

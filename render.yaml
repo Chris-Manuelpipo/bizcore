@@ -6,21 +6,25 @@ services:
   # --- Web Service : API Spring Boot -----------------------------------------
   - type: web
     name: bizcore-api
-    runtime: image
-    repo: https://github.com/votre-org/bizcore
+    runtime: docker                       # build à partir du Dockerfile (≠ image pré-construite)
+    repo: https://github.com/Chris-Manuelpipo/bizcore
     region: frankfurt
-    plan: starter
+    plan: starter                         # 'free' possible mais cold start après inactivité
     dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend              # le Dockerfile fait COPY .mvn/ mvnw pom.xml src/ → contexte = backend/
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: SERVER_PORT
         value: 8080
+
+      # --- Base de données ---
+      # Render fournit une URL au format postgresql:// (NON compatible avec spring.datasource.url
+      # qui exige jdbc:postgresql://...). À renseigner manuellement dans le dashboard une fois la
+      # base créée :  jdbc:postgresql://<internal-host>:5432/bizcore   (voir étapes de déploiement)
       - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: bizcore-db
-          property: connectionString
+        sync: false
       - key: SPRING_DATASOURCE_USERNAME
         fromDatabase:
           name: bizcore-db
@@ -29,27 +33,48 @@ services:
         fromDatabase:
           name: bizcore-db
           property: password
+
+      # --- JWT ---
       - key: JWT_SECRET
-        generateValue:
-          length: 64
+        generateValue: true               # valeur aléatoire base64 256 bits générée par Render
       - key: JWT_EXPIRATION
         value: 86400000
+
+      # --- CORS (front Vercel) ---
       - key: APP_CORS_ALLOWED_ORIGINS
-        value: https://votre-frontend.vercel.app
+        value: https://bizcore-liard.vercel.app
+
+      # --- Redis / Key Value (cache + rate limiting bucket4j) ---
       - key: SPRING_DATA_REDIS_HOST
         fromService:
-          type: redis
+          type: keyvalue
           name: bizcore-redis
           property: host
       - key: SPRING_DATA_REDIS_PORT
         fromService:
-          type: redis
+          type: keyvalue
           name: bizcore-redis
           property: port
+
+      # --- Kafka ---
+      # Render ne fournit pas de Kafka. Le consumer @KafkaListener est désactivé pour éviter
+      # les erreurs de connexion en boucle (aucun producteur Kafka n'est utilisé dans le code).
+      - key: SPRING_KAFKA_LISTENER_AUTO_STARTUP
+        value: false
+
+      # --- Logs ---
       - key: LOGGING_LEVEL_ROOT
         value: WARN
       - key: LOGGING_LEVEL_COM_BIZCORE
         value: INFO
+
+  # --- Key Value (Redis) -----------------------------------------------------
+  - type: keyvalue
+    name: bizcore-redis
+    plan: free                            # 25 Mo, suffisant pour cache + rate limiting
+    region: frankfurt
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []                       # connexions internes uniquement (réseau privé Render)
 
 databases:
   # --- PostgreSQL ------------------------------------------------------------
@@ -57,12 +82,5 @@ databases:
     databaseName: bizcore
     user: bizcore
     region: frankfurt
-    plan: starter
+    plan: free                            # expire après 30 j ; passer à basic-256mb pour la prod durable
     postgresMajorVersion: 16
-
-redis:
-  # --- Redis -----------------------------------------------------------------
-  - name: bizcore-redis
-    plan: starter
-    region: frankfurt
-    maxmemoryPolicy: allkeys-lru

@@ -12,7 +12,6 @@ const NAV_LINKS = [
   { label: "Guides", href: "/guides" },
   { label: "Démos", href: "/demo" },
   { label: "BizCore AI", href: "/chat" },
-  { label: "Admin", href: "/admin/dashboard" },
 ];
 
 export function Navbar() {
@@ -119,12 +118,7 @@ export function Navbar() {
                 </AnimatePresence>
               </button>
             )}
-            <Link
-              href="/admin/login"
-              className="hidden md:block text-[13px] px-3 py-1.5 rounded-xl border border-[var(--glass-border)] bg-[var(--surface-2)] text-[var(--text)] hover:border-[var(--text-muted)] transition-all"
-            >
-              Se connecter
-            </Link>
+
             <Link
               href="/docs"
               className="hidden md:block text-[13px] px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all font-medium shadow-sm shadow-indigo-500/30"
