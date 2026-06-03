@@ -9,7 +9,7 @@ services:
     runtime: docker                       # build à partir du Dockerfile (≠ image pré-construite)
     repo: https://github.com/Chris-Manuelpipo/bizcore
     region: frankfurt
-    plan: starter                         # 'free' possible mais cold start après inactivité
+    plan: free                            # gratuit ; spin-down après 15 min d'inactivité + 512 Mo RAM
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend              # le Dockerfile fait COPY .mvn/ mvnw pom.xml src/ → contexte = backend/
     healthCheckPath: /actuator/health
