@@ -27,16 +27,30 @@ export const GUIDE_CATEGORIES = ["Démarrage", "Authentification", "Multi-tenant
 // (claim "tenantId") au moment de l'inscription de l'utilisateur, puis
 // appliqué automatiquement par le backend à chaque requête authentifiée.
 export const GUIDES: Guide[] = [
-  // ── 1. Créer et configurer un tenant ───────────────────────────────────
+  // ── 1. Votre premier appel API ───────────────────────────────────────────
   {
-    slug: "creer-configurer-tenant",
-    title: "Créer et configurer un tenant",
-    description: "Créez un tenant isolé, rattachez-y des utilisateurs, puis créez des acteurs PROVIDER et CONSUMER. L'isolation est automatique via le JWT.",
-    category: "Multi-tenant",
+    slug: "premier-appel-api",
+    title: "Votre premier appel API",
+    description: "Démarrez avec BizCore : vérifiez l'API, créez un tenant isolé, rattachez des utilisateurs et créez des acteurs PROVIDER et CONSUMER.",
+    category: "Démarrage",
     duration: "10 min",
     difficulty: "Débutant",
     tags: ["Tenant", "Actor", "Isolation"],
     steps: [
+      {
+        title: "Prérequis",
+        content: "Assurez-vous que le backend BizCore tourne. Par défaut il écoute sur le port 8080. Vérifiez sa disponibilité via l'endpoint de santé (public).",
+        code: {
+          lang: "bash",
+          filename: "terminal",
+          body: `# Vérifier que l'API répond
+curl ${API_BASE}/actuator/health
+
+# Réponse attendue
+# {"status":"UP"}`
+        },
+        tip: "Si le port ou l'hôte diffère, définissez NEXT_PUBLIC_API_URL dans votre .env.local (frontend)."
+      },
       {
         title: "Créer le tenant",
         content: "Un tenant représente une instance métier indépendante, avec son espace de données isolé. La création se fait sur /api/tenants/register (public).",
@@ -143,30 +157,16 @@ curl -X POST ${API_BASE}/api/actors/user/<USER_ID_PAUL> \\
     ],
   },
 
-  // ── 2. Premier appel API ────────────────────────────────────────────────
+  // ── 2. Création/Authentification d'un utilisateur ────────────────────────
   {
-    slug: "premier-appel-api",
-    title: "Votre premier appel API",
-    description: "Démarrez avec BizCore en 5 minutes : vérifiez l'API, créez un compte, obtenez un token JWT et faites votre premier appel authentifié.",
-    category: "Démarrage",
+    slug: "creation-authentification-utilisateur",
+    title: "Création/Authentification d'un utilisateur",
+    description: "Créez un compte, authentifiez-vous avec un token JWT et effectuez votre premier appel sécurisé sur l'API BizCore.",
+    category: "Authentification",
     duration: "5 min",
     difficulty: "Débutant",
     tags: ["JWT", "Auth", "cURL"],
     steps: [
-      {
-        title: "Prérequis",
-        content: "Assurez-vous que le backend BizCore tourne. Par défaut il écoute sur le port 8080. Vérifiez sa disponibilité via l'endpoint de santé (public).",
-        code: {
-          lang: "bash",
-          filename: "terminal",
-          body: `# Vérifier que l'API répond
-curl ${API_BASE}/actuator/health
-
-# Réponse attendue
-# {"status":"UP"}`
-        },
-        tip: "Si le port ou l'hôte diffère, définissez NEXT_PUBLIC_API_URL dans votre .env.local (frontend)."
-      },
       {
         title: "Créer un compte",
         content: "Créez un utilisateur via /api/auth/register (public). Si vous ne précisez pas de tenantId, le compte est rattaché au tenant par défaut de la plateforme.",
