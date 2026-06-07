@@ -1,13 +1,14 @@
 % ============================================================
 %  Rapport de Projet — Business Core as a Service (BCaaS)
-%  3e année Génie Informatique — Semestre 2, 2025-2026
+%  3e annee Genie Informatique — Semestre 2, 2025-2026
+%  ENSPY — Cours : Introduction aux Reseaux
 % ============================================================
 \documentclass[12pt,a4paper]{report}
 
 % ── Encodage & langue ───────────────────────────────────────
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[french]{babel}
+\usepackage[english,main=french,provide=*]{babel}
 
 % ── Police & typographie ────────────────────────────────────
 \usepackage{lmodern}
@@ -20,11 +21,11 @@
 \usepackage{parskip}
 
 % ── Couleurs & graphiques ───────────────────────────────────
-\usepackage[dvipsnames,table]{xcolor} 
-\definecolor{white}{RGB}{255,255,255}  % correction : définition explicite
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{white}{RGB}{255,255,255}
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,backgrounds,decorations.pathreplacing}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,backgrounds,decorations.pathreplacing,calc}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
@@ -34,7 +35,7 @@
 \usepackage{multirow}
 \usepackage{array}
 
-% ── Mathématiques ───────────────────────────────────────────
+% ── Mathematiques ───────────────────────────────────────────
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{mathtools}
 
@@ -55,17 +56,20 @@
 	breaklines=true, breakatwhitespace=true,
 	numbers=left, numberstyle=\tiny\color{gray},
 	tabsize=2, showstringspaces=false,
-	captionpos=b 
+	captionpos=b
 }
-
 \lstset{
 	literate={—}{{---}}1
 	{├}{{+--}}1
-	{─}{{-}}1
+	{─}{{-}}1Let me read the rest of the conception document and examine the actual domain model and key implementation files.
+
+
 	{│}{{|}}1
 	{└}{{+--}}1
+	{é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {à}{{\`a}}1
+	{î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1 {ç}{{\c c}}1 {É}{{\'E}}1
 }
- 
+
 % ── Liens & PDF ─────────────────────────────────────────────
 \usepackage[hidelinks,
 pdftitle={Rapport BCaaS},
@@ -74,9 +78,9 @@ pdfsubject={Business Core as a Service},
 ]{hyperref}
 \usepackage{cleveref}
 
-% ── En-têtes & pieds ────────────────────────────────────────
+% ── En-tetes & pieds ────────────────────────────────────────
 \usepackage{fancyhdr}
-\setlength{\headheight}{13.6pt}  % correction : taille suffisante
+\setlength{\headheight}{13.6pt}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small\textit{BCaaS — Business Core as a Service}}
@@ -84,7 +88,7 @@ pdfsubject={Business Core as a Service},
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-% ── Théorèmes & définitions ─────────────────────────────────
+% ── Theoremes & definitions ─────────────────────────────────
 \theoremstyle{definition}
 \newtheorem{definition}{Définition}[chapter]
 \newtheorem{propriete}{Propriété}[chapter]
@@ -99,7 +103,7 @@ pdfsubject={Business Core as a Service},
 \definecolor{lightblue}{RGB}{200,220,255}
 \definecolor{lightgray}{RGB}{245,245,248}
 
-% ── Boîtes personnalisées ────────────────────────────────────
+% ── Boites personnalisees ────────────────────────────────────
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable,skins}
 \newtcolorbox{infobox}[1][]{
@@ -123,897 +127,1066 @@ pdfsubject={Business Core as a Service},
 
 % ============================================================
 \begin{document}
-	% ============================================================
-	
-	% ────────────────────────────────────────────────────────────
-	%  PAGE DE GARDE
-	% ────────────────────────────────────────────────────────────
-	\begin{titlepage}
-		\pagecolor{primary}
-		\color{white}
-		\centering
-		\vspace*{1.5cm}
-		
-		{\fontsize{11}{13}\selectfont\textsc{École Nationale Supérieure Polytechnique}}\\[0.3cm]
-		{\fontsize{10}{12}\selectfont Département Génie Informatique — 3\textsuperscript{e} Année}\\[0.3cm]
-		{\fontsize{10}{12}\selectfont Introduction aux Réseaux — Semestre 2, 2025-2026}
-		
-		\vspace{1.2cm}
+
+% ────────────────────────────────────────────────────────────
+%  PAGE DE GARDE
+% ────────────────────────────────────────────────────────────
+\begin{titlepage}
+	\centering
+	\vspace*{0.6cm}
+
+	% --- Logo (fourni : enspy.png) ou sceau TikZ de repli ---
+	\IfFileExists{enspy.png}{%
+		\includegraphics[height=3cm]{enspy.png}%
+	}{%
 		\begin{tikzpicture}
-			\draw[white, line width=1.5pt] (0,0) -- (\textwidth-1cm,0);
-		\end{tikzpicture}
-		
-		\vspace{1cm}
-		{\fontsize{28}{34}\bfseries\selectfont Business Core as a Service}\\[0.6cm]
-		{\fontsize{18}{22}\selectfont\color{secondary} BCaaS}\\[0.4cm]
-		{\fontsize{14}{18}\itshape\selectfont Une infrastructure générique de gestion des métiers\\
-			inspirée de l'ingénierie des protocoles réseaux}
-		
-		\vspace{1cm}
-		\begin{tikzpicture}
-			\draw[white, line width=1.5pt] (0,0) -- (\textwidth-1cm,0);
-		\end{tikzpicture}
-		
-		\vspace{1.5cm}
-		
-		% Pile de couches inspirée OSI
-%		\begin{tikzpicture}[scale=0.85]
-%			\foreach \i/\label/\col in {
-%				0/Infrastructure/blue!60!white,
-%				1/{Transport \& Messaging}/cyan!70!white,
-%				2/{Tenant \& Routing}/teal!70!white,
-%				3/{Context \& Policy}/green!50!white,
-%				4/{Business Capabilities}/orange!80!white
-%			}{
-%				\fill[\col, opacity=0.8] (-3, \i*0.65) rectangle (3, \i*0.65+0.58);
-%			\node[text=white, font=\small\bfseries] at (0, \i*0.65+0.29) {\label};
-%			}
-%		\end{tikzpicture}
-		
-		\vspace{1.5cm}
-		
-		{\large\bfseries Réalisé par :}\\[0.5cm]
-		\begin{tabular}{c}
-			\textbf{ETCHOME Chris}\\[0.2cm]
-			\textit{[Coéquipier 2]} \\[0.2cm]
-			\textit{[Coéquipier 3]}
-		\end{tabular}
-		
-		\vfill
-		{\small Année académique 2025-2026}
-		
-		\pagecolor{white}
-		\color{black}
-	\end{titlepage}
-	
-	% ────────────────────────────────────────────────────────────
-	%  RÉSUMÉ
-	% ────────────────────────────────────────────────────────────
-	\chapter*{Résumé}
-	\addcontentsline{toc}{chapter}{Résumé}
-	
-	Ce rapport présente la conception et le développement de \bcaas{} (\textit{Business Core as a Service}), une plateforme générique multi-tenant dédiée à la gestion standardisée des processus métier. Le projet s'inscrit dans le cadre du cours d'Introduction aux Réseaux de la troisième année de Génie Informatique.
-	
-	L'idée centrale est de modéliser un système d'information métier en s'appuyant rigoureusement sur les concepts de l'ingénierie des protocoles réseaux : pile de couches, encapsulation, routage, adressage, qualité de service et plans de contrôle et de données. Cette analogie formelle permet de concevoir une architecture microservice cohérente, modulaire et extensible.
-	
-	La solution implémentée repose sur Spring Boot 3.5 / Java 21, PostgreSQL avec Liquibase, Spring Security avec \jwt{}, et SpringDoc OpenAPI pour la documentation automatique de l'\api. Le frontend est développé avec Next.js sous forme de Progressive Web App (PWA).
-	
-	\textbf{Mots-clés :} Business Core, multi-tenant, microservices, protocoles réseaux, OSI, encapsulation, Spring Boot, API REST, Next.js.
-	
-	\vspace{1cm}
-	\begin{center}
-		\begin{tikzpicture}
-			\draw[primary, line width=0.5pt] (0,0) -- (10cm,0);
-		\end{tikzpicture}
-	\end{center}
-	
-	% ────────────────────────────────────────────────────────────
-	%  TABLE DES MATIÈRES
-	% ────────────────────────────────────────────────────────────
-	\tableofcontents
-	\listoffigures
-	\listoftables
-	
-	% ============================================================
-	\chapter{Introduction générale}
-	% ============================================================
-	
-	\section{Contexte du projet}
-	
-	Dans le domaine du génie logiciel, chaque nouveau projet métier — qu'il s'agisse d'une pharmacie, d'une agence immobilière, d'un cabinet médical ou d'une école — reconstruit invariablement les mêmes fondations : gestion des acteurs, des ressources, des règles, des workflows, des notifications et de la traçabilité. Cette duplication systématique représente un gaspillage considérable en temps de développement, en maintenance et en cohérence architecturale.
-	
-	Parallèlement, l'ingénierie des réseaux a résolu depuis des décennies un problème structurellement similaire : faire communiquer de façon fiable, sécurisée et interopérable des entités hétérogènes sur une infrastructure partagée. Le modèle OSI et la suite TCP/IP proposent une décomposition en couches aux responsabilités clairement délimitées, un mécanisme d'encapsulation des données, un adressage précis des destinataires, une qualité de service différenciée et une séparation nette entre plan de contrôle et plan de données.
-	
-	\section{Problématique}
-	
-	\begin{infobox}[Question directrice]
-		\textit{Comment concevoir un noyau métier générique, réutilisable et configurable qui permette à n'importe quelle instance métier de fonctionner sans reconstruire les fondations, en s'appuyant formellement sur les concepts de l'ingénierie des protocoles réseaux ?}
-	\end{infobox}
-	
-	\section{Objectifs}
-	
-	Les objectifs du projet sont les suivants :
-	\begin{enumerate}
-		\item Établir une analogie formelle et rigoureuse entre les concepts réseaux (couches OSI, encapsulation, routage, QoS, multi-tenant) et les composants d'une architecture métier générique.
-		\item Concevoir une architecture microservice multi-tenant en cinq couches protocolaires.
-		\item Implémenter un \api{} de provisionnement de tenants avec modèle de données générique configurable.
-		\item Documenter et exposer l'\api{} via Swagger UI versionné.
-		\item Développer un frontend Next.js comprenant un site vitrine et un tableau de bord d'administration.
-	\end{enumerate}
-	
-	\section{Structure du rapport}
-	
-	Ce rapport est organisé en sept chapitres. Le chapitre~\ref{chap:etat} dresse l'état de l'art des plateformes génériques et des architectures multi-tenant. Le chapitre~\ref{chap:analogie} formalise mathématiquement l'analogie entre réseaux et métier. Le chapitre~\ref{chap:architecture} présente l'architecture globale de la solution. Le chapitre~\ref{chap:conception} détaille la conception des composants. Le chapitre~\ref{chap:impl} décrit l'implémentation technique. Le chapitre~\ref{chap:frontend} présente le frontend. Enfin, le chapitre~\ref{chap:conclusion} conclut et ouvre sur des perspectives d'évolution.
-	
-	% ============================================================
-	\chapter{État de l'art}
-	\label{chap:etat}
-	% ============================================================
-	
-	\section{Plateformes métier génériques}
-	
-	L'approche consistant à factoriser la logique commune de plusieurs domaines métier dans une plateforme partagée n'est pas nouvelle. On distingue plusieurs catégories :
-	
-	\begin{description}
-		\item[ERP (Enterprise Resource Planning)] Systèmes monolithiques couvrant plusieurs modules métier (SAP, Oracle EBS). Ils souffrent d'une rigidité importante et d'un couplage fort entre domaines.
-		\item[Low-code / No-code platforms] Plateformes comme OutSystems ou Mendix permettant de générer des applications à partir de configurations. Elles limitent cependant l'expressivité et le contrôle architectural.
-		\item[Backend-as-a-Service (BaaS)] Services cloud (Firebase, Supabase, Appwrite) offrant des fonctionnalités communes (authentification, base de données, stockage). Ils ne modélisent pas la sémantique métier.
-		\item[\bcaas{}] Notre approche se positionne entre le BaaS technique et l'ERP fonctionnel : un \textit{Business Core} générique, configurable par domaine, exposé comme un service \api.
-	\end{description}
-	
-	\section{Architectures multi-tenant}
-	
-	Le multi-tenancy désigne la capacité d'un système à servir plusieurs clients (tenants) de façon isolée sur une infrastructure partagée. Trois stratégies principales existent :
-	
-	\begin{table}[h]
-		\centering
-		\caption{Stratégies de multi-tenancy}
-		\label{tab:multitenancy}
-		\begin{tabularx}{\textwidth}{lXXX}
-			\toprule
-			\textbf{Stratégie} & \textbf{Isolation} & \textbf{Coût} & \textbf{Complexité} \\
-			\midrule
-			Base de données séparée & Très forte & Élevé & Faible \\
-			Schéma séparé (PostgreSQL) & Forte & Moyen & Moyenne \\
-			Colonne \texttt{tenant\_id} & Logique & Faible & Élevée \\
-			\bottomrule
-		\end{tabularx}
-	\end{table}
-	
-	\bcaas{} adopte une stratégie hybride : colonne \texttt{tenant\_id} pour les entités partagées et schéma séparé optionnel pour les tenants à haute exigence d'isolation.
-	
-	\section{Ingénierie des protocoles réseaux comme méthode}
-	
-	Le modèle OSI (Open Systems Interconnection) définit sept couches, chacune offrant des services à la couche supérieure et consommant ceux de la couche inférieure. Cette décomposition présente quatre propriétés fondamentales exploitées dans notre conception :
-	
-	\begin{enumerate}
-		\item \textbf{Séparation des responsabilités :} chaque couche a une fonction clairement délimitée.
-		\item \textbf{Encapsulation :} les données traversent les couches en s'enrichissant de métadonnées sans que le contenu applicatif soit altéré.
-		\item \textbf{Interopérabilité :} les interfaces entre couches sont standardisées (protocoles).
-		\item \textbf{Substitution :} une couche peut être remplacée sans impacter les autres.
-	\end{enumerate}
-	
-	% ============================================================
-	\chapter{Analogie formelle entre réseaux et métier}
-	\label{chap:analogie}
-	% ============================================================
-	
-	\section{Formalisation mathématique}
-	
-	Nous proposons une formalisation de l'analogie réseau-métier à travers une structure algébrique.
-	
-	\begin{definition}[Pile protocolaire métier]
-		Soit $\mathcal{P} = (L_1, L_2, L_3, L_4, L_5)$ une pile protocolaire métier ordonnée telle que $L_i$ offre des services à $L_{i+1}$ et consomme les services de $L_{i-1}$, avec :
-		\begin{align*}
-			L_1 &= \text{Infrastructure} & &\text{(analogie : couche physique / liaison)} \\
-			L_2 &= \text{Transport \& Messaging} & &\text{(analogie : couche transport)} \\
-			L_3 &= \text{Tenant \& Routing} & &\text{(analogie : couche réseau)} \\
-			L_4 &= \text{Context \& Policy} & &\text{(analogie : couche session / présentation)} \\
-			L_5 &= \text{Business Capabilities} & &\text{(analogie : couche application)}
-		\end{align*}
-	\end{definition}
-	
-	\begin{definition}[Paquet métier]
-		Un paquet métier $\mathcal{M}$ est un triplet :
-		\[
-		\mathcal{M} = (H_T,\; H_C,\; \mathcal{P}_{biz})
-		\]
-		où :
-		\begin{itemize}
-			\item $H_T = \{h_i \mid h_i \in \mathcal{A}_T\}$ est l'en-tête de transport contenant les attributs d'acheminement,
-			\item $H_C = \{(k, v) \mid k \in \mathcal{K}_C,\; v \in \mathcal{V}\}$ est l'en-tête de contexte métier (tenant, acteur, traçabilité, SLA),
-			\item $\mathcal{P}_{biz}$ est le payload métier : données propres à l'opération.
-		\end{itemize}
-	\end{definition}
-	
-	\begin{definition}[Tenant]
-		Un tenant $T_i$ est un sextuplet :
-		\[
-		T_i = (\text{id}_i,\; \mathcal{D}_i,\; \mathcal{R}_i,\; \mathcal{A}_i,\; \mathcal{W}_i,\; \mathcal{Q}_i)
-		\]
-		où $\mathcal{D}_i$ est le domaine métier, $\mathcal{R}_i$ l'ensemble des règles, $\mathcal{A}_i$ le catalogue d'acteurs, $\mathcal{W}_i$ les workflows et $\mathcal{Q}_i$ le niveau de QoS contractualisé.
-	\end{definition}
-	
-	\section{Table de correspondance réseau-métier}
-	
-	\begin{table}[h]
-		\centering
-		\caption{Correspondance formelle entre concepts réseaux et concepts métier}
-		\label{tab:analogie}
-		\rowcolors{2}{lightgray}{white}
-		\begin{tabularx}{\textwidth}{lXX}
-			\toprule
-			\textbf{Concept réseau} & \textbf{Définition réseau} & \textbf{Équivalent métier dans \bcaas} \\
-			\midrule
-			Adresse IP & Identifiant unique d'un nœud & \texttt{tenant\_id} + \texttt{domain} + \texttt{service} \\
-			En-tête de paquet & Métadonnées d'acheminement & \texttt{tenant\_id, actor\_id, trace\_id, SLA} \\
-			Payload / SDU & Données applicatives & Corps de la requête métier \\
-			Encapsulation & Ajout d'en-têtes à chaque couche & Enrichissement du contexte au passage des couches \\
-			Routage & Sélection du chemin vers la destination & Résolution tenant → service → instance \\
-			NAT / Proxy & Traduction d'adresses & API Gateway : réécriture et normalisation \\
-			VLAN & Isolation logique sur réseau partagé & Namespace / schéma par tenant \\
-			TCP (fiable) & Transport avec accusé de réception & REST synchrone avec retry et idempotence \\
-			UDP (rapide) & Transport sans garantie & Événements asynchrones (Kafka) \\
-			Session TCP & État d'une connexion & Contexte de saga, corrélation de processus \\
-			QoS & Priorité et garanties de bande passante & SLA par tenant, priorité de transaction \\
-			TTL (Time To Live) & Durée de vie d'un paquet & Expiration de token \jwt, timeout de saga \\
-			Control plane & Gestion des routes (BGP, OSPF) & Admin : configuration tenants, règles, SLA \\
-			Data plane & Acheminement des paquets & Exécution des transactions métier \\
-			Firewall & Filtrage de paquets & Spring Security, contrôle d'accès \api \\
-			DNS & Résolution nom $\to$ adresse & Service Discovery (résolution tenant $\to$ config) \\
-			\bottomrule
-		\end{tabularx}
-	\end{table}
-	
-	\section{Modélisation de la requête comme datagramme}
-	
-	Considérons une requête d'ouverture de dossier. Dans un réseau classique, un datagramme IP contient des champs d'en-tête (adresse source, destination, TTL, protocole) suivis d'un payload. Dans \bcaas, la requête HTTP entrante suit la même structure :
-	
-	\begin{figure}[h]
-		\centering
-		\begin{tikzpicture}[
-			box/.style={draw, fill=#1, minimum width=3.5cm, minimum height=0.9cm,
-				align=center, font=\small\bfseries, rounded corners=2pt},
-			label/.style={font=\footnotesize\itshape, text=gray}
-			]
-			% Datagramme réseau
-			\node[font=\bfseries\color{primary}] at (2.2,4.5) {Datagramme IP};
-			\node[box=secondary!70] (ip-src) at (0,3.5)    {@ Source\\IP:port};
-			\node[box=secondary!70] (ip-dst) at (4.5,3.5)  {@ Destination\\IP:port};
-			\node[box=accent!60]    (ip-meta) at (0,2.5)   {TTL, Protocol\\Checksum};
-			\node[box=primary!30]   (ip-pay) at (4.5,2.5)  {Payload\\(données app)};
-			
-			% Paquet métier
-			\node[font=\bfseries\color{primary}] at (9.2,4.5) {Paquet Métier \bcaas};
-			\node[box=secondary!70] (m-transport) at (7,3.5) {Header Transport\\tenant\_id, version};
-			\node[box=accent!60]    (m-context)  at (11.5,3.5){Header Contexte\\actor\_id, trace\_id, SLA};
-			\node[box=primary!30]   (m-payload)  at (9.2,2.5) {Payload Métier\\(données opération)};
-			
-			% Flèche analogie
-			\draw[-{Stealth[length=8pt]}, line width=2pt, secondary]
-			(5.5,3) -- node[above,font=\footnotesize\bfseries,secondary]{$\cong$} (6.3,3);
-		\end{tikzpicture}
-		\caption{Analogie structurelle entre un datagramme IP et un paquet métier \bcaas}
-		\label{fig:datagramme}
-	\end{figure}
-	
-	\section{Flux de traitement comme pipeline de protocoles}
-	
-	Le traitement d'une requête dans \bcaas{} suit exactement le modèle OSI descendant (émetteur) puis ascendant (récepteur) :
-	
-	\begin{figure}[h]
-		\centering
-		\begin{tikzpicture}[
-			procstep/.style={draw=primary, fill=primary!10, rounded corners=4pt,
-				minimum width=2.2cm, minimum height=1cm, align=center,
-				font=\small\bfseries},
-			arrow/.style={-{Stealth}, line width=1.2pt, primary}
-			]
-			\node[procstep] (c) at (0,0)    {Client\\(requête)};
-			\node[procstep, fill=secondary!20, draw=secondary] (gw) at (3,0) {API\\Gateway};
-			\node[procstep, fill=accent!20, draw=accent] (tr) at (6,0) {Tenant \&\\Routing};
-			\node[procstep, fill=green!15, draw=green!60!black] (cp) at (9,0) {Context \&\\Policy};
-			\node[procstep, fill=orange!15, draw=orange] (bs) at (12,0) {Business\\Service};
-			
-			\draw[arrow] (c) -- node[above,font=\tiny]{payload+headers} (gw);
-			\draw[arrow] (gw) -- node[above,font=\tiny]{+tenant résolu} (tr);
-			\draw[arrow] (tr) -- node[above,font=\tiny]{+contexte enrichi} (cp);
-			\draw[arrow] (cp) -- node[above,font=\tiny]{+permissions SLA} (bs);
-			
-			% Analogie couches OSI
-			\node[font=\tiny\itshape, gray] at (0,-1)    {Application};
-			\node[font=\tiny\itshape, gray] at (3,-1)    {Présentation};
-			\node[font=\tiny\itshape, gray] at (6,-1)    {Réseau};
-			\node[font=\tiny\itshape, gray] at (9,-1)    {Session};
-			\node[font=\tiny\itshape, gray] at (12,-1)   {Application};
-			
-			% Événement sortant
-			\draw[arrow, dashed, orange] (bs) -- ++(0,-1.8) 
-			node[below, draw=orange, fill=orange!10, rounded corners=2pt, 
-			font=\small, align=center]{Événement publié\\(notification, audit)};
-		\end{tikzpicture}
-		\caption{Flux bout-en-bout d'une requête dans \bcaas{} — analogie OSI}
-		\label{fig:flux}
-	\end{figure}
-	
-	\section{Modélisation du multi-tenant comme réseau virtuel}
-	
-	\begin{analogiebox}[Analogie : VLAN $\leftrightarrow$ Tenant]
-		Dans un réseau, un VLAN isole logiquement plusieurs groupes de machines sur la même infrastructure physique. Chaque trame VLAN porte un tag (802.1Q) qui identifie son appartenance. Dans \bcaas, chaque requête porte un \texttt{tenant\_id} qui isole les données, les règles et les workflows d'un client sur l'infrastructure partagée.
-		
-		\[
-		\text{VLAN tag} \equiv \texttt{tenant\_id}, \quad
-		\text{Switch L2} \equiv \text{Tenant Resolver}, \quad
-		\text{Réseau physique} \equiv \text{Infrastructure partagée}
-		\]
-	\end{analogiebox}
-	
-	La propriété d'isolation peut être formalisée ainsi. Soient $T_i$ et $T_j$ deux tenants distincts ($i \neq j$). On exige :
-	
+			\draw[primary, line width=2pt] (0,0) circle (1.3cm);
+			\draw[secondary, line width=2pt] (0,0) circle (1.1cm);
+			\node[primary, font=\Large\bfseries] at (0,0.15) {ENSPY};
+			\node[secondary, font=\tiny] at (0,-0.45) {POLYTECHNIQUE};
+		\end{tikzpicture}%
+	}
+
+	\vspace{0.8cm}
+	{\fontsize{13}{15}\selectfont\textsc{\textcolor{primary}{École Nationale Supérieure Polytechnique de Yaoundé}}}\\[0.3cm]
+	{\fontsize{11}{13}\selectfont Département Génie Informatique — 3\textsuperscript{e} Année}\\[0.2cm]
+	{\fontsize{11}{13}\selectfont Introduction aux Réseaux — Semestre 2, 2025-2026}
+
+	\vspace{1.1cm}
+	{\color{secondary}\rule{\textwidth}{1.5pt}}
+	\vspace{0.9cm}
+
+	{\fontsize{34}{40}\bfseries\selectfont\textcolor{primary}{Business Core as a Service}}\\[0.5cm]
+	{\fontsize{20}{24}\selectfont\textcolor{secondary}{\textsc{BCaaS}}}\\[0.5cm]
+	{\fontsize{14}{18}\itshape\selectfont Une infrastructure générique de gestion des métiers\\
+		inspirée de l'ingénierie des protocoles réseaux}
+
+	\vspace{0.9cm}
+	{\color{secondary}\rule{\textwidth}{1.5pt}}
+
+	\vspace{1.0cm}
+
+	% --- Mini pile protocolaire decorative ---
+	\begin{tikzpicture}[scale=0.82]
+		\foreach \i/\lab/\col in {
+			0/Infrastructure/{primary!55!black},
+			1/{Transport \& Messaging}/primary,
+			2/{Tenant \& Routing}/accent,
+			3/{Context \& Policy}/{green!55!black},
+			4/{Business Capabilities}/secondary
+		}{
+			\fill[\col, opacity=0.85, rounded corners=2pt] (-3.6, \i*0.62) rectangle (3.6, \i*0.62+0.54);
+			\node[text=white, font=\small\bfseries] at (0, \i*0.62+0.27) {\lab};
+		}
+	\end{tikzpicture}
+
+	\vspace{1.0cm}
+
+	{\large\bfseries\textcolor{primary}{Réalisé par :}}\\[0.4cm]
+	\begin{tabular}{c}
+		\textbf{ETCHOME Chris}\\[0.15cm]
+		% TODO coéquipier 2 — remplacer par le nom réel
+		\textit{[Coéquipier 2]}\\[0.15cm]
+		% TODO coéquipier 3 — remplacer par le nom réel
+		\textit{[Coéquipier 3]}
+	\end{tabular}
+
+	\vspace{0.6cm}
+	% TODO encadrant — remplacer si besoin
+	{\small\textit{Sous la supervision de l'équipe pédagogique du cours d'Introduction aux Réseaux}}
+
+	\vfill
+	{\small\textcolor{primary}{Année académique 2025-2026}}
+\end{titlepage}
+
+% ────────────────────────────────────────────────────────────
+%  RESUME (FR)
+% ────────────────────────────────────────────────────────────
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Ce rapport présente la conception et le développement de \bcaas{} (\textit{Business Core as a Service}), une plateforme générique multi-tenant dédiée à la gestion standardisée des processus métier. Le projet s'inscrit dans le cadre du cours d'Introduction aux Réseaux de la troisième année de Génie Informatique à l'École Nationale Supérieure Polytechnique de Yaoundé.
+
+L'idée centrale est de modéliser un système d'information métier en s'appuyant rigoureusement sur les concepts de l'ingénierie des protocoles réseaux : pile de couches, encapsulation, routage, adressage, qualité de service et séparation entre plan de contrôle et plan de données. Cette analogie, formalisée mathématiquement, sert de méthode de conception et guide chaque décision architecturale.
+
+La solution implémentée repose sur un \textbf{monolithe modulaire} Spring Boot 3.5 / Java 21, organisé selon l'architecture hexagonale et le \textit{Domain-Driven Design}. Elle utilise PostgreSQL avec Liquibase, Spring Security et \jwt{} pour l'authentification multi-tenant, Redis pour le cache, Apache Kafka pour les notifications asynchrones et SpringDoc OpenAPI pour la documentation automatique de l'\api. Le frontend, une \textit{Progressive Web App} développée avec Next.js 16 et React 19, combine un site vitrine, une documentation interactive, un assistant conversationnel et un tableau de bord d'administration.
+
+\textbf{Mots-clés :} Business Core, multi-tenant, protocoles réseaux, modèle OSI, encapsulation, isolation, Spring Boot, API REST, JWT, Next.js.
+
+\vspace{0.8cm}
+\begin{center}
+	{\color{primary}\rule{0.5\textwidth}{0.5pt}}
+\end{center}
+
+% ────────────────────────────────────────────────────────────
+%  ABSTRACT (EN)
+% ────────────────────────────────────────────────────────────
+\begin{otherlanguage}{english}
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This report presents the design and development of \bcaas{} (\textit{Business Core as a Service}), a generic multi-tenant platform dedicated to the standardized management of business processes. The project was carried out for the \textit{Introduction to Networks} course of the third year of Computer Engineering at the National Advanced School of Engineering of Yaoundé.
+
+The core idea is to model a business information system by rigorously relying on the concepts of network protocol engineering: layered stacks, encapsulation, routing, addressing, quality of service, and the separation between control plane and data plane. This analogy, given a formal mathematical treatment, is used as a design method and drives every architectural decision.
+
+The implemented solution is a \textbf{modular monolith} built with Spring Boot 3.5 / Java 21, structured according to hexagonal architecture and Domain-Driven Design. It relies on PostgreSQL with Liquibase, Spring Security with \jwt{} for multi-tenant authentication, Redis for caching, Apache Kafka for asynchronous notifications, and SpringDoc OpenAPI for automatic API documentation. The frontend, a Progressive Web App built with Next.js 16 and React 19, combines a landing site, interactive documentation, a conversational assistant, and an administration dashboard.
+
+\textbf{Keywords:} Business Core, multi-tenancy, network protocols, OSI model, encapsulation, isolation, Spring Boot, REST API, JWT, Next.js.
+\end{otherlanguage}
+
+% ────────────────────────────────────────────────────────────
+%  TABLES
+% ────────────────────────────────────────────────────────────
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ============================================================
+\chapter{Introduction générale}
+\label{chap:intro}
+% ============================================================
+
+\section{Contexte du projet}
+
+Dans le domaine du génie logiciel, chaque nouveau projet métier — qu'il s'agisse d'une pharmacie, d'une agence immobilière, d'un cabinet médical, d'une auto-école ou d'une école — reconstruit invariablement les mêmes fondations : gestion des acteurs, des ressources, des règles, des workflows, des notifications et de la traçabilité. Cette duplication systématique représente un gaspillage considérable en temps de développement, en maintenance et en cohérence architecturale.
+
+Parallèlement, l'ingénierie des réseaux a résolu depuis des décennies un problème structurellement similaire : faire communiquer de façon fiable, sécurisée et interopérable des entités hétérogènes sur une infrastructure partagée. Le modèle \osi{} (\textit{Open Systems Interconnection}) et la suite TCP/IP proposent une décomposition en couches aux responsabilités clairement délimitées, un mécanisme d'encapsulation des données, un adressage précis des destinataires, une qualité de service différenciée et une séparation nette entre plan de contrôle et plan de données.
+
+\section{Problématique}
+
+\begin{infobox}[Question directrice]
+	\textit{Comment concevoir un noyau métier générique, réutilisable et configurable qui permette à n'importe quelle instance métier de fonctionner sans reconstruire les fondations, en s'appuyant formellement sur les concepts de l'ingénierie des protocoles réseaux ?}
+\end{infobox}
+
+\section{Objectifs}
+
+Les objectifs du projet sont les suivants :
+\begin{enumerate}
+	\item Établir une analogie formelle et rigoureuse entre les concepts réseaux (couches \osi, encapsulation, routage, QoS, multi-tenant) et les composants d'une architecture métier générique.
+	\item Concevoir une architecture modulaire multi-tenant organisée en cinq couches protocolaires.
+	\item Implémenter une \api{} \rest{} de gestion d'instances métier reposant sur un modèle de données concret et réutilisable.
+	\item Documenter et exposer l'\api{} via Swagger UI (SpringDoc OpenAPI).
+	\item Développer un frontend Next.js comprenant un site vitrine, une documentation interactive et un tableau de bord d'administration.
+\end{enumerate}
+
+\section{Structure du document}
+
+Ce rapport est organisé en treize chapitres. Le \cref{chap:etat} dresse l'état de l'art des plateformes génériques et des architectures multi-tenant. Le \cref{chap:analogie} formalise mathématiquement l'analogie entre réseaux et métier. Le \cref{chap:architecture} présente l'architecture globale. Le \cref{chap:conception} détaille la conception des composants et du modèle de données. Le \cref{chap:protocole} illustre le protocole d'échange sur un cas métier concret. Le \cref{chap:tenant} traite de la stratégie multi-tenant et de l'isolation. Le \cref{chap:securite} décrit la sécurité. Le \cref{chap:obs} aborde l'observabilité et la QoS métier. Le \cref{chap:impl} décrit l'implémentation technique. Le \cref{chap:frontend} présente le frontend. Le \cref{chap:tests} couvre les tests et la validation. Enfin, le \cref{chap:conclusion} conclut et ouvre sur des perspectives.
+
+% ============================================================
+\chapter{État de l'art}
+\label{chap:etat}
+% ============================================================
+
+\section{Plateformes métier génériques}
+
+L'approche consistant à factoriser la logique commune de plusieurs domaines métier dans une plateforme partagée n'est pas nouvelle. On distingue plusieurs catégories :
+
+\begin{description}
+	\item[ERP (Enterprise Resource Planning)] Systèmes monolithiques couvrant plusieurs modules métier (SAP, Oracle EBS). Ils souffrent d'une rigidité importante et d'un couplage fort entre domaines.
+	\item[Low-code / No-code] Plateformes comme OutSystems ou Mendix permettant de générer des applications à partir de configurations. Elles limitent cependant l'expressivité et le contrôle architectural.
+	\item[Backend-as-a-Service (BaaS)] Services cloud (Firebase, Supabase, Appwrite) offrant des fonctionnalités communes (authentification, base de données, stockage). Ils ne modélisent pas la sémantique métier.
+	\item[\bcaas{}] Notre approche se positionne entre le BaaS technique et l'ERP fonctionnel : un \textit{Business Core} générique, configurable par domaine, exposé comme un service \api.
+\end{description}
+
+\section{Architectures multi-tenant}
+
+Le multi-tenancy désigne la capacité d'un système à servir plusieurs clients (tenants) de façon isolée sur une infrastructure partagée. Trois stratégies principales existent (\cref{tab:multitenancy}).
+
+\begin{table}[h]
+	\centering
+	\caption{Stratégies de multi-tenancy}
+	\label{tab:multitenancy}
+	\begin{tabularx}{\textwidth}{lXXX}
+		\toprule
+		\textbf{Stratégie} & \textbf{Isolation} & \textbf{Coût} & \textbf{Complexité} \\
+		\midrule
+		Base de données séparée & Très forte & Élevé & Faible \\
+		Schéma séparé (PostgreSQL) & Forte & Moyen & Moyenne \\
+		Colonne \texttt{tenant\_id} & Logique & Faible & Modérée \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\bcaas{} adopte, dans son implémentation actuelle, la stratégie par colonne \texttt{tenant\_id}, qui maximise le partage des ressources tout en garantissant une isolation logique stricte (\cref{chap:tenant}). Une évolution vers l'isolation par schéma est prévue pour les tenants à forte exigence.
+
+\section{L'ingénierie des protocoles comme méthode}
+
+Le modèle \osi{} définit sept couches, chacune offrant des services à la couche supérieure et consommant ceux de la couche inférieure. Cette décomposition présente quatre propriétés fondamentales exploitées dans notre conception :
+
+\begin{enumerate}
+	\item \textbf{Séparation des responsabilités :} chaque couche a une fonction clairement délimitée.
+	\item \textbf{Encapsulation :} les données traversent les couches en s'enrichissant de métadonnées sans que le contenu applicatif soit altéré.
+	\item \textbf{Interopérabilité :} les interfaces entre couches sont standardisées (protocoles).
+	\item \textbf{Substitution :} une couche peut être remplacée sans impacter les autres.
+\end{enumerate}
+
+L'originalité de \bcaas{} n'est pas de réutiliser ces propriétés comme simple métaphore pédagogique, mais d'en faire une \emph{méthode de conception} : définir les contrats avant le code, modéliser les échanges comme des messages encapsulés, et isoler les préoccupations exactement comme une pile protocolaire.
+
+% ============================================================
+\chapter{Modèle mathématique et analogie formelle}
+\label{chap:analogie}
+% ============================================================
+
+\section{Formalisation de la pile protocolaire métier}
+
+Nous proposons une formalisation de l'analogie réseau-métier à travers une structure algébrique en couches.
+
+\begin{definition}[Pile protocolaire métier]
+	Soit $\mathcal{P} = (L_1, L_2, L_3, L_4, L_5)$ une pile protocolaire métier ordonnée telle que $L_i$ offre des services à $L_{i+1}$ et consomme les services de $L_{i-1}$, avec :
+	\begin{align*}
+		L_1 &= \text{Infrastructure} & &\text{(analogie : couche physique / liaison)} \\
+		L_2 &= \text{Transport \& Messaging} & &\text{(analogie : couche transport)} \\
+		L_3 &= \text{Tenant \& Routing} & &\text{(analogie : couche réseau)} \\
+		L_4 &= \text{Context \& Policy} & &\text{(analogie : couche session / présentation)} \\
+		L_5 &= \text{Business Capabilities} & &\text{(analogie : couche application)}
+	\end{align*}
+\end{definition}
+
+\begin{definition}[Paquet métier]
+	Un paquet métier $\mathcal{M}$ est un triplet :
+	\[
+	\mathcal{M} = (H_T,\; H_C,\; \mathcal{P}_{biz})
+	\]
+	où :
+	\begin{itemize}
+		\item $H_T = \{h_i \mid h_i \in \mathcal{A}_T\}$ est l'en-tête de transport (version d'\api, méthode HTTP, horodatage) ;
+		\item $H_C = \{(k, v) \mid k \in \mathcal{K}_C,\; v \in \mathcal{V}\}$ est l'en-tête de contexte métier (tenant, acteur, traçabilité, SLA) ;
+		\item $\mathcal{P}_{biz}$ est le payload métier : données propres à l'opération.
+	\end{itemize}
+\end{definition}
+
+\begin{definition}[Tenant]
+	Un tenant $T_i$ est un quadruplet :
+	\[
+	T_i = (\text{id}_i,\; \mathcal{B}_i,\; \mathcal{A}_i,\; \mathcal{R}_i)
+	\]
+	où $\text{id}_i$ est un identifiant UUID unique, $\mathcal{B}_i$ l'ensemble des \textit{businesses} hébergés, $\mathcal{A}_i$ le catalogue d'acteurs et d'utilisateurs, et $\mathcal{R}_i$ l'ensemble des règles métier configurées.
+\end{definition}
+
+\section{Table de correspondance réseau-métier}
+
+\begin{table}[h]
+	\centering
+	\caption{Correspondance formelle entre concepts réseaux et concepts métier}
+	\label{tab:analogie}
+	\rowcolors{2}{lightgray}{white}
+	\begin{tabularx}{\textwidth}{lXX}
+		\toprule
+		\textbf{Concept réseau} & \textbf{Définition réseau} & \textbf{Équivalent métier dans \bcaas} \\
+		\midrule
+		Adresse IP & Identifiant unique d'un nœud & \texttt{tenant\_id} + domaine + service \\
+		En-tête de paquet & Métadonnées d'acheminement & \texttt{tenant\_id, actor\_id, trace\_id, SLA} \\
+		Payload / SDU & Données applicatives & Corps de la requête métier \\
+		Encapsulation & Ajout d'en-têtes à chaque couche & Enrichissement du contexte au passage des couches \\
+		Routage & Sélection du chemin vers la destination & Résolution tenant $\to$ service $\to$ instance \\
+		NAT / Proxy & Traduction d'adresses & API Gateway : réécriture et normalisation \\
+		VLAN & Isolation logique sur réseau partagé & Filtre \texttt{tenant\_id} par requête \\
+		TCP (fiable) & Transport avec accusé de réception & \rest{} synchrone avec retry et idempotence \\
+		UDP (rapide) & Transport sans garantie & Événements asynchrones (Kafka) \\
+		Session TCP & État d'une connexion & Contexte de requête, corrélation \texttt{trace\_id} \\
+		QoS & Priorité et garanties de débit & SLA par tenant, \textit{rate limiting} \\
+		TTL (Time To Live) & Durée de vie d'un paquet & Expiration du token \jwt \\
+		Control plane & Gestion des routes (BGP, OSPF) & Admin : configuration tenants, règles \\
+		Data plane & Acheminement des paquets & Exécution des transactions métier \\
+		Firewall & Filtrage de paquets & Spring Security, contrôle d'accès \api \\
+		Token bucket & Lissage de trafic (\textit{policing}) & \textit{Rate limiting} bucket4j \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\section{Modélisation de la requête comme datagramme}
+
+Considérons une requête de création d'instance métier. Dans un réseau classique, un datagramme IP contient des champs d'en-tête (adresse source, destination, TTL, protocole) suivis d'un payload. Dans \bcaas, la requête HTTP entrante suit la même structure (\cref{fig:datagramme}).
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[
+		box/.style={draw, fill=#1, minimum width=3.5cm, minimum height=0.9cm,
+			align=center, font=\small\bfseries, rounded corners=2pt},
+		]
+		\node[font=\bfseries\color{primary}] at (2.2,4.5) {Datagramme IP};
+		\node[box=secondary!70] (ip-src) at (0,3.5)    {@ Source\\IP:port};
+		\node[box=secondary!70] (ip-dst) at (4.5,3.5)  {@ Destination\\IP:port};
+		\node[box=accent!60]    (ip-meta) at (0,2.5)   {TTL, Protocol\\Checksum};
+		\node[box=primary!30]   (ip-pay) at (4.5,2.5)  {Payload\\(données app)};
+
+		\node[font=\bfseries\color{primary}] at (9.2,4.5) {Paquet Métier \bcaas};
+		\node[box=secondary!70] (m-transport) at (7,3.5) {Header Transport\\version, méthode};
+		\node[box=accent!60]    (m-context)  at (11.5,3.5){Header Contexte\\tenant, trace, SLA};
+		\node[box=primary!30]   (m-payload)  at (9.2,2.5) {Payload Métier\\(données opération)};
+
+		\draw[-{Stealth[length=8pt]}, line width=2pt, secondary]
+		(5.5,3) -- node[above,font=\footnotesize\bfseries,secondary]{$\cong$} (6.3,3);
+	\end{tikzpicture}
+	\caption{Analogie structurelle entre un datagramme IP et un paquet métier \bcaas}
+	\label{fig:datagramme}
+\end{figure}
+
+\section{Flux de traitement comme pipeline de protocoles}
+
+Le traitement d'une requête dans \bcaas{} suit le modèle \osi{} descendant (émetteur) puis ascendant (récepteur), comme l'illustre la \cref{fig:flux}.
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[
+		procstep/.style={draw=primary, fill=primary!10, rounded corners=4pt,
+			minimum width=2.2cm, minimum height=1cm, align=center,
+			font=\small\bfseries},
+		arrow/.style={-{Stealth}, line width=1.2pt, primary}
+		]
+		\node[procstep] (c) at (0,0)    {Client\\(requête)};
+		\node[procstep, fill=secondary!20, draw=secondary] (gw) at (3,0) {API\\Gateway};
+		\node[procstep, fill=accent!20, draw=accent] (tr) at (6,0) {Tenant \&\\Routing};
+		\node[procstep, fill=green!15, draw=green!60!black] (cp) at (9,0) {Context \&\\Policy};
+		\node[procstep, fill=orange!15, draw=orange] (bs) at (12,0) {Business\\Service};
+
+		\draw[arrow] (c) -- node[above,font=\tiny]{payload+headers} (gw);
+		\draw[arrow] (gw) -- node[above,font=\tiny]{+JWT validé} (tr);
+		\draw[arrow] (tr) -- node[above,font=\tiny]{+tenant résolu} (cp);
+		\draw[arrow] (cp) -- node[above,font=\tiny]{+permissions} (bs);
+
+		\node[font=\tiny\itshape, gray] at (0,-1)    {Application};
+		\node[font=\tiny\itshape, gray] at (3,-1)    {Présentation};
+		\node[font=\tiny\itshape, gray] at (6,-1)    {Réseau};
+		\node[font=\tiny\itshape, gray] at (9,-1)    {Session};
+		\node[font=\tiny\itshape, gray] at (12,-1)   {Application};
+
+		\draw[arrow, dashed, orange] (bs) -- ++(0,-1.8)
+		node[below, draw=orange, fill=orange!10, rounded corners=2pt,
+		font=\small, align=center]{Événement publié\\(notification, audit)};
+	\end{tikzpicture}
+	\caption{Flux bout-en-bout d'une requête dans \bcaas{} — analogie \osi}
+	\label{fig:flux}
+\end{figure}
+
+\section{Multi-tenant comme réseau virtuel}
+
+\begin{analogiebox}[Analogie : VLAN $\leftrightarrow$ Tenant]
+	Dans un réseau, un VLAN isole logiquement plusieurs groupes de machines sur la même infrastructure physique. Chaque trame VLAN porte un tag (802.1Q) qui identifie son appartenance. Dans \bcaas, chaque requête authentifiée porte un \texttt{tenant\_id} (issu du token \jwt) qui isole les données, les règles et les ressources d'un client sur l'infrastructure partagée.
+
+	\[
+	\text{VLAN tag} \equiv \texttt{tenant\_id}, \quad
+	\text{Switch L2} \equiv \text{TenantFilter}, \quad
+	\text{Réseau physique} \equiv \text{Infrastructure partagée}
+	\]
+\end{analogiebox}
+
+La propriété d'isolation se formalise ainsi. Soient $T_i$ et $T_j$ deux tenants distincts ($i \neq j$). On exige :
+
+\begin{propriete}[Isolation inter-tenant]
 	\[
 	\forall r \in \mathcal{R},\; \text{tenant}(r) = T_i \implies r \notin \mathcal{V}_{T_j}
 	\]
-	
-	où $\mathcal{V}_{T_j}$ est l'ensemble des ressources visibles par le tenant $T_j$. Cette propriété est garantie par la présence systématique de la contrainte \texttt{tenant\_id = :tid} dans toutes les requêtes SQL.
-	
-	\section{Control plane et data plane}
-	
-	\begin{analogiebox}[Analogie : SDN $\leftrightarrow$ \bcaas{} Admin]
-		Dans les réseaux définis par logiciel (SDN), le control plane configure les règles de routage de façon centralisée, tandis que le data plane achemine les paquets. Cette séparation permet de modifier le comportement du réseau sans interruption de service.
-		
-		Dans \bcaas, l'interface d'administration (control plane) configure tenants, règles métier, SLA et workflows. Le moteur d'exécution (data plane) traite les transactions en temps réel en appliquant ces configurations.
-	\end{analogiebox}
-	
-	\[
-	\underbrace{\text{Control Plane}}_{\text{Admin API}} \xrightarrow{\text{configuration}} \underbrace{\text{Data Plane}}_{\text{Transaction Engine}} \xrightarrow{\text{exécution}} \underbrace{\text{Événements}}_{\text{Audit, Notifications}}
-	\]
-	
-	% ============================================================
-	\chapter{Architecture globale de la solution}
-	\label{chap:architecture}
-	% ============================================================
-	
-	\section{Vue d'ensemble}
-	
-	L'architecture de \bcaas{} est organisée autour de cinq couches protocolaires, directement inspirées du modèle OSI, et d'une séparation claire entre control plane et data plane.
-	
-	\begin{figure}[h]
-		\centering
-		\begin{tikzpicture}[
-			layer/.style={draw=#1, fill=#1!15, minimum width=11cm, minimum height=1cm,
-				align=center, font=\small\bfseries, rounded corners=3pt},
-			rlabel/.style={font=\footnotesize\itshape, text=gray, text width=3.5cm, align=right}
-			]
-			% Couches
-			\node[layer=orange]  (l5) at (0,5.5) {Couche 5 — Business Capabilities};
-			\node[layer=green!60!black] (l4) at (0,4.2) {Couche 4 — Context \& Policy};
-			\node[layer=teal]    (l3) at (0,2.9) {Couche 3 — Tenant \& Routing};
-			\node[layer=blue]    (l2) at (0,1.6) {Couche 2 — Transport \& Messaging};
-			\node[layer=blue!40!black] (l1) at (0,0.3) {Couche 1 — Infrastructure};
-			
-			% Labels droite (analogie OSI)
-			\node[rlabel] at (7.8,5.5) {Application};
-			\node[rlabel] at (7.8,4.2) {Session / Présentation};
-			\node[rlabel] at (7.8,2.9) {Réseau};
-			\node[rlabel] at (7.8,1.6) {Transport};
-			\node[rlabel] at (7.8,0.3) {Physique / Liaison};
-			
-			% Labels gauche (technologies)
-			\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,5.5)
-			{Acteurs, Ressources, Workflows, Audit};
-			\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,4.2)
-			{JWT, RBAC, Politiques, Saga};
-			\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,2.9)
-			{TenantResolver, API Gateway};
-			\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,1.6)
-			{REST, gRPC, Kafka, Redis};
-			\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,0.3)
-			{PostgreSQL, Docker, Prometheus};
-			
-			% Accolades
-			\draw[decorate, decoration={brace,amplitude=6pt}, primary, line width=1pt]
-			(6,0) -- (6,6.2) node[midway, right=10pt, font=\footnotesize, primary]
-			{\textbf{Analogie OSI}};
-		\end{tikzpicture}
-		\caption{Pile protocolaire métier de \bcaas{} et correspondance avec le modèle OSI}
-		\label{fig:pile}
-	\end{figure}
-	
-	\section{Description des couches}
-	
-	\subsection{Couche 1 — Infrastructure}
-	Cette couche constitue le substrat technique. Elle regroupe la base de données PostgreSQL 16 avec ses migrations Liquibase, le cache Redis, le bus de messages Apache Kafka, le stockage objet MinIO et l'ensemble des outils d'observabilité (Prometheus, Grafana). Elle correspond aux couches physique et liaison du modèle OSI : elle transporte les données sans connaître leur signification.
-	
-	\subsection{Couche 2 — Transport \& Messaging}
-	Analogie directe avec la couche transport OSI (TCP/UDP). Elle gère le mode de transport des échanges (synchrone via REST/gRPC, ou asynchrone via Kafka), les stratégies de retry, les timeouts et l'idempotence des opérations. Le choix TCP $\equiv$ REST (fiable, ordonnée) ou UDP $\equiv$ Kafka (rapide, meilleur effort) est explicite dans la conception.
-	
-	\subsection{Couche 3 — Tenant \& Routing}
-	Analogie avec la couche réseau. Le \textit{Tenant Resolver} joue le rôle d'un routeur : il détermine, à partir de l'en-tête de la requête (\texttt{tenant\_id} ou sous-domaine), quelle instance de configuration utiliser, vers quel service router la requête et quelle version de l'\api{} appliquer (versioning). C'est ici que réside la logique de découverte de service.
-	
-	\subsection{Couche 4 — Context \& Policy}
-	Analogie avec les couches session et présentation. Cette couche enrichit le contexte d'exécution : elle valide le token \jwt, décode les rôles et permissions, applique les politiques de sécurité propres au tenant, détermine le niveau de SLA et initialise le contexte de saga pour les transactions longues. L'en-tête métier ($H_C$) est construit ici.
-	
-	\subsection{Couche 5 — Business Capabilities}
-	Couche applicative. Elle contient les services métier génériques : gestion des acteurs, des ressources, des règles, des workflows, des documents et de l'audit. Ces services opèrent sur des modèles de données configurables par tenant, sans connaissance des couches inférieures.
-	
-	\section{Composants de l'architecture microservice}
-	
-	\begin{figure}[h]
-		\centering
-		\begin{tikzpicture}[
-			comp/.style={draw=#1, fill=#1!12, rounded corners=4pt,
-				minimum width=2.5cm, minimum height=1.2cm,
-				align=center, font=\small\bfseries},
-			infra/.style={draw=blue!50, fill=blue!8, rounded corners=2pt,
-				minimum width=2.8cm, minimum height=0.85cm,
-				align=center, font=\footnotesize},
-			arr/.style={-{Stealth}, line width=1pt, #1}
-			]
-			% Clients
-			\node[comp=gray]  (client) at (-4,4)  {Clients\\Web/Mobile};
-			% Gateway
-			\node[comp=secondary] (gw) at (0,4)   {API\\Gateway};
-			% Couche 3
-			\node[comp=teal]  (tr)  at (4,5)   {Tenant\\Resolver};
-			\node[comp=teal]  (disc) at (4,3)  {Service\\Discovery};
-			% Couche 4
-			\node[comp=green!60!black] (auth) at (8,5) {Auth \&\\Policy};
-			\node[comp=green!60!black] (saga) at (8,3) {Saga\\Manager};
-			% Couche 5
-			\node[comp=orange] (actor) at (12,6) {Actor\\Service};
-			\node[comp=orange] (res)   at (12,4) {Resource\\Service};
-			\node[comp=orange] (wf)    at (12,2) {Workflow\\Service};
-			
-			% Infra
-			\node[infra] (db)    at (4,-1)  {PostgreSQL\\+ Liquibase};
-			\node[infra] (redis) at (7,-1)  {Redis\\Cache};
-			\node[infra] (kafka) at (10,-1) {Kafka\\Events};
-			\node[infra] (prom)  at (13,-1) {Prometheus\\Metrics};
-			
-			% Arrows
-			\draw[arr=gray]      (client) -- (gw);
-			\draw[arr=secondary] (gw)     -- (tr);
-			\draw[arr=secondary] (gw)     -- (disc);
-			\draw[arr=teal]      (tr)     -- (auth);
-			\draw[arr=teal]      (disc)   -- (saga);
-			\draw[arr=green!60!black] (auth)  -- (actor);
-			\draw[arr=green!60!black] (auth)  -- (res);
-			\draw[arr=green!60!black] (saga)  -- (wf);
-			
-			% Infra connections
-			\draw[arr=blue!40, dashed] (actor) -- ++(0,-2) -- (db);
-			\draw[arr=blue!40, dashed] (res)   -- ++(0,-2) -- (redis);
-			\draw[arr=blue!40, dashed] (wf)    -- ++(0,-2) -- (kafka);
-			\draw[arr=blue!40, dashed] (wf)    -- ++(0,-2) -- (prom);
-		\end{tikzpicture}
-		\caption{Architecture microservice de référence de \bcaas}
-		\label{fig:microservice}
-	\end{figure}
-	
-	% ============================================================
-	\chapter{Conception détaillée}
-	\label{chap:conception}
-	% ============================================================
-	
-	\section{Modèle de données générique}
-	
-	Le défi central de \bcaas{} est de modéliser des entités métier hétérogènes (médecin, livre, appartement, produit agricole) avec un schéma de données unique. Nous adoptons le patron \textit{Entity-Attribute-Value} (EAV) combiné à un catalogue de types.
-	
-	\subsection{Entités principales}
-	
-	\begin{table}[h]
-		\centering
-		\caption{Entités du modèle de données générique}
-		\label{tab:entites}
-		\begin{tabularx}{\textwidth}{lXl}
-			\toprule
-			\textbf{Table} & \textbf{Rôle} & \textbf{Couche} \\
-			\midrule
-			\texttt{tenants} & Registre des instances métier & L3 \\
-			\texttt{tenant\_configs} & Configuration EAV par tenant & L3 \\
-			\texttt{actor\_types} & Catalogue des types d'acteurs & L5 \\
-			\texttt{actors} & Instances d'acteurs par tenant & L5 \\
-			\texttt{resource\_types} & Catalogue des types de ressources & L5 \\
-			\texttt{resources} & Instances de ressources par tenant & L5 \\
-			\texttt{business\_rules} & Règles métier paramétrables & L4 \\
-			\texttt{workflows} & Définitions de processus & L5 \\
-			\texttt{workflow\_instances} & Exécutions en cours & L5 \\
-			\texttt{audit\_logs} & Journal des événements & L5 \\
-			\texttt{api\_tokens} & Tokens d'accès par tenant & L4 \\
-			\bottomrule
-		\end{tabularx}
-	\end{table}
-	
-	\subsection{Diagramme entité-relation simplifié}
-	
-	\begin{figure}[h]
-		\centering
-		\begin{tikzpicture}[
-			entity/.style={draw=primary, fill=primary!10, rounded corners=3pt,
-				minimum width=2.8cm, minimum height=1cm,
-				align=center, font=\small\bfseries},
-			rel/.style={draw=gray, font=\footnotesize\itshape},
-			arr/.style={-{Stealth[length=5pt]}, gray}
-			]
-			\node[entity] (t)  at (0,4)    {\texttt{tenants}};
-			\node[entity] (tc) at (4,4)    {\texttt{tenant\_configs}};
-			\node[entity] (at) at (-3,1.5) {\texttt{actor\_types}};
-			\node[entity] (a)  at (0,1.5)  {\texttt{actors}};
-			\node[entity] (rt) at (3,1.5)  {\texttt{resource\_types}};
-			\node[entity] (r)  at (6,1.5)  {\texttt{resources}};
-			\node[entity] (wf) at (0,-1)   {\texttt{workflows}};
-			\node[entity] (br) at (4,-1)   {\texttt{business\_rules}};
-			\node[entity] (al) at (-3,-1)  {\texttt{audit\_logs}};
-			
-			\draw[arr] (t) -- node[above,rel]{1..N} (tc);
-			\draw[arr] (t) -- node[right,rel]{1..N} (a);
-			\draw[arr] (t) -- node[right,rel]{1..N} (r);
-			\draw[arr] (t) -- node[right,rel]{1..N} (wf);
-			\draw[arr] (t) -- node[right,rel]{1..N} (br);
-			\draw[arr] (at) -- node[above,rel]{type} (a);
-			\draw[arr] (rt) -- node[above,rel]{type} (r);
-			\draw[arr] (a) -- node[right,rel]{génère} (al);
-			\draw[arr] (wf) -- node[right,rel]{génère} (al);
-		\end{tikzpicture}
-		\caption{Diagramme entité-relation du modèle générique}
-		\label{fig:er}
-	\end{figure}
-	
-	\section{Conception de l'API REST}
-	
-	L'\api{} suit les principes REST avec versioning dans l'URL. Les ressources sont organisées selon la pile protocolaire.
-	
-	\begin{table}[h]
-		\centering
-		\caption{Endpoints principaux de l'\api{} \bcaas}
-		\label{tab:endpoints}
-		\begin{tabularx}{\textwidth}{llXl}
-			\toprule
-			\textbf{Méthode} & \textbf{Endpoint} & \textbf{Description} & \textbf{Couche} \\
-			\midrule
-			\texttt{POST} & \texttt{/api/v1/tenants} & Provisionnement d'un nouveau tenant & L3 \\
-			\texttt{GET}  & \texttt{/api/v1/tenants/\{id\}} & Lecture de la configuration tenant & L3 \\
-			\texttt{POST} & \texttt{/api/v1/auth/token} & Émission d'un token \jwt & L4 \\
-			\texttt{POST} & \texttt{/api/v1/actor-types} & Création d'un type d'acteur & L5 \\
-			\texttt{GET}  & \texttt{/api/v1/actor-types} & Catalogue des acteurs & L5 \\
-			\texttt{POST} & \texttt{/api/v1/actors} & Enregistrement d'un acteur & L5 \\
-			\texttt{POST} & \texttt{/api/v1/resource-types} & Création d'un type de ressource & L5 \\
-			\texttt{POST} & \texttt{/api/v1/resources} & Enregistrement d'une ressource & L5 \\
-			\texttt{POST} & \texttt{/api/v1/business-rules} & Définition d'une règle métier & L4 \\
-			\texttt{POST} & \texttt{/api/v1/workflows} & Définition d'un workflow & L5 \\
-			\texttt{GET}  & \texttt{/api/v1/audit-logs} & Consultation du journal & L5 \\
-			\texttt{GET}  & \texttt{/api/v1/admin/stats} & Statistiques globales & Adm. \\
-			\bottomrule
-		\end{tabularx}
-	\end{table}
-	
-	\section{Sécurité et authentification}
-	
-	La sécurité de \bcaas{} s'inspire directement du concept de firewall réseau avec filtrage à plusieurs niveaux.
-	
-	\begin{enumerate}
-		\item \textbf{Niveau transport (L2) :} HTTPS obligatoire, TLS 1.3.
-		\item \textbf{Niveau routage (L3) :} Vérification du \texttt{tenant\_id} dans chaque requête — analogie avec le filtrage par adresse IP source.
-		\item \textbf{Niveau politique (L4) :} Validation du token \jwt (Spring Security + jjwt 0.12.6), vérification des rôles et permissions — analogie avec les listes de contrôle d'accès (ACL).
-		\item \textbf{Niveau applicatif (L5) :} Règles métier de validation (champs obligatoires, contraintes de domaine).
-	\end{enumerate}
-	
-	La durée de vie du token \jwt{} ($\text{TTL}_{JWT}$) est formellement analogue au champ TTL d'un paquet IP :
-	\[
-	\text{TTL}_{JWT} = t_{emission} + \Delta t_{validite}, \quad \Delta t_{validite} \in [15\text{min},\; 24\text{h}]
-	\]
-	
-	% ============================================================
-	\chapter{Implémentation technique}
-	\label{chap:impl}
-	% ============================================================
-	
-	\section{Pile technologique}
-	
-	\begin{table}[h]
-		\centering
-		\caption{Pile technologique de \bcaas}
-		\label{tab:stack}
-		\begin{tabularx}{\textwidth}{lll}
-			\toprule
-			\textbf{Composant} & \textbf{Technologie} & \textbf{Version} \\
-			\midrule
-			Backend Framework & Spring Boot & 3.5.x \\
-			Langage & Java & 21 LTS \\
-			Base de données & PostgreSQL & 16 \\
-			Migrations & Liquibase & 4.x \\
-			Sécurité & Spring Security + JWT & jjwt 0.12.6 \\
-			Documentation \api & SpringDoc OpenAPI & 2.8.6 \\
-			Build & Maven & 3.9+ \\
-			Tests & JUnit 5 + Mockito & $\geq$16 tests \\
-			Conteneurisation & Docker + Docker Compose & latest \\
-			Frontend & Next.js 14 & PWA \\
-			Mobile & React Native & Expo \\
-			\bottomrule
-		\end{tabularx}
-	\end{table}
-	
-	\section{Structure du projet Spring Boot}
-	
-	Le projet suit l'architecture hexagonale (\textit{ports et adaptateurs}) combinée avec le Domain-Driven Design (\ddd). Cette organisation garantit que le domaine métier reste indépendant des détails techniques.
-	
-	\begin{lstlisting}[language=bash, caption=Structure du projet BCaaS, literate={├}{+ -}{2}{─}{-}{1}{└}{+ -}{2}{│}{|}{1}]
-		bcaas/
-		+-- src/main/java/cm/bcaas/
-		|   +-- domain/                    # Couche 5 : entites et regles metier
-		|   |   +-- model/                 # Entites du domaine
-		|   |   +-- port/in/               # Interfaces d'entree (use cases)
-		|   |   +-- port/out/              # Interfaces de sortie (repositories)
-		|   +-- application/               # Couche 4 : orchestration, politiques
-		|   |   +-- service/               # Implementation des use cases
-		|   |   +-- saga/                  # Gestion des transactions longues
-		|   +-- infrastructure/
-		|   |   +-- persistence/           # Couche 1 : JPA, PostgreSQL
-		|   |   +-- web/                   # Couche 2-3 : controllers REST
-		|   |   |   +-- controller/
-		|   |   |   +-- filter/            # TenantFilter (L3)
-		|   |   |   +-- dto/
-		|   |   +-- security/              # Couche 4 : JWT, RBAC
-		|   +-- BcaasApplication.java
-		+-- src/main/resources/
-		|   +-- db/changelog/              # Migrations Liquibase
-		|   +-- application.yml
-		+-- src/test/                      # JUnit 5 + Mockito
-	\end{lstlisting}
-	
-	\section{Filtre de résolution du tenant}
-	
-	Le composant central de la couche L3 est le \texttt{TenantFilter}, qui joue le rôle de routeur réseau : il lit l'identifiant de tenant dans l'en-tête de la requête et configure le contexte d'exécution.
-	
-	\begin{lstlisting}[language=Java, caption=TenantFilter — Couche 3 (Tenant \& Routing)]
-		@Component
-		@Order(1)
-		public class TenantFilter extends OncePerRequestFilter {
-			
-			@Override
-			protected void doFilterInternal(HttpServletRequest req,
-			HttpServletResponse res, FilterChain chain)
-			throws ServletException, IOException {
-				
-				// Lecture du tenant_id (analogie : lecture de l'adresse IP destination)
-				String tenantId = req.getHeader("X-Tenant-ID");
-				
-				if (tenantId == null || tenantId.isBlank()) {
-					res.sendError(HttpServletResponse.SC_BAD_REQUEST,
-					"En-tete X-Tenant-ID manquant");
-					return;
-				}
-				
-				// Resolution du tenant (analogie : resolution DNS / table de routage)
-				TenantContext.setCurrentTenant(tenantId);
-				
-				try {
-					chain.doFilter(req, res);
-				} finally {
-					// Nettoyage du contexte (analogie : fermeture de session)
-					TenantContext.clear();
-				}
-			}
-		}
-	\end{lstlisting}
-	
-	\section{Structure du paquet métier (DTO)}
-	
-	\begin{lstlisting}[language=Java, caption=BusinessPacket — Structure du paquet métier]
-		/**
-		* Representation du "paquet metier" — analogie avec le datagramme reseau.
-		* H_T : en-tete de transport | H_C : en-tete de contexte | payload : donnees
-		*/
-		public record BusinessPacket<T>(
-		// En-tete de transport (analogie : en-tete IP)
-		TransportHeader transportHeader,
-		// En-tete de contexte metier (analogie : en-tete applicatif)
-		ContextHeader contextHeader,
-		// Payload metier (analogie : SDU — Service Data Unit)
-		T payload
-		) {
-			public record TransportHeader(
-			String version,   // Version de l'API
-			String method,    // Methode HTTP
-			Instant timestamp // Horodatage
-			) {}
-			
-			public record ContextHeader(
-			String tenantId,       // Identifiant du tenant
-			String actorId,        // Identifiant de l'acteur
-			String traceId,        // Identifiant de correlation (analogie : trace reseau)
-			String roleScope,      // Portee des permissions
-			SlaLevel slaLevel      // Niveau de QoS contractualise
-			) {}
-		}
-	\end{lstlisting}
-	
-	\section{Pertinence de Kafka et Redis dans \bcaas}
-	
-	\begin{infobox}[Kafka et Redis : pertinents pour \bcaas{} ?]
-		\textbf{Kafka} (analogue UDP/protocole de diffusion) est pertinent pour les notifications asynchrones, l'audit en temps réel et la propagation d'événements entre instances métier. Il n'est pas indispensable dans un premier prototype mais devient essentiel dès que plusieurs tenants génèrent du volume.
-		
-		\textbf{Redis} (analogue au cache ARP) accélère la résolution des configurations tenant (évite une requête PostgreSQL à chaque appel) et stocke les tokens invalidés (\textit{blacklist}). Son ajout améliore significativement les performances sans changer l'architecture.
-		
-		\textbf{Recommandation :} intégrer Redis en priorité (impact fort, coût faible), Kafka en deuxième phase.
-	\end{infobox}
-	
-	% ============================================================
-	\chapter{Frontend Next.js}
-	\label{chap:frontend}
-	% ============================================================
-	
-	\section{Architecture du frontend}
-	
-	Le frontend de \bcaas{} est divisé en deux parties distinctes correspondant aux deux plans de l'architecture :
-	
-	\begin{description}
-		\item[Site vitrine (data plane view)] Présentation publique de l'\api{}, documentation interactive, exemples d'utilisation et catalogue des instances métier disponibles.
-		\item[Tableau de bord Admin (control plane)] Interface sécurisée pour la gestion des tenants, le suivi des appels \api, les statistiques d'utilisation et la configuration des règles.
-	\end{description}
-	
-	\section{Choix techniques}
-	
-	\begin{table}[h]
-		\centering
-		\caption{Technologies frontend}
-		\label{tab:frontend}
-		\begin{tabularx}{\textwidth}{llX}
-			\toprule
-			\textbf{Besoin} & \textbf{Technologie} & \textbf{Justification} \\
-			\midrule
-			Framework & Next.js 14 (App Router) & SSR/SSG, SEO, PWA native \\
-			Styling & Tailwind CSS & Rapidité, cohérence design \\
-			UI Components & shadcn/ui & Accessibilité, personnalisable \\
-			Graphiques admin & Recharts & Léger, intégrable React \\
-			Auth client & NextAuth.js & OAuth2 / \jwt{} intégré \\
-			État global & Zustand & Simple, performant \\
-			Internationalisation & next-i18next & Support multi-langue \\
-			\bottomrule
-		\end{tabularx}
-	\end{table}
-	
-	\section{Pages principales}
-	
-	\subsection{Site vitrine}
+	où $\mathcal{V}_{T_j}$ est l'ensemble des ressources visibles par le tenant $T_j$.
+\end{propriete}
+
+Cette propriété est garantie par la présence systématique de la contrainte \texttt{tenant\_id = :tid} dans toutes les requêtes, valeur injectée au niveau du \texttt{TenantContext} (\cref{chap:tenant}).
+
+\section{Control plane et data plane}
+
+\begin{analogiebox}[Analogie : SDN $\leftrightarrow$ \bcaas{} Admin]
+	Dans les réseaux définis par logiciel (SDN), le \textit{control plane} configure les règles de routage de façon centralisée, tandis que le \textit{data plane} achemine les paquets. Cette séparation permet de modifier le comportement du réseau sans interruption de service. Dans \bcaas, l'interface d'administration (control plane) configure tenants, règles métier et catalogues ; le moteur d'exécution (data plane) traite les transactions en appliquant ces configurations.
+\end{analogiebox}
+
+\[
+\underbrace{\text{Control Plane}}_{\text{Admin API}} \xrightarrow{\text{configuration}} \underbrace{\text{Data Plane}}_{\text{Moteur de transactions}} \xrightarrow{\text{exécution}} \underbrace{\text{Événements}}_{\text{Audit, Notifications}}
+\]
+
+% ============================================================
+\chapter{Architecture globale de la solution}
+\label{chap:architecture}
+% ============================================================
+
+\section{Vue d'ensemble}
+
+L'architecture de \bcaas{} est organisée autour de cinq couches protocolaires, directement inspirées du modèle \osi, et d'une séparation claire entre control plane et data plane (\cref{fig:pile}).
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[
+		layer/.style={draw=#1, fill=#1!15, minimum width=11cm, minimum height=1cm,
+			align=center, font=\small\bfseries, rounded corners=3pt},
+		rlabel/.style={font=\footnotesize\itshape, text=gray, text width=3.5cm, align=right}
+		]
+		\node[layer=orange]  (l5) at (0,5.5) {Couche 5 — Business Capabilities};
+		\node[layer=green!60!black] (l4) at (0,4.2) {Couche 4 — Context \& Policy};
+		\node[layer=teal]    (l3) at (0,2.9) {Couche 3 — Tenant \& Routing};
+		\node[layer=blue]    (l2) at (0,1.6) {Couche 2 — Transport \& Messaging};
+		\node[layer=blue!40!black] (l1) at (0,0.3) {Couche 1 — Infrastructure};
+
+		\node[rlabel] at (7.8,5.5) {Application};
+		\node[rlabel] at (7.8,4.2) {Session / Présentation};
+		\node[rlabel] at (7.8,2.9) {Réseau};
+		\node[rlabel] at (7.8,1.6) {Transport};
+		\node[rlabel] at (7.8,0.3) {Physique / Liaison};
+
+		\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,5.5)
+		{Acteurs, Businesses, Catalogues, Factures, Audit};
+		\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,4.2)
+		{JWT, RBAC, Règles métier};
+		\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,2.9)
+		{TenantFilter, routage \api};
+		\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,1.6)
+		{REST, Kafka, Redis};
+		\node[font=\tiny, text=gray, align=left, text width=2.8cm] at (-7,0.3)
+		{PostgreSQL, Liquibase, Docker};
+
+		\draw[decorate, decoration={brace,amplitude=6pt}, primary, line width=1pt]
+		(6,0) -- (6,6.2) node[midway, right=10pt, font=\footnotesize, primary]
+		{\textbf{Analogie \osi}};
+	\end{tikzpicture}
+	\caption{Pile protocolaire métier de \bcaas{} et correspondance avec le modèle \osi{}}
+	\label{fig:pile}
+\end{figure}
+
+\section{Description des couches}
+
+\subsection{Couche 1 — Infrastructure}
+Substrat technique. Elle regroupe la base de données PostgreSQL avec ses migrations Liquibase, le cache Redis et le bus de messages Apache Kafka. Elle correspond aux couches physique et liaison du modèle \osi : elle transporte les données sans connaître leur signification.
+
+\subsection{Couche 2 — Transport \& Messaging}
+Analogie directe avec la couche transport \osi{} (TCP/UDP). Elle gère le mode de transport des échanges : synchrone via \rest{} (analogie TCP, fiable et ordonné) et asynchrone via Kafka pour les notifications (analogie UDP, meilleur effort).
+
+\subsection{Couche 3 — Tenant \& Routing}
+Analogie avec la couche réseau. Le \texttt{TenantFilter} joue le rôle d'un routeur : il détermine, à partir du token \jwt{} de la requête, l'identité du tenant et configure le contexte d'exécution pour router implicitement chaque accès aux données vers le bon tenant.
+
+\subsection{Couche 4 — Context \& Policy}
+Analogie avec les couches session et présentation. Cette couche valide le token \jwt, décode les rôles et permissions, et applique les politiques de sécurité (RBAC). L'en-tête métier ($H_C$) y est construit.
+
+\subsection{Couche 5 — Business Capabilities}
+Couche applicative. Elle contient les services métier : gestion des acteurs, des businesses, des ressources, des catalogues de services, des demandes de service, des factures, des documents et de l'audit.
+
+\section{Architecture : monolithe modulaire}
+
+\bcaas{} n'est pas déployé comme un maillage de microservices, mais comme un \textbf{monolithe modulaire} : les modules métier sont organisés en packages cohérents et communiquent par appels directs en mémoire. Ce choix conserve la séparation logique des responsabilités et l'architecture hexagonale tout en évitant la complexité opérationnelle d'un mesh distribué — adapté à un prototype académique tout en restant évolutif (\cref{fig:microservice}).
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[
+		comp/.style={draw=#1, fill=#1!12, rounded corners=4pt,
+			minimum width=2.5cm, minimum height=1.0cm,
+			align=center, font=\small\bfseries},
+		infra/.style={draw=blue!50, fill=blue!8, rounded corners=2pt,
+			minimum width=2.6cm, minimum height=0.8cm,
+			align=center, font=\footnotesize},
+		arr/.style={-{Stealth}, line width=1pt, #1}
+		]
+		\node[comp=gray]  (client) at (-4,4)  {Clients\\Web/PWA};
+		\node[comp=secondary] (gw) at (0,4)   {Couche Web\\(Controllers)};
+		\node[comp=green!60!black] (auth) at (4,5) {JWT Auth\\Filter};
+		\node[comp=teal]  (tr)  at (4,3)   {Tenant\\Filter};
+		\node[comp=orange] (actor) at (8,6) {Actor /\\Business};
+		\node[comp=orange] (svc)   at (8,4) {Service\\Catalogue};
+		\node[comp=orange] (inv)    at (8,2) {Invoice /\\Request};
+
+		\node[infra] (db)    at (2,-1)  {PostgreSQL\\+ Liquibase};
+		\node[infra] (redis) at (6,-1)  {Redis\\Cache};
+		\node[infra] (kafka) at (10,-1) {Kafka\\Notifications};
+
+		\draw[arr=gray]      (client) -- (gw);
+		\draw[arr=secondary] (gw)     -- (auth);
+		\draw[arr=secondary] (gw)     -- (tr);
+		\draw[arr=green!60!black] (auth)  -- (actor);
+		\draw[arr=teal]      (tr)     -- (svc);
+		\draw[arr=teal]      (tr)     -- (inv);
+
+		\draw[arr=blue!40, dashed] (actor) -- ++(0,-3) -- (db);
+		\draw[arr=blue!40, dashed] (svc)   -- ++(0,-2.5) -- (redis);
+		\draw[arr=blue!40, dashed] (inv)   -- ++(0,-1.8) -- (kafka);
+	\end{tikzpicture}
+	\caption{Architecture modulaire de référence de \bcaas}
+	\label{fig:microservice}
+\end{figure}
+
+% ============================================================
+\chapter{Conception détaillée}
+\label{chap:conception}
+% ============================================================
+
+\section{Modèle de données}
+
+Le cœur de \bcaas{} est un modèle de données concret couvrant les besoins transverses de toute activité de service : acteurs, businesses, catalogues, demandes, facturation, contenus et traçabilité. Le modèle s'articule autour de quinze entités (\cref{tab:entites}).
+
+\begin{table}[h]
+	\centering
+	\caption{Entités du modèle de données — Business Core}
+	\label{tab:entites}
+	\small
+	\begin{tabularx}{\textwidth}{lX}
+		\toprule
+		\textbf{Entité} & \textbf{Attributs principaux} \\
+		\midrule
+		\texttt{tenant} & id, name, isActive, createdAt \\
+		\texttt{user} & id, firstName, lastName, email, gender, password, isActive, country, phone, \#tenant \\
+		\texttt{actor} & id, nomProfessionnel, speciality, bio, role, createdAt, \#user \\
+		\texttt{business} & id, nameBusiness, domain, typeOfInvolvedActors, requiredJobProfile, createdAt \\
+		\texttt{business\_rule} & id, ruleKey, ruleValue, description, createdAt \\
+		\texttt{resource} & id, nameRes, type, quantity, description, disponibility, createdAt \\
+		\texttt{service\_catalogue} & id, nameSerCatalogue, description, currency, isAvailable, createdAt \\
+		\texttt{service\_request} & id, traceId, serviceName, description, status, \#actor, \#portfolio \\
+		\texttt{portfolio} & id, title, description, status, \#business \\
+		\texttt{invoice} & id, amount, currency, status, usedAt, paidAt, issueAt, \#serviceRequest \\
+		\texttt{media} & id, type, url, label, createdAt, \#business \\
+		\texttt{message} & id, content, isRead, createdAt, \#serviceRequest \\
+		\texttt{notification} & id, title, message, isRead, createdAt, \#serviceRequest \\
+		\texttt{audit\_event} & id, action, entity, actor, timestamp, tenant \\
+		\texttt{supported\_currency} & code, label, symbole \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\subsection{Diagramme entité-relation simplifié}
+
+\begin{figure}[h]
+	\centering
+	\begin{tikzpicture}[
+		entity/.style={draw=primary, fill=primary!10, rounded corners=3pt,
+			minimum width=2.6cm, minimum height=0.9cm,
+			align=center, font=\footnotesize\bfseries},
+		rel/.style={draw=gray, font=\tiny\itshape},
+		arr/.style={-{Stealth[length=5pt]}, gray}
+		]
+		\node[entity] (t)  at (0,4.5)    {tenant};
+		\node[entity] (u)  at (3.5,4.5)  {user};
+		\node[entity] (a)  at (3.5,3)    {actor};
+		\node[entity] (b)  at (0,3)      {business};
+		\node[entity] (p)  at (0,1.5)    {portfolio};
+		\node[entity] (sc) at (-3.5,3)   {service\_catalogue};
+		\node[entity] (sr) at (3.5,1.5)  {service\_request};
+		\node[entity] (inv) at (3.5,0)   {invoice};
+		\node[entity] (msg) at (0,0)     {message};
+		\node[entity] (notif) at (-3.5,0){notification};
+
+		\draw[arr] (t) -- node[above,rel]{1..N} (u);
+		\draw[arr] (u) -- node[right,rel]{1..1} (a);
+		\draw[arr] (b) -- node[left,rel]{1..N} (p);
+		\draw[arr] (a) -- node[right,rel]{émet} (sr);
+		\draw[arr] (p) -- node[left,rel]{lie} (sr);
+		\draw[arr] (sr) -- node[right,rel]{génère} (inv);
+		\draw[arr] (sr) -- node[above,rel]{contient} (msg);
+		\draw[arr] (sr) -- node[above,rel]{déclenche} (notif);
+		\draw[arr] (b) -- node[above,rel]{exige} (sc);
+	\end{tikzpicture}
+	\caption{Diagramme entité-relation simplifié du modèle métier}
+	\label{fig:er}
+\end{figure}
+
+\section{Conception de l'API REST}
+
+L'\api{} suit les principes \rest{} et est organisée par ressource métier. Les seize contrôleurs exposent les points d'entrée listés au \cref{tab:endpoints} (extrait représentatif).
+
+\begin{table}[h]
+	\centering
+	\caption{Endpoints principaux de l'\api{} \bcaas}
+	\label{tab:endpoints}
+	\begin{tabularx}{\textwidth}{llXl}
+		\toprule
+		\textbf{Méthode} & \textbf{Endpoint} & \textbf{Description} & \textbf{Couche} \\
+		\midrule
+		\texttt{POST} & \texttt{/api/auth/register} & Inscription d'un utilisateur & L4 \\
+		\texttt{POST} & \texttt{/api/auth/login} & Émission d'un token \jwt & L4 \\
+		\texttt{POST} & \texttt{/api/tenants/register} & Provisionnement d'un tenant & L3 \\
+		\texttt{GET}  & \texttt{/api/tenants} & Liste des tenants & L3 \\
+		\texttt{POST} & \texttt{/api/businesses} & Création d'un business & L5 \\
+		\texttt{POST} & \texttt{/api/service-catalogues} & Ajout au catalogue de services & L5 \\
+		\texttt{POST} & \texttt{/api/service-requests} & Création d'une demande de service & L5 \\
+		\texttt{GET}  & \texttt{/api/service-requests/\{id\}/messages} & Fil de messages d'une demande & L5 \\
+		\texttt{POST} & \texttt{/api/actors} & Enregistrement d'un acteur & L5 \\
+		\texttt{POST} & \texttt{/api/invoices} & Émission d'une facture & L5 \\
+		\texttt{POST} & \texttt{/api/business-rules} & Définition d'une règle métier & L4 \\
+		\texttt{GET}  & \texttt{/api/audit} & Consultation du journal d'audit & L5 \\
+		\texttt{GET}  & \texttt{/api/analytics} & Statistiques (réservé admin) & Adm. \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+% ============================================================
+\chapter{Protocole d'échange pour un cas métier concret}
+\label{chap:protocole}
+% ============================================================
+
+\section{Cas choisi : création d'un business et ajout au catalogue}
+
+Ce cas métier illustre la séquence complète d'enregistrement d'une nouvelle activité professionnelle (ex. : auto-école) dans un tenant, puis l'ajout de services à son catalogue. Le processus correspond à deux requêtes distinctes mais liées.
+
+\subsection{Protocole : création d'un business}
+
+\begin{infobox}[\texttt{POST /api/businesses}]
+	\textbf{En-têtes obligatoires :}
 	\begin{itemize}
-		\item \texttt{/} — Hero section avec présentation de l'approche protocolaire
-		\item \texttt{/architecture} — Diagramme interactif des couches
-		\item \texttt{/docs} — Documentation \api{} (intégration Swagger UI)
-		\item \texttt{/instances} — Galerie des instances métier disponibles
-		\item \texttt{/getting-started} — Guide de provisionnement tenant
+		\item \texttt{Authorization: Bearer <JWT>} — authentification (le claim \texttt{tenantId} porte l'identité du tenant, analogie : adresse réseau + ticket de session) ;
+		\item \texttt{Content-Type: application/json}.
 	\end{itemize}
-	
-	\subsection{Tableau de bord admin}
-	\begin{itemize}
-		\item \texttt{/admin/dashboard} — Vue globale : tenants actifs, appels/min, erreurs
-		\item \texttt{/admin/tenants} — Gestion CRUD des tenants
-		\item \texttt{/admin/tenants/[id]} — Détail : configuration, acteurs, ressources, règles
-		\item \texttt{/admin/api-calls} — Journal des appels \api{} avec filtres
-		\item \texttt{/admin/stats} — Graphiques : volume, latence, répartition par tenant
-	\end{itemize}
-	
-	% ============================================================
-	\chapter{Tests et validation}
-	% ============================================================
-	
-	\section{Stratégie de tests}
-	
-	La stratégie de tests suit également la logique en couches :
-	
-	\begin{description}
-		\item[Tests unitaires (couches L4-L5)] Validation des règles métier, des politiques et des services avec JUnit 5 + Mockito. Objectif : $\geq 16$ tests passants.
-		\item[Tests d'intégration (couches L2-L3)] Validation des filtres, du routage tenant et de la chaîne d'authentification avec Spring Boot Test.
-		\item[Tests de contrat \api] Validation des schémas OpenAPI avec Spring MVC Test + Swagger Validator.
-		\item[Tests de performance] Simulation de charge multi-tenant avec JMeter ou k6.
-	\end{description}
-	
-	\section{Scénario de test de provisionnement tenant}
-	
-	\begin{lstlisting}[language=Java, caption=Test d'intégration — Provisionnement tenant]
-		@SpringBootTest(webEnvironment = RANDOM_PORT)
-		@AutoConfigureMockMvc
-		class TenantProvisioningIntegrationTest {
-			
-			@Test
-			void shouldProvisionNewTenantAndReturnConfig() throws Exception {
-				// Given
-				var request = """
-				{
-					"name": "Pharmacie Centrale",
-					"domain": "pharmacy",
-					"slaLevel": "STANDARD",
-					"locale": "fr-CM"
-				}
-				""";
-				
-				// When - analogie : envoi d'un paquet reseau
-				mockMvc.perform(post("/api/v1/tenants")
-				.contentType(APPLICATION_JSON)
-				.content(request))
-				// Then - analogie : accuse de reception (ACK)
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.tenantId").exists())
-				.andExpect(jsonPath("$.apiKey").exists())
-				.andExpect(jsonPath("$.status").value("ACTIVE"));
-			}
-		}
-	\end{lstlisting}
-	
-	% ============================================================
-	\chapter{Conclusion et perspectives}
-	\label{chap:conclusion}
-	% ============================================================
-	
-	\section{Bilan}
-	
-	Ce projet a démontré qu'une analogie rigoureuse entre l'ingénierie des protocoles réseaux et la conception d'une plateforme métier n'est pas une simple métaphore pédagogique : elle constitue une méthode de conception puissante. Les concepts de couches, d'encapsulation, de routage, d'adressage, de QoS et de séparation control/data plane ont guidé chaque décision architecturale de \bcaas.
-	
-	Les réalisations principales sont :
-	\begin{itemize}
-		\item Une pile protocolaire métier en cinq couches formellement liée au modèle OSI.
-		\item Un modèle de données générique et configurable par tenant.
-		\item Une \api{} REST documentée et versionnée avec Spring Boot 3.5 / Java 21.
-		\item Une authentification \jwt{} multi-tenant avec contrôle d'accès basé sur les rôles.
-		\item Un frontend Next.js avec site vitrine et tableau de bord d'administration.
-	\end{itemize}
-	
-	\section{Perspectives}
-	
-	\begin{description}
-		\item[Court terme] Intégration de Redis pour le cache des configurations tenant et Kafka pour la propagation d'événements asynchrones.
-		\item[Moyen terme] Migration de l'architecture modulaire monolithique vers des microservices déployés individuellement (cible définie dans le cahier des charges).
-		\item[Long terme] Marketplace d'instances métier permettant à des entreprises camerounaises et africaines de déployer leur propre configuration \bcaas{} sans développement.
-	\end{description}
-	
-	\section{Apports personnels}
-	
-	Ce projet a permis d'acquérir des compétences concrètes en architecture logicielle distribuée, en conception d'\api{} REST professionnelle, en sécurité applicative (\jwt, RBAC) et en modélisation de systèmes génériques. La démarche de pensée protocolaire — définir les contrats avant le code, modéliser les échanges comme des messages — constitue un réflexe d'ingénieur directement applicable à tout projet de systèmes d'information.
-	
-	% ────────────────────────────────────────────────────────────
-	%  BIBLIOGRAPHIE
-	% ────────────────────────────────────────────────────────────
-	\begin{thebibliography}{99}
-		
-		\bibitem{tanenbaum}
-		A.~S. Tanenbaum, D.~J. Wetherall,
-		\textit{Computer Networks}, 5\textsuperscript{th} ed.,
-		Pearson, 2011.
-		
-		\bibitem{fowler}
-		M.~Fowler,
-		\textit{Patterns of Enterprise Application Architecture},
-		Addison-Wesley, 2002.
-		
-		\bibitem{newman}
-		S.~Newman,
-		\textit{Building Microservices}, 2\textsuperscript{nd} ed.,
-		O'Reilly, 2021.
-		
-		\bibitem{evans}
-		E.~Evans,
-		\textit{Domain-Driven Design: Tackling Complexity in the Heart of Software},
-		Addison-Wesley, 2003.
-		
-		\bibitem{richardson}
-		C.~Richardson,
-		\textit{Microservices Patterns},
-		Manning, 2018.
-		
-		\bibitem{springdoc}
-		SpringDoc OpenAPI Documentation,
-		\url{https://springdoc.org}, consulté en 2025.
-		
-		\bibitem{rfc7519}
-		M.~Jones, J.~Bradley, N.~Sakimura,
-		\textit{JSON Web Token (JWT)}, RFC 7519,
-		IETF, 2015.
-		
-		\bibitem{osi}
-		ISO/IEC 7498-1,
-		\textit{Information technology — Open Systems Interconnection — Basic Reference Model},
-		ISO, 1994.
-		
-	\end{thebibliography}
-	
+\end{infobox}
+
+\begin{lstlisting}[language=java, caption=Corps de la requête (payload)]
+{
+  "name": "Auto-Ecole Centrale",
+  "domain": "driving_school",
+  "description": "Numero 1 dans la formation auto",
+  "typeOfInvolvedActors": ["instructor", "student"],
+  "requiredJobProfile": "moniteur"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=java, caption=Réponse (succès — 201 Created)]
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "nameBusiness": "Auto-Ecole Centrale",
+  "status": "ACTIVE",
+  "createdAt": "2025-05-04T10:00:00Z"
+}
+\end{lstlisting}
+
+\textbf{Codes d'erreur (analogie ICMP) :}
+\begin{itemize}
+	\item \texttt{400 Bad Request} : payload invalide ;
+	\item \texttt{401 Unauthorized} : \jwt{} manquant ou invalide ;
+	\item \texttt{403 Forbidden} : rôle insuffisant ;
+	\item \texttt{409 Conflict} : business déjà existant.
+\end{itemize}
+
+\subsection{Protocole : ajout au catalogue de services}
+
+\begin{lstlisting}[language=java, caption=POST /api/service-catalogues — corps]
+{
+  "businessId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Cours de conduite",
+  "description": "Formation theorique et pratique de 3 mois",
+  "basePrice": 150000,
+  "currency": "XAF",
+  "isAvailable": true
+}
+\end{lstlisting}
+
+\textbf{Sémantique du transport :}
+\begin{itemize}
+	\item Mode : \textbf{synchrone} (\rest) — analogie TCP ;
+	\item Timeout : 30 secondes ;
+	\item Idempotence : non (chaque POST crée une nouvelle ressource) ;
+	\item Retry : recommandé avec backoff exponentiel (max 3 tentatives).
+\end{itemize}
+
+% ============================================================
+\chapter{Stratégie multi-tenant et isolation}
+\label{chap:tenant}
+% ============================================================
+
+\section{Stratégie actuelle : colonne \texttt{tenant\_id}}
+
+Dans l'implémentation actuelle, tous les tenants partagent les mêmes tables PostgreSQL. L'isolation est assurée par la présence systématique d'un \texttt{tenant\_id} de type UUID, dont la valeur est extraite du token \jwt{} et injectée dans un \texttt{ThreadLocal} pour la durée exacte de la requête.
+
+\begin{lstlisting}[language=Java, caption=TenantFilter — résolution du tenant depuis le JWT (Couche 3)]
+@Component
+@Order(2) // s'execute APRES JwtAuthFilter (Order 1)
+public class TenantFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req,
+            HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        try {
+            String authHeader = req.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String jwt = authHeader.substring(7);
+                String tenantId = jwtService.extractTenantId(jwt);
+                if (tenantId != null && !tenantId.isBlank()) {
+                    // Analogie : lecture du tag VLAN sur le paquet
+                    TenantContext.setTenantId(UUID.fromString(tenantId));
+                }
+            }
+            chain.doFilter(req, res);
+        } finally {
+            // CRITIQUE : liberation du ThreadLocal (analogie : fin de session)
+            TenantContext.clear();
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{infobox}[Garantie d'isolation]
+	Le \texttt{TenantContext} expose le \texttt{tenant\_id} courant à tous les services via un \texttt{ThreadLocal}. Chaque thread du pool dispose de sa propre copie, et le bloc \texttt{finally} garantit son nettoyage en fin de requête — éliminant toute fuite inter-tenant, même en cas d'exception.
+\end{infobox}
+
+\section{Comparaison et perspective}
+
+\begin{table}[h]
+	\centering
+	\caption{Comparaison des stratégies d'isolation}
+	\label{tab:isolation}
+	\begin{tabularx}{\textwidth}{lXXX}
+		\toprule
+		\textbf{Stratégie} & \textbf{Isolation} & \textbf{Performance} & \textbf{Complexité} \\
+		\midrule
+		Colonne \texttt{tenant\_id} & Logique & Bonne (index) & Faible \\
+		Schéma séparé & Physique & Très bonne & Moyenne \\
+		Base de données séparée & Totale & Variable & Élevée \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+Pour les tenants à exigences renforcées (données sensibles, conformité, volumétrie élevée), une isolation par schéma PostgreSQL dédié est envisagée. La résolution se ferait dynamiquement via un \texttt{SET search\_path TO tenant\_<id>, public;} exécuté en début de requête — analogue au routage vers un VLAN dédié.
+
+\section{Provisionnement d'un nouveau tenant}
+
+Le provisionnement suit une séquence protocolaire, analogue à l'attribution d'une adresse et à la configuration d'un VLAN :
+\begin{enumerate}
+	\item Réception de la requête \texttt{POST /api/tenants/register} ;
+	\item Validation des informations (nom) ;
+	\item Génération d'un \texttt{tenant\_id} unique (UUID v4) ;
+	\item Création de l'enregistrement \texttt{tenant} et de l'utilisateur administrateur ;
+	\item Émission d'un token \jwt{} portant le claim \texttt{tenantId} ;
+	\item Retour de la configuration au client.
+\end{enumerate}
+
+% ============================================================
+\chapter{Sécurité}
+\label{chap:securite}
+% ============================================================
+
+\section{Filtrage en couches}
+
+La sécurité de \bcaas{} s'inspire directement du concept de firewall réseau, avec un filtrage à plusieurs niveaux :
+\begin{enumerate}
+	\item \textbf{Niveau transport (L2) :} HTTPS en production (TLS).
+	\item \textbf{Niveau authentification (L4) :} le \texttt{JwtAuthFilter} (Order 1) valide le token \jwt{} (jjwt 0.12.6) et établit l'authentification Spring Security.
+	\item \textbf{Niveau routage (L3) :} le \texttt{TenantFilter} (Order 2) résout le tenant et borne la visibilité des données — analogie avec le filtrage par appartenance VLAN.
+	\item \textbf{Niveau autorisation (L4) :} contrôle d'accès basé sur les rôles (\texttt{USER}, \texttt{ADMIN}, \texttt{PROVIDER}, \texttt{CONSUMER}) ; les routes \texttt{/api/admin/**} requièrent le rôle \texttt{ADMIN}, les endpoints d'authentification et d'enregistrement sont publics.
+	\item \textbf{Niveau applicatif (L5) :} validation métier (Bean Validation) sur les payloads.
+\end{enumerate}
+
+\section{TTL du token comme analogie réseau}
+
+La durée de vie du token \jwt{} ($\text{TTL}_{JWT}$) est formellement analogue au champ TTL d'un paquet IP :
+\[
+\text{TTL}_{JWT} = t_{\text{émission}} + \Delta t_{\text{validité}}
+\]
+Au-delà de cet horizon, le token est rejeté par le \texttt{JwtAuthFilter}, exactement comme un paquet dont le TTL atteint zéro est détruit par un routeur.
+
+% ============================================================
+\chapter{Observabilité et QoS métier}
+\label{chap:obs}
+% ============================================================
+
+\section{Les trois piliers}
+
+L'observabilité dans \bcaas{} suit les trois piliers classiques — logs, métriques, traces — chacun mis en correspondance avec un concept réseau.
+
+\subsection{Logs structurés}
+\begin{lstlisting}[language=java, caption=Exemple de log structuré (JSON)]
+{
+  "timestamp": "2025-05-04T10:05:23Z",
+  "level": "INFO",
+  "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+  "trace_id": "7e9a8b7c-6d5e-4f3a-2b1c-9d8e7f6a5b4c",
+  "service": "BusinessService",
+  "operation": "createBusiness",
+  "duration_ms": 145,
+  "http_status": 201
+}
+\end{lstlisting}
+
+\subsection{Métriques}
+Spring Boot Actuator expose l'état de santé et les métriques de l'application, et le service \texttt{AnalyticsService} calcule des indicateurs métier (\cref{tab:metriques}). Leur exposition vers Prometheus/Grafana constitue une perspective directe.
+
+\begin{table}[h]
+	\centering
+	\caption{Métriques métier et analogies réseau}
+	\label{tab:metriques}
+	\begin{tabularx}{\textwidth}{lXX}
+		\toprule
+		\textbf{Métrique} & \textbf{Analogie réseau} & \textbf{Calcul} \\
+		\midrule
+		Taux de conversion & Taux de livraison de paquets & requêtes honorées / total \\
+		Latence moyenne & RTT (Round Trip Time) & temps moyen de traitement \\
+		Débit (req/s) & Bande passante & requêtes par minute \\
+		Taux d'erreur & Taux de perte & 4xx/5xx / total \\
+		Panier moyen & Taille moyenne de payload & chiffre d'affaires / nb factures \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\subsection{Tracing distribué}
+L'identifiant \texttt{trace\_id} (champ \texttt{traceId} de \texttt{service\_request}) joue le rôle du numéro de séquence TCP : il permet de corréler les étapes d'une transaction de bout en bout.
+
+\section{QoS métier : niveaux différenciés}
+
+Inspirée des classes de service DiffServ des réseaux IP, \bcaas{} prévoit des niveaux de QoS par tenant, appuyés sur un mécanisme de \textit{rate limiting} (token bucket via la dépendance \texttt{bucket4j-redis}) — l'analogue applicatif du \textit{traffic policing}.
+
+\begin{table}[h]
+	\centering
+	\caption{Niveaux de QoS proposés}
+	\label{tab:qos}
+	\begin{tabularx}{\textwidth}{lXXX}
+		\toprule
+		\textbf{Niveau} & \textbf{Débit garanti} & \textbf{Priorité} & \textbf{Isolation} \\
+		\midrule
+		BRONZE & 10 req/s & Standard & Colonne \texttt{tenant\_id} \\
+		SILVER & 50 req/s & Prioritaire & Colonne + cache Redis \\
+		GOLD & 200 req/s & Dédiée & Schéma dédié (cible) \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+% ============================================================
+\chapter{Implémentation technique}
+\label{chap:impl}
+% ============================================================
+
+\section{Pile technologique}
+
+\begin{table}[h]
+	\centering
+	\caption{Pile technologique de \bcaas}
+	\label{tab:stack}
+	\begin{tabularx}{\textwidth}{lll}
+		\toprule
+		\textbf{Composant} & \textbf{Technologie} & \textbf{Version} \\
+		\midrule
+		Framework backend & Spring Boot & 3.5.12 \\
+		Langage & Java & 21 LTS \\
+		Base de données & PostgreSQL & 16+ \\
+		Migrations & Liquibase & 7 changelogs \\
+		Sécurité & Spring Security + JWT (jjwt) & 0.12.6 \\
+		Cache & Redis (Spring Data Redis) & — \\
+		Messagerie & Apache Kafka (Spring Kafka) & — \\
+		Rate limiting & bucket4j-redis & 8.10.1 \\
+		Documentation \api & SpringDoc OpenAPI & 2.8.6 \\
+		Observabilité & Spring Boot Actuator & — \\
+		Build & Maven & 3.9+ \\
+		Tests & JUnit 5 + Mockito & 18 fichiers \\
+		Conteneurisation & Docker + Docker Compose & — \\
+		Frontend & Next.js / React & 16.2 / 19 \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\section{Structure du projet backend}
+
+Le projet suit l'architecture hexagonale (\textit{ports et adaptateurs}) combinée au \ddd{}. L'arborescence réelle est la suivante :
+
+\begin{lstlisting}[language=bash, caption=Structure du projet backend BCaaS]
+backend/
+├── pom.xml
+├── Dockerfile
+├── docker-compose.yml
+├── src/main/java/com/bizcore/bizcore_backend/
+│   ├── auth/          # AuthController (register, login)
+│   ├── config/        # Jwt, Kafka, Redis, Security, OpenApi
+│   ├── controller/    # 16 controllers REST (Couche 3)
+│   ├── domain/        # 15 entites JPA (Couche 5)
+│   ├── dto/           # Objets de transfert
+│   ├── exception/     # Gestion centralisee des erreurs
+│   ├── listener/      # NotificationKafkaListener
+│   ├── repository/    # Repositories Spring Data
+│   ├── security/      # JwtAuthFilter, TenantFilter, TenantContext
+│   └── service/       # 14 services metier (Couche 4-5)
+├── src/main/resources/
+│   ├── application-dev.yml / application-prod.yml
+│   └── db/changelog/  # 7 migrations Liquibase
+└── src/test/          # 18 fichiers de tests (JUnit 5 + Mockito)
+\end{lstlisting}
+
+\section{Le paquet métier comme abstraction}
+
+La structure conceptuelle du « paquet métier » se reflète dans la composition d'une requête authentifiée : en-tête de transport (méthode, version), en-tête de contexte (tenant, trace, rôles) et payload métier.
+
+\begin{lstlisting}[language=Java, caption=BusinessPacket — représentation conceptuelle du paquet métier]
+public record BusinessPacket<T>(
+    TransportHeader transportHeader, // analogie : en-tete IP
+    ContextHeader   contextHeader,   // analogie : en-tete applicatif
+    T payload                        // analogie : SDU
+) {
+    public record TransportHeader(String version, String method, Instant timestamp) {}
+    public record ContextHeader(String tenantId, String actorId,
+                                String traceId, String roleScope) {}
+}
+\end{lstlisting}
+
+% ============================================================
+\chapter{Frontend Next.js}
+\label{chap:frontend}
+% ============================================================
+
+\section{Architecture du frontend}
+
+Le frontend de \bcaas{} est une \textit{Progressive Web App} qui matérialise les deux plans de l'architecture :
+\begin{description}
+	\item[Site vitrine (data plane view)] présentation publique de l'\api, documentation interactive et assistant conversationnel.
+	\item[Tableau de bord Admin (control plane)] interface sécurisée pour la gestion des tenants, businesses, acteurs, services, demandes et factures.
+\end{description}
+
+\section{Choix techniques}
+
+\begin{table}[h]
+	\centering
+	\caption{Technologies frontend}
+	\label{tab:frontend}
+	\begin{tabularx}{\textwidth}{llX}
+		\toprule
+		\textbf{Besoin} & \textbf{Technologie} & \textbf{Justification} \\
+		\midrule
+		Framework & Next.js 16 (App Router) & SSR/SSG, SEO, PWA \\
+		UI / React & React 19 & Dernières primitives concurrentes \\
+		Styling & Tailwind CSS & Rapidité, cohérence \\
+		Composants & shadcn/ui (Radix) & Accessibilité, personnalisable \\
+		Animations & Framer Motion & Transitions fluides \\
+		3D / visuels & three.js + react-three-fiber & Scènes interactives \\
+		État global & Zustand & Simple, performant \\
+		Données serveur & TanStack Query + Axios & Cache, synchronisation \api \\
+		Coloration code & Shiki & Documentation \api \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\section{Pages principales}
+
+\subsection{Site vitrine et documentation}
+\begin{itemize}
+	\item \texttt{/} — page d'accueil présentant l'approche protocolaire ;
+	\item \texttt{/docs} et \texttt{/docs/[id]} — documentation de l'\api ;
+	\item \texttt{/guides} et \texttt{/guides/[slug]} — guides d'utilisation ;
+	\item \texttt{/chat} — assistant conversationnel (IA) appuyé sur \texttt{/api/chat} ;
+	\item \texttt{/demo} — démonstration interactive.
+\end{itemize}
+
+\subsection{Tableau de bord admin}
+\begin{itemize}
+	\item \texttt{/dashboard} — vue globale ;
+	\item \texttt{/dashboard/businesses}, \texttt{/dashboard/actors}, \texttt{/dashboard/services} ;
+	\item \texttt{/dashboard/requests}, \texttt{/dashboard/invoices} ;
+	\item \texttt{/dashboard/settings} — configuration.
+\end{itemize}
+
+\section{Déploiement}
+Le frontend est déployé sur \textbf{Vercel} et le backend sur \textbf{Render} (conteneur Docker, base PostgreSQL managée). La configuration de déploiement est centralisée (\texttt{render.yaml}), et l'URL du backend est paramétrée via une variable d'environnement unique côté frontend.
+
+% ============================================================
+\chapter{Tests et validation}
+\label{chap:tests}
+% ============================================================
+
+\section{Stratégie de tests}
+
+La stratégie de tests suit la logique en couches et compte \textbf{18 fichiers de tests} (JUnit 5 + Mockito) :
+\begin{description}
+	\item[Tests unitaires (L4-L5)] services métier : \texttt{BusinessServiceTest}, \texttt{InvoiceServiceTest}, \texttt{ActorServiceTest}, \texttt{ServiceCatalogueServiceTest}, \texttt{ServiceRequestServiceTest}, \texttt{BusinessRuleServiceTest}, \texttt{TenantServiceTest}, \texttt{PersonServiceTest}.
+	\item[Tests de couche web] contrôleurs avec \texttt{@WebMvcTest} : \texttt{BusinessControllerTest}, \texttt{InvoiceControllerTest}, \texttt{ActorControllerTest}, \texttt{ServiceRequestControllerTest}.
+	\item[Tests d'intégration (L2-L3)] \texttt{ServiceRequestIntegrationTest}, \texttt{SecurityIntegrationTest}.
+	\item[Tests de sécurité et de contexte] \texttt{JwtServiceTest}, \texttt{TenantContextTest} (vérification de l'isolation \texttt{ThreadLocal}).
+\end{description}
+
+\section{Scénario de test d'intégration}
+
+\begin{lstlisting}[language=Java, caption=Test d'intégration — création d'un business]
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+@AutoConfigureMockMvc
+class BusinessIntegrationTest {
+
+    @Test
+    void shouldCreateBusinessForAuthenticatedTenant() throws Exception {
+        var request = """
+        { "name": "Auto-Ecole Centrale", "domain": "driving_school" }
+        """;
+        // analogie : envoi d'un paquet reseau
+        mockMvc.perform(post("/api/businesses")
+                .header("Authorization", "Bearer " + jwt)
+                .contentType(APPLICATION_JSON)
+                .content(request))
+            // analogie : accuse de reception (ACK)
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+}
+\end{lstlisting}
+
+% ============================================================
+\chapter{Conclusion et perspectives}
+\label{chap:conclusion}
+% ============================================================
+
+\section{Bilan}
+
+Ce projet a démontré qu'une analogie rigoureuse entre l'ingénierie des protocoles réseaux et la conception d'une plateforme métier n'est pas une simple métaphore pédagogique : elle constitue une méthode de conception puissante. Les concepts de couches, d'encapsulation, de routage, d'adressage, de QoS et de séparation control/data plane ont guidé chaque décision architecturale de \bcaas.
+
+Les réalisations principales sont :
+\begin{itemize}
+	\item une pile protocolaire métier en cinq couches formellement liée au modèle \osi{} ;
+	\item un modèle de données concret de quinze entités couvrant acteurs, businesses, catalogues, demandes, facturation et traçabilité ;
+	\item une \api{} \rest{} documentée (SpringDoc) servie par un monolithe modulaire Spring Boot 3.5 / Java 21 ;
+	\item une authentification \jwt{} multi-tenant avec isolation par \texttt{ThreadLocal} et contrôle d'accès par rôles ;
+	\item l'intégration effective de Redis (cache) et Kafka (notifications) ;
+	\item un frontend Next.js 16 / React 19 (site vitrine, documentation, assistant IA, tableau de bord) déployé sur Vercel/Render.
+\end{itemize}
+
+\section{Perspectives}
+
+\begin{description}
+	\item[Court terme] activation du \textit{rate limiting} bucket4j par niveau de QoS et exposition des métriques Actuator vers Prometheus/Grafana.
+	\item[Moyen terme] isolation par schéma PostgreSQL dédié pour les tenants premium ; enrichissement du tracing distribué.
+	\item[Long terme] extraction progressive de microservices à partir des modules existants ; marketplace d'instances métier permettant à des entreprises de déployer leur propre configuration \bcaas{} sans développement.
+\end{description}
+
+\section{Apports personnels}
+
+Ce projet a permis d'acquérir des compétences concrètes en architecture logicielle, en conception d'\api{} \rest{} professionnelle, en sécurité applicative (\jwt, RBAC, multi-tenant) et en modélisation de systèmes génériques. La démarche de pensée protocolaire — définir les contrats avant le code, modéliser les échanges comme des messages encapsulés — constitue un réflexe d'ingénieur directement applicable à tout projet de systèmes d'information.
+
+% ────────────────────────────────────────────────────────────
+%  BIBLIOGRAPHIE
+% ────────────────────────────────────────────────────────────
+\begin{thebibliography}{99}
+
+	\bibitem{tanenbaum}
+	A.~S. Tanenbaum, D.~J. Wetherall,
+	\textit{Computer Networks}, 5\textsuperscript{th} ed.,
+	Pearson, 2011.
+
+	\bibitem{fowler}
+	M.~Fowler,
+	\textit{Patterns of Enterprise Application Architecture},
+	Addison-Wesley, 2002.
+
+	\bibitem{newman}
+	S.~Newman,
+	\textit{Building Microservices}, 2\textsuperscript{nd} ed.,
+	O'Reilly, 2021.
+
+	\bibitem{evans}
+	E.~Evans,
+	\textit{Domain-Driven Design: Tackling Complexity in the Heart of Software},
+	Addison-Wesley, 2003.
+
+	\bibitem{richardson}
+	C.~Richardson,
+	\textit{Microservices Patterns},
+	Manning, 2018.
+
+	\bibitem{springboot}
+	Spring Boot Reference Documentation,
+	\url{https://docs.spring.io/spring-boot}, consulté en 2026.
+
+	\bibitem{springdoc}
+	SpringDoc OpenAPI Documentation,
+	\url{https://springdoc.org}, consulté en 2026.
+
+	\bibitem{nextjs}
+	Next.js Documentation,
+	\url{https://nextjs.org/docs}, consulté en 2026.
+
+	\bibitem{rfc7519}
+	M.~Jones, J.~Bradley, N.~Sakimura,
+	\textit{JSON Web Token (JWT)}, RFC 7519,
+	IETF, 2015.
+
+	\bibitem{osi}
+	ISO/IEC 7498-1,
+	\textit{Information technology — Open Systems Interconnection — Basic Reference Model},
+	ISO, 1994.
+
+\end{thebibliography}
+
 \end{document}
