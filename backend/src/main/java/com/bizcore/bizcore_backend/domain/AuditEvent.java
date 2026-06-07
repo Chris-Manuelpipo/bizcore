@@ -49,7 +49,7 @@ public class AuditEvent {
     @Column(name = "user_agent", columnDefinition = "TEXT", updatable = false)
     private String userAgent;
 
-    @Column(name = "metadata", columnDefinition = "JSON")
+    @Column(name = "metadata", columnDefinition = "TEXT")
     private String metadata;
 
     public enum EntityType {
