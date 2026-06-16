@@ -228,6 +228,19 @@ stateDiagram-v2
     PENDING --> [*]: Timeout
 ```
 
+## 6bis. Cycle de Vie d'une Facture (Invoice)
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: ServiceRequest FULFILLED
+    
+    PENDING --> PAID: Consumer paie
+    PENDING --> CANCELLED: Annulation
+    
+    PAID --> [*]
+    CANCELLED --> [*]
+```
+
 ## 7. Architecture Détaillée du Backend
 
 ```mermaid
