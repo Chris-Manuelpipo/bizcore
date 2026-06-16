@@ -305,6 +305,97 @@ flowchart LR
     DATA_B --> DB
 ```
 
+## 9. Diagramme de Déploiement
+
+```mermaid
+flowchart TB
+    subgraph DEV["💻 ENVIRONNEMENT DE DÉVELOPPEMENT"]
+        LOCAL_DEV["Machine Développeur"]
+        CODE["📄 Code Source<br/>Java + TypeScript"]
+        MAVEN["📦 Maven Wrapper<br/>(./mvnw)"]
+        NPM["📦 npm"]
+    end
+
+    subgraph GIT["🔗 GITHUB"]
+        REPO["Dépôt Git"]
+        ACTIONS["GitHub Actions<br/>(CI/CD)"]
+    end
+
+    subgraph CI_CD["🔄 PIPELINE CI/CD"]
+        BUILD_TEST["Build + Tests<br/>mvnw verify"]
+        IMG_BACKEND["Image Docker<br/>bizcore-backend"]
+        DEPLOY_FE["Déploiement<br/>Vercel"]
+    end
+
+    subgraph VER["🌐 PRODUCTION - VERCEL"]
+        NEXT_APP["📦 Next.js App<br/>(Static + Serverless)"]
+        NEXT_ASSETS["Static Assets<br/>(HTML, CSS, JS, PWA)"]
+        NEXT_API["API Routes<br/>(Serverless Functions)"]
+    end
+
+    subgraph RENDER["☁️ PRODUCTION - RENDER (PaaS)"]
+        subgraph WEB_SVC["📡 Web Service (Free)"]
+            SPRING_JAR["bizcore-backend.jar<br/>Spring Boot 3.5 + JDK 21"]
+            JVM["JVM Options:<br/>-XX:+UseContainerSupport<br/>-XX:MaxRAMPercentage=75%"]
+            ENTRY_POINT["docker-entrypoint.sh<br/>(conversion URL Render → JDBC)"]
+        end
+
+        subgraph DATA_SVC["🗄️ Data Services"]
+            PG_RENDER["PostgreSQL 16<br/>(Multi-tenant, Free Tier)"]
+            REDIS_RENDER["Redis 25MB<br/>(Cache + Bucket4j)"]
+        end
+    end
+
+    subgraph DOCKER_LOCAL["🐳 DOCKER COMPOSE LOCAL (stack complète)"]
+        PG_LOCAL["PostgreSQL 16<br/>port 5432"]
+        REDIS_LOCAL["Redis 7<br/>port 6379"]
+        ZK_LOCAL["ZooKeeper 7.6.0<br/>port 2181"]
+        KAFKA_LOCAL["Kafka 7.6.0<br/>port 9092<br/>topic: bizcore.events"]
+        APP_LOCAL["App Spring Boot<br/>port 8080"]
+    end
+
+    subgraph BROWSERS["🌍 CLIENTS"]
+        NAV["Navigateur Web<br/>(Utilisateur final)"]
+        THIRD_PARTY["App tierce<br/>(autres instances)"]
+    end
+
+    %% --- Relations Développement ---
+    LOCAL_DEV --> CODE
+    LOCAL_DEV --> MAVEN
+    LOCAL_DEV --> NPM
+    CODE -->|"git push"| REPO
+    REPO -->|"déclenche"| ACTIONS
+    ACTIONS -->|"lance"| CI_CD
+
+    %% --- Pipeline CI/CD ---
+    BUILD_TEST --> IMG_BACKEND
+    BUILD_TEST --> DEPLOY_FE
+
+    %% --- Déploiement Backend Render ---
+    IMG_BACKEND -.->|"Docker Push → Render"| RENDER
+    SPRING_JAR --> JVM
+    SPRING_JAR --> ENTRY_POINT
+
+    %% --- Déploiement Frontend Vercel ---
+    DEPLOY_FE -.->|"Déploiement auto"| VER
+    NEXT_APP --> NEXT_ASSETS
+    NEXT_APP --> NEXT_API
+
+    %% --- Connexions Production ---
+    NAV -->|"HTTPS<br/>bizcore-liard.vercel.app"| VER
+    THIRD_PARTY -->|"HTTPS"| VER
+    NEXT_API -->|"HTTPS (REST API)<br/>bizcore-api.onrender.com"| SPRING_JAR
+    SPRING_JAR -->|"JDBC (5432)"| PG_RENDER
+    SPRING_JAR -->|"Redis Protocol (6379)"| REDIS_RENDER
+
+    %% --- Connexions Locales ---
+    NAV -->|"http://localhost:3000"| DOCKER_LOCAL
+    APP_LOCAL -.- PG_LOCAL
+    APP_LOCAL -.- REDIS_LOCAL
+    ZK_LOCAL -.- KAFKA_LOCAL
+    APP_LOCAL -.- KAFKA_LOCAL
+```
+
 ---
 
 ## Légende
