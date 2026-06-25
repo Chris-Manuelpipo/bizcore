@@ -1,16 +1,25 @@
 \babel@toc {french}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {french}{}\relax 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {2.1}{\ignorespaces Stratégies de multi-tenancy}}{9}{table.2.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Correspondance formelle entre concepts réseaux et concepts métier}}{13}{table.3.1}%
+\contentsline {table}{\numberline {3.1}{\ignorespaces Correspondance formelle entre concepts réseaux et concepts métier}}{11}{table.3.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces Entités du modèle de données générique}}{17}{table.5.1}%
-\contentsline {table}{\numberline {5.2}{\ignorespaces Endpoints principaux de l'\textsc {API}{} \textsc {BCaaS}}}{18}{table.5.2}%
+\contentsline {table}{\numberline {5.1}{\ignorespaces Entités du modèle de données — Business Core}}{17}{table.5.1}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Endpoints principaux de l'\textsc {API}{} \textsc {BCaaS}}}{19}{table.5.2}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Pile technologique de \textsc {BCaaS}}}{20}{table.6.1}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {7.1}{\ignorespaces Technologies frontend}}{24}{table.7.1}%
+\contentsline {table}{\numberline {7.1}{\ignorespaces Comparaison des stratégies d'isolation}}{23}{table.7.1}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {9.1}{\ignorespaces Métriques métier et analogies réseau}}{26}{table.9.1}%
+\contentsline {table}{\numberline {9.2}{\ignorespaces Niveaux de QoS proposés}}{26}{table.9.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {10.1}{\ignorespaces Pile technologique de \textsc {BCaaS}}}{27}{table.10.1}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {11.1}{\ignorespaces Technologies frontend}}{29}{table.11.1}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

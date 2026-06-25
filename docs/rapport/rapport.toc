@@ -1,21 +1,24 @@
 \babel@toc {french}{}\relax 
 \contentsline {chapter}{Résumé}{1}{chapter*.1}%
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Abstract}{2}{chapter*.2}%
+\babel@toc {french}{}\relax 
 \contentsline {chapter}{\numberline {1}Introduction générale}{6}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Contexte du projet}{6}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Problématique}{6}{section.1.2}%
 \contentsline {section}{\numberline {1.3}Objectifs}{7}{section.1.3}%
-\contentsline {section}{\numberline {1.4}Structure du rapport}{7}{section.1.4}%
+\contentsline {section}{\numberline {1.4}Structure du document}{7}{section.1.4}%
 \contentsline {chapter}{\numberline {2}État de l'art}{8}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Plateformes métier génériques}{8}{section.2.1}%
 \contentsline {section}{\numberline {2.2}Architectures multi-tenant}{8}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Ingénierie des protocoles réseaux comme méthode}{9}{section.2.3}%
-\contentsline {chapter}{\numberline {3}Analogie formelle entre réseaux et métier}{10}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Formalisation mathématique}{10}{section.3.1}%
+\contentsline {section}{\numberline {2.3}L'ingénierie des protocoles comme méthode}{9}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Modèle mathématique et analogie formelle}{10}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Formalisation de la pile protocolaire métier}{10}{section.3.1}%
 \contentsline {section}{\numberline {3.2}Table de correspondance réseau-métier}{11}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Modélisation de la requête comme datagramme}{11}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Flux de traitement comme pipeline de protocoles}{11}{section.3.4}%
-\contentsline {section}{\numberline {3.5}Modélisation du multi-tenant comme réseau virtuel}{12}{section.3.5}%
-\contentsline {section}{\numberline {3.6}Control plane et data plane}{12}{section.3.6}%
+\contentsline {section}{\numberline {3.3}Modélisation de la requête comme datagramme}{12}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Flux de traitement comme pipeline de protocoles}{12}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Multi-tenant comme réseau virtuel}{12}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Control plane et data plane}{13}{section.3.6}%
 \contentsline {chapter}{\numberline {4}Architecture globale de la solution}{14}{chapter.4}%
 \contentsline {section}{\numberline {4.1}Vue d'ensemble}{14}{section.4.1}%
 \contentsline {section}{\numberline {4.2}Description des couches}{14}{section.4.2}%
@@ -24,29 +27,43 @@
 \contentsline {subsection}{\numberline {4.2.3}Couche 3 — Tenant \& Routing}{15}{subsection.4.2.3}%
 \contentsline {subsection}{\numberline {4.2.4}Couche 4 — Context \& Policy}{15}{subsection.4.2.4}%
 \contentsline {subsection}{\numberline {4.2.5}Couche 5 — Business Capabilities}{15}{subsection.4.2.5}%
-\contentsline {section}{\numberline {4.3}Composants de l'architecture microservice}{15}{section.4.3}%
+\contentsline {section}{\numberline {4.3}Architecture : monolithe modulaire}{15}{section.4.3}%
 \contentsline {chapter}{\numberline {5}Conception détaillée}{17}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Modèle de données générique}{17}{section.5.1}%
-\contentsline {subsection}{\numberline {5.1.1}Entités principales}{17}{subsection.5.1.1}%
-\contentsline {subsection}{\numberline {5.1.2}Diagramme entité-relation simplifié}{17}{subsection.5.1.2}%
-\contentsline {section}{\numberline {5.2}Conception de l'API REST}{17}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Sécurité et authentification}{18}{section.5.3}%
-\contentsline {chapter}{\numberline {6}Implémentation technique}{20}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Pile technologique}{20}{section.6.1}%
-\contentsline {section}{\numberline {6.2}Structure du projet Spring Boot}{20}{section.6.2}%
-\contentsline {section}{\numberline {6.3}Filtre de résolution du tenant}{21}{section.6.3}%
-\contentsline {section}{\numberline {6.4}Structure du paquet métier (DTO)}{22}{section.6.4}%
-\contentsline {section}{\numberline {6.5}Pertinence de Kafka et Redis dans \textsc {BCaaS}}{23}{section.6.5}%
-\contentsline {chapter}{\numberline {7}Frontend Next.js}{24}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Architecture du frontend}{24}{section.7.1}%
-\contentsline {section}{\numberline {7.2}Choix techniques}{24}{section.7.2}%
-\contentsline {section}{\numberline {7.3}Pages principales}{25}{section.7.3}%
-\contentsline {subsection}{\numberline {7.3.1}Site vitrine}{25}{subsection.7.3.1}%
-\contentsline {subsection}{\numberline {7.3.2}Tableau de bord admin}{25}{subsection.7.3.2}%
-\contentsline {chapter}{\numberline {8}Tests et validation}{26}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Stratégie de tests}{26}{section.8.1}%
-\contentsline {section}{\numberline {8.2}Scénario de test de provisionnement tenant}{26}{section.8.2}%
-\contentsline {chapter}{\numberline {9}Conclusion et perspectives}{28}{chapter.9}%
-\contentsline {section}{\numberline {9.1}Bilan}{28}{section.9.1}%
-\contentsline {section}{\numberline {9.2}Perspectives}{28}{section.9.2}%
-\contentsline {section}{\numberline {9.3}Apports personnels}{29}{section.9.3}%
+\contentsline {section}{\numberline {5.1}Modèle de données}{17}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Diagramme entité-relation simplifié}{18}{subsection.5.1.1}%
+\contentsline {section}{\numberline {5.2}Conception de l'API REST}{18}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Protocole d'échange pour un cas métier concret}{20}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Cas choisi : création d'un business et ajout au catalogue}{20}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}Protocole : création d'un business}{20}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}Protocole : ajout au catalogue de services}{21}{subsection.6.1.2}%
+\contentsline {chapter}{\numberline {7}Stratégie multi-tenant et isolation}{22}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Stratégie actuelle : colonne \texttt {tenant\_id}}{22}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Comparaison et perspective}{23}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Provisionnement d'un nouveau tenant}{23}{section.7.3}%
+\contentsline {chapter}{\numberline {8}Sécurité}{24}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Filtrage en couches}{24}{section.8.1}%
+\contentsline {section}{\numberline {8.2}TTL du token comme analogie réseau}{24}{section.8.2}%
+\contentsline {chapter}{\numberline {9}Observabilité et QoS métier}{25}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Les trois piliers}{25}{section.9.1}%
+\contentsline {subsection}{\numberline {9.1.1}Logs structurés}{25}{subsection.9.1.1}%
+\contentsline {subsection}{\numberline {9.1.2}Métriques}{25}{subsection.9.1.2}%
+\contentsline {subsection}{\numberline {9.1.3}Tracing distribué}{25}{subsection.9.1.3}%
+\contentsline {section}{\numberline {9.2}QoS métier : niveaux différenciés}{26}{section.9.2}%
+\contentsline {chapter}{\numberline {10}Implémentation technique}{27}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Pile technologique}{27}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Structure du projet backend}{27}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Le paquet métier comme abstraction}{28}{section.10.3}%
+\contentsline {chapter}{\numberline {11}Frontend Next.js}{29}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Architecture du frontend}{29}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Choix techniques}{29}{section.11.2}%
+\contentsline {section}{\numberline {11.3}Pages principales}{30}{section.11.3}%
+\contentsline {subsection}{\numberline {11.3.1}Site vitrine et documentation}{30}{subsection.11.3.1}%
+\contentsline {subsection}{\numberline {11.3.2}Tableau de bord admin (à venir)}{30}{subsection.11.3.2}%
+\contentsline {section}{\numberline {11.4}Déploiement}{30}{section.11.4}%
+\contentsline {chapter}{\numberline {12}Tests et validation}{31}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Stratégie de tests}{31}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Scénario de test d'intégration}{31}{section.12.2}%
+\contentsline {chapter}{\numberline {13}Conclusion et perspectives}{33}{chapter.13}%
+\contentsline {section}{\numberline {13.1}Bilan}{33}{section.13.1}%
+\contentsline {section}{\numberline {13.2}Perspectives}{34}{section.13.2}%
+\contentsline {section}{\numberline {13.3}Apports personnels}{34}{section.13.3}%
