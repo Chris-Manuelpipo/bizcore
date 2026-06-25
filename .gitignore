@@ -31,3 +31,8 @@ docker-volumes/
 backend/docs/rapport/
 .env.local
 .claude
+docs/rapport/*.fdb_latexmk
+docs/rapport/*.fls
+docs/rapport/*.log
+docs/rapport/*.pdf
+docs/rapport/*.synctex.gz
