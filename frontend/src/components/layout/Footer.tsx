@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { API_BASE } from "@/lib/config";
 
 export function Footer() {
   return (
@@ -16,9 +17,9 @@ export function Footer() {
           <span className="text-[13px] font-semibold text-[var(--text-muted)]">BizCore — Business Core as a Service</span>
         </div>
         <div className="flex gap-6">
-          {["Documentation","GitHub","Swagger UI","Contact"].map(l=>(
-            <Link key={l} href="#" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">{l}</Link>
-          ))}
+          <Link href="/docs" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">Documentation</Link>
+          <a href="https://github.com/Chris-Manuelpipo/bizcore.git" target="_blank" rel="noopener noreferrer" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">GitHub</a>
+          <a href={`${API_BASE}/swagger-ui.html`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">Swagger UI</a>
         </div>
         <span className="text-[11.5px] text-[var(--text-muted)]">3e année génie informatique</span>
       </div>

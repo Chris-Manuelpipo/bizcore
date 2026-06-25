@@ -27,15 +27,15 @@ export const GUIDE_CATEGORIES = ["Démarrage", "Authentification", "Multi-tenant
 // (claim "tenantId") au moment de l'inscription de l'utilisateur, puis
 // appliqué automatiquement par le backend à chaque requête authentifiée.
 export const GUIDES: Guide[] = [
-  // ── 1. Premier appel API ────────────────────────────────────────────────
+  // ── 1. Votre premier appel API ───────────────────────────────────────────
   {
     slug: "premier-appel-api",
     title: "Votre premier appel API",
-    description: "Démarrez avec BizCore en 5 minutes : vérifiez l'API, créez un compte, obtenez un token JWT et faites votre premier appel authentifié.",
+    description: "Démarrez avec BizCore : vérifiez l'API, créez un tenant isolé, rattachez des utilisateurs et créez des acteurs PROVIDER et CONSUMER.",
     category: "Démarrage",
-    duration: "5 min",
+    duration: "10 min",
     difficulty: "Débutant",
-    tags: ["JWT", "Auth", "cURL"],
+    tags: ["Tenant", "Actor", "Isolation"],
     steps: [
       {
         title: "Prérequis",
@@ -51,83 +51,6 @@ curl ${API_BASE}/actuator/health
         },
         tip: "Si le port ou l'hôte diffère, définissez NEXT_PUBLIC_API_URL dans votre .env.local (frontend)."
       },
-      {
-        title: "Créer un compte",
-        content: "Créez un utilisateur via /api/auth/register (public). Si vous ne précisez pas de tenantId, le compte est rattaché au tenant par défaut de la plateforme.",
-        code: {
-          lang: "bash",
-          filename: "terminal",
-          body: `curl -X POST ${API_BASE}/api/auth/register \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "email": "admin@bizcore.io",
-    "password": "secret123",
-    "firstName": "Jean",
-    "lastName": "Dupont"
-  }'
-
-# Réponse (201) — un token est renvoyé immédiatement
-# {
-#   "token": "eyJhbGciOiJIUzUxMiJ9...",
-#   "email": "admin@bizcore.io",
-#   "firstName": "Jean",
-#   "lastName": "Dupont",
-#   "roles": ["USER"]
-# }`
-        },
-        tip: "register exige firstName, lastName, email et password. La connexion (login), elle, ne demande qu'email + password."
-      },
-      {
-        title: "Obtenir un token JWT",
-        content: "Authentifiez-vous pour obtenir un token. Il devra être inclus dans tous les appels protégés via le header Authorization. Le tenant de l'utilisateur est embarqué dans ce token.",
-        code: {
-          lang: "bash",
-          filename: "terminal",
-          body: `curl -X POST ${API_BASE}/api/auth/login \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "email": "admin@bizcore.io",
-    "password": "secret123"
-  }'
-
-# Réponse (200)
-# {
-#   "token": "eyJhbGciOiJIUzUxMiJ9...",
-#   "email": "admin@bizcore.io",
-#   "firstName": "Jean",
-#   "lastName": "Dupont",
-#   "roles": ["USER"]
-# }`
-        },
-        tip: "Copiez la valeur du champ token — vous en aurez besoin pour tous les appels authentifiés."
-      },
-      {
-        title: "Votre premier appel authentifié",
-        content: "Utilisez votre token pour appeler un endpoint protégé, par exemple la liste des businesses. Remplacez <VOTRE_TOKEN> par la valeur obtenue.",
-        code: {
-          lang: "bash",
-          filename: "terminal",
-          body: `curl ${API_BASE}/api/businesses \\
-  -H "Authorization: Bearer <VOTRE_TOKEN>"
-
-# Réponse : page Spring Data
-# { "content": [], "totalElements": 0, ... }`
-        },
-        warning: "Sans token (ou token expiré/invalide), l'API répond 401 Unauthorized. Un token valide mais un rôle insuffisant renvoie 403 Forbidden."
-      },
-    ],
-  },
-
-  // ── 2. Créer et configurer un tenant ───────────────────────────────────
-  {
-    slug: "creer-configurer-tenant",
-    title: "Créer et configurer un tenant",
-    description: "Créez un tenant isolé, rattachez-y des utilisateurs, puis créez des acteurs PROVIDER et CONSUMER. L'isolation est automatique via le JWT.",
-    category: "Multi-tenant",
-    duration: "10 min",
-    difficulty: "Débutant",
-    tags: ["Tenant", "Actor", "Isolation"],
-    steps: [
       {
         title: "Créer le tenant",
         content: "Un tenant représente une instance métier indépendante, avec son espace de données isolé. La création se fait sur /api/tenants/register (public).",
@@ -230,6 +153,83 @@ curl -X POST ${API_BASE}/api/actors/user/<USER_ID_PAUL> \\
   -H "Authorization: Bearer <TOKEN>"
 # → { "content": [{ "id": "...", "role": "PROVIDER" }, ...] }`
         }
+      },
+    ],
+  },
+
+  // ── 2. Création/Authentification d'un utilisateur ────────────────────────
+  {
+    slug: "creation-authentification-utilisateur",
+    title: "Création/Authentification d'un utilisateur",
+    description: "Créez un compte, authentifiez-vous avec un token JWT et effectuez votre premier appel sécurisé sur l'API BizCore.",
+    category: "Authentification",
+    duration: "5 min",
+    difficulty: "Débutant",
+    tags: ["JWT", "Auth", "cURL"],
+    steps: [
+      {
+        title: "Créer un compte",
+        content: "Créez un utilisateur via /api/auth/register (public). Si vous ne précisez pas de tenantId, le compte est rattaché au tenant par défaut de la plateforme.",
+        code: {
+          lang: "bash",
+          filename: "terminal",
+          body: `curl -X POST ${API_BASE}/api/auth/register \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "email": "admin@bizcore.io",
+    "password": "secret123",
+    "firstName": "Jean",
+    "lastName": "Dupont"
+  }'
+
+# Réponse (201) — un token est renvoyé immédiatement
+# {
+#   "token": "eyJhbGciOiJIUzUxMiJ9...",
+#   "email": "admin@bizcore.io",
+#   "firstName": "Jean",
+#   "lastName": "Dupont",
+#   "roles": ["USER"]
+# }`
+        },
+        tip: "register exige firstName, lastName, email et password. La connexion (login), elle, ne demande qu'email + password."
+      },
+      {
+        title: "Obtenir un token JWT",
+        content: "Authentifiez-vous pour obtenir un token. Il devra être inclus dans tous les appels protégés via le header Authorization. Le tenant de l'utilisateur est embarqué dans ce token.",
+        code: {
+          lang: "bash",
+          filename: "terminal",
+          body: `curl -X POST ${API_BASE}/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "email": "admin@bizcore.io",
+    "password": "secret123"
+  }'
+
+# Réponse (200)
+# {
+#   "token": "eyJhbGciOiJIUzUxMiJ9...",
+#   "email": "admin@bizcore.io",
+#   "firstName": "Jean",
+#   "lastName": "Dupont",
+#   "roles": ["USER"]
+# }`
+        },
+        tip: "Copiez la valeur du champ token — vous en aurez besoin pour tous les appels authentifiés."
+      },
+      {
+        title: "Votre premier appel authentifié",
+        content: "Utilisez votre token pour appeler un endpoint protégé, par exemple la liste des businesses. Remplacez <VOTRE_TOKEN> par la valeur obtenue.",
+        code: {
+          lang: "bash",
+          filename: "terminal",
+          body: `curl ${API_BASE}/api/businesses \\
+  -H "Authorization: Bearer <VOTRE_TOKEN>"
+
+# Réponse : page Spring Data
+# { "content": [], "totalElements": 0, ... }`
+        },
+        warning: "Sans token (ou token expiré/invalide), l'API répond 401 Unauthorized. Un token valide mais un rôle insuffisant renvoie 403 Forbidden."
       },
     ],
   },

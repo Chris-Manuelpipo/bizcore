@@ -44,8 +44,8 @@ export interface Endpoint {
 }
 
 export const API_CATEGORIES = [
-  "Auth",
   "Tenant",
+  "Auth",
   "User",
   "Actor",
   "Business",

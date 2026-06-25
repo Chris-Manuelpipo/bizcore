@@ -22,4 +22,7 @@
     <!-- Sprint 3 — Table AuditEvents (traçabilité réseau) -->
     <include file="db/changelog/migrations/007-add-audit-events-table.xml"/>
 
+    <!-- Sprint 3 — Fix colonne metadata JSON → TEXT -->
+    <include file="db/changelog/migrations/008-fix-audit-metadata-type.xml"/>
+
 </databaseChangeLog>
