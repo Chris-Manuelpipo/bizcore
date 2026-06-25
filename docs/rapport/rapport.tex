@@ -1013,10 +1013,10 @@ public record BusinessPacket<T>(
 
 \section{Architecture du frontend}
 
-Le frontend de \bcaas{} est une \textit{Progressive Web App} qui matérialise les deux plans de l'architecture :
+Le frontend de \bcaas{} est développé avec Next.js 16 (App Router) et React 19. Il matérialise le plan de données vu de l'extérieur~:
 \begin{description}
 	\item[Site vitrine (data plane view)] présentation publique de l'\api, documentation interactive et assistant conversationnel.
-	\item[Tableau de bord Admin (control plane)] interface sécurisée pour la gestion des tenants, businesses, acteurs, services, demandes et factures.
+	\item[Tableau de bord Admin (control plane)] interface sécurisée pour la gestion des tenants, businesses, acteurs, services, demandes et factures. \emph{Prévu dans une version future, seules les ébauches de pages sont présentes dans le code actuel.}
 \end{description}
 
 \section{Choix techniques}
@@ -1053,7 +1053,8 @@ Le frontend de \bcaas{} est une \textit{Progressive Web App} qui matérialise le
 	\item \texttt{/demo} — démonstration interactive.
 \end{itemize}
 
-\subsection{Tableau de bord admin}
+\subsection{Tableau de bord admin (à venir)}
+Les ébauches de pages listées ci-dessous sont présentes dans le code, mais l'intégration fonctionnelle complète du tableau de bord est repoussée à une version ultérieure~:
 \begin{itemize}
 	\item \texttt{/dashboard} — vue globale ;
 	\item \texttt{/dashboard/businesses}, \texttt{/dashboard/actors}, \texttt{/dashboard/services} ;
@@ -1120,7 +1121,7 @@ Les réalisations principales sont :
 	\item une \api{} \rest{} documentée (SpringDoc) servie par un monolithe modulaire Spring Boot 3.5 / Java 21 ;
 	\item une authentification \jwt{} multi-tenant avec isolation par \texttt{ThreadLocal} et contrôle d'accès par rôles ;
 	\item l'intégration effective de Redis (cache) et Kafka (notifications) ;
-	\item un frontend Next.js 16 / React 19 (site vitrine, documentation, assistant IA, tableau de bord) déployé sur Vercel/Render.
+	\item un frontend Next.js 16 / React 19 (site vitrine, documentation, assistant IA) déployé sur Vercel/Render. Le tableau de bord d'administration est en cours de développement.
 \end{itemize}
 
 \section{Perspectives}

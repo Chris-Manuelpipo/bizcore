@@ -1,0 +1,37 @@
+\chapter*{Glossaire}
+\addcontentsline{toc}{chapter}{Glossaire}
+\markboth{Glossaire}{Glossaire}
+
+\begin{description}[style=nextline,leftmargin=0pt]
+  \item[BaaS (Business as a Service)] Modèle fournissant des capacités métier génériques via
+        une API standardisée.
+  \item[Tenant] Organisation cliente disposant d'une isolation logique de ses données et
+        configurations ; analogue d'un VLAN.
+  \item[Multi-tenant] Architecture servant plusieurs tenants sur une infrastructure
+        partagée, avec isolation de leurs données.
+  \item[Actor] Rôle joué par un utilisateur dans le système : consommateur (CdS) et/ou
+        fournisseur (FdS) de service.
+  \item[CdS / FdS] Consommateur de Service (émetteur de la requête) / Fournisseur de Service
+        (récepteur et exécutant).
+  \item[Business] Métier ou profession référencé dans le système (domaine, règles, services,
+        ressources).
+  \item[BusinessRule] Règle métier sous forme de paire clé--valeur ; analogue du protocole.
+  \item[ServiceRequest] Demande de service entre un CdS et un FdS ; analogue d'un message
+        réseau, porteuse d'un \texttt{traceId}.
+  \item[Invoice] Facture générée automatiquement à la finalisation ; analogue d'un accusé de
+        réception (ACK).
+  \item[Portfolio] Ensemble des métiers maîtrisés par un acteur (relation N:M avec Business).
+  \item[FSM] Machine à états finis décrivant le cycle de vie d'une entité (ServiceRequest,
+        Invoice).
+  \item[JWT] Jeton signé portant l'identité, les rôles et le \texttt{tenantId} de
+        l'utilisateur authentifié.
+  \item[RBAC] Contrôle d'accès basé sur les rôles.
+  \item[traceId / correlationId] Identifiants de flux permettant de tracer une transaction
+        de bout en bout.
+  \item[DTO] Objet de transfert de données découplant la représentation exposée des entités
+        persistées.
+  \item[Soft delete] Suppression logique préservant les données en base
+        (\texttt{isActive = false}).
+  \item[Control plane / Data plane] Plan de configuration (administration) / plan d'exécution
+        (transactions), par analogie avec le SDN.
+\end{description}

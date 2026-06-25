@@ -1,0 +1,551 @@
+% ============================================================
+%  CHAPITRE 2 — État de l'art
+%  À inclure dans le document principal avec :
+%    \input{chapitre2}   ou   \include{chapitre2}
+%
+%  Packages supposés chargés dans le main :
+%    \usepackage[french]{babel}
+%    \usepackage[utf8]{inputenc}
+%    \usepackage[T1]{fontenc}
+%    \usepackage{booktabs}
+%    \usepackage{array}
+%    \usepackage{tabularx}
+%    \usepackage{xcolor}
+%    \usepackage{hyperref}
+%    \usepackage{geometry}
+%    \usepackage{enumitem}
+%    \usepackage{parskip}       % ou gestion manuelle des espacements
+% ============================================================
+
+\chapter{État de l'art}
+\label{chap:etat-de-lart}
+
+Ce chapitre situe le projet BCaaS (\textit{Business Core as a Service}) dans son paysage
+scientifique et technique. Il ne s'agit pas simplement de lister des concepts existants,
+mais de montrer comment chacun d'eux contribue à la conception de BCaaS et en quoi leur
+combinaison constitue une approche originale. Nous passerons successivement en revue les
+modèles en couches issus des réseaux informatiques, les stratégies d'architecture
+multi-tenant, le paradigme \textit{as-a-Service} et son extension au niveau métier, les
+principes de l'architecture hexagonale et du \textit{Domain-Driven Design}, avant de
+conclure en positionnant la contribution spécifique de BCaaS par rapport à cet état de
+l'art.
+
+% ------------------------------------------------------------
+\section{Modèles en couches : OSI et TCP/IP}
+\label{sec:osi-tcpip}
+
+% ---- 2.1.1 -------------------------------------------------
+\subsection{Le modèle OSI}
+\label{subsec:osi}
+
+Le modèle OSI (\textit{Open Systems Interconnection}), normalisé par l'ISO sous la
+référence ISO/IEC~7498-1~\cite{iso7498}, est un cadre de référence conceptuel qui décompose
+la communication entre deux systèmes informatiques en sept couches aux responsabilités
+strictement délimitées. Chaque couche remplit une fonction précise et ne communique
+directement qu'avec les couches immédiatement adjacentes, sans connaître les détails de
+fonctionnement des autres.
+
+Les sept couches, de la plus basse à la plus haute, sont les suivantes :
+
+\begin{description}[leftmargin=2.5cm, labelwidth=2.2cm, style=nextline]
+  \item[\textbf{Couche~1 Physique}]
+    Transmission des bits bruts sur le médium (câble, fibre, ondes radio). Elle définit
+    les niveaux de tension, les fréquences et les connecteurs physiques.
+
+  \item[\textbf{Couche~2 Liaison}]
+    Organisation des bits en trames, détection (voire correction) d'erreurs de
+    transmission, et contrôle d'accès au médium partagé (protocoles Ethernet, Wi-Fi).
+
+  \item[\textbf{Couche~3 Réseau}]
+    Adressage logique (adresses IP) et routage des paquets entre réseaux différents.
+    C'est la couche qui permet à un paquet de traverser plusieurs réseaux intermédiaires
+    pour atteindre sa destination.
+
+  \item[\textbf{Couche~4 Transport}]
+    Communication de bout en bout entre processus, avec ou sans garantie de fiabilité.
+    TCP assure la livraison ordonnée et sans perte~; UDP privilégie la rapidité au
+    détriment de cette garantie.
+
+  \item[\textbf{Couche~5 Session}]
+    Établissement, maintien et terminaison des sessions de dialogue entre deux
+    applications.
+
+  \item[\textbf{Couche~6 Présentation}]
+    Mise en forme des données (encodage des caractères, compression, chiffrement) afin
+    que les applications puissent se comprendre indépendamment de leurs représentations
+    internes.
+
+  \item[\textbf{Couche~7 Application}]
+    Interface directe avec les logiciels utilisateurs. C'est ici que résident les
+    protocoles applicatifs tels que HTTP, SMTP, FTP ou DNS.
+\end{description}
+
+Le principe central du modèle OSI est l'\textbf{encapsulation} : lorsqu'une donnée
+descend la pile d'émission, chaque couche y ajoute un en-tête (et parfois un pied de
+trame) contenant les informations de contrôle nécessaires à son homologue sur la machine
+distante. À réception, la pile est parcourue en sens inverse~: chaque couche lit et retire
+son en-tête avant de passer les données à la couche supérieure. Ce mécanisme garantit une
+séparation complète des responsabilités~: chaque couche ignore le contenu des données
+qu'elle transporte et ne se préoccupe que de sa propre fonction.
+
+\begin{table}[ht]
+  \centering
+  \caption{Les sept couches OSI et leurs analogies dans BCaaS}
+  \label{tab:osi-bcaas}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{>{\centering\bfseries}p{1.2cm}
+                               >{\bfseries}p{2.4cm}
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{N°} & \textbf{Couche} & \textbf{Rôle principal} & \textbf{Analogie BCaaS} \\
+    \midrule
+    7 & Application   & Interface avec l'utilisateur final                    & API métier exposée aux clients \\
+    6 & Présentation  & Encodage, chiffrement, compression                    & Sérialisation JSON/XML, tokens JWT \\
+    5 & Session       & Gestion des sessions de communication                 & Gestion des sessions utilisateur \\
+    4 & Transport     & Fiabilité, contrôle de flux (TCP/UDP)                 & File d'attente, retry, transactions \\
+    3 & Réseau        & Adressage et routage inter-réseaux                    & Routage multi-tenant, isolation VLAN \\
+    2 & Liaison       & Détection d'erreurs, accès au médium                  & Validation des données, contraintes DB \\
+    1 & Physique      & Transmission binaire sur le médium                    & Infrastructure serveur, cloud \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% ---- 2.1.2 -------------------------------------------------
+\subsection{La suite TCP/IP}
+\label{subsec:tcpip}
+
+La suite de protocoles TCP/IP, développée par le Département de la Défense américain dans
+les années~1970 et standardisée au sein des RFC (\textit{Request For Comments}), adopte
+une approche plus pragmatique en condensant les sept couches OSI en quatre niveaux~:
+accès réseau (couches~1-2), Internet (couche~3), transport (couche~4) et application
+(couches~5-7). C'est ce modèle qui régit le fonctionnement d'Internet depuis son origine.
+
+TCP/IP conserve les mêmes idées directrices que le modèle OSI — adressage, routage,
+fiabilité, contrôle de flux — mais en simplifiant leur mise en œuvre. Son adoption
+universelle a été rendue possible par sa flexibilité~: l'adressage IP, notamment avec
+IPv6, permet d'identifier de manière unique chaque appareil connecté à l'échelle mondiale.
+
+% ---- 2.1.3 -------------------------------------------------
+\subsection{Intérêt méthodologique pour BCaaS}
+\label{subsec:osi-bcaas}
+
+Au-delà de leur application aux réseaux informatiques, ces modèles présentent un intérêt
+méthodologique fondamental pour la conception logicielle. Trois principes sont
+particulièrement transposables~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{Séparation des préoccupations par couches} (\textit{Separation of
+    Concerns})]
+    Chaque module ou composant logiciel est responsable d'une et d'une seule fonction. Ce
+    principe réduit la complexité, facilite les tests unitaires et rend les composants
+    remplaçables indépendamment.
+
+  \item[\textbf{Encapsulation progressive du contexte}]
+    Chaque couche enrichit les données d'informations supplémentaires (métadonnées,
+    identifiants, contexte de sécurité) sans que les couches adjacentes n'aient à
+    connaître ces détails. En logiciel, cela correspond à l'enrichissement d'un objet
+    métier à mesure qu'il traverse les différentes couches d'une application (validation,
+    transformation, persistance).
+
+  \item[\textbf{Adressage explicite des destinataires}]
+    Dans TCP/IP, une adresse IP et un port identifient sans ambiguïté la destination d'un
+    paquet. En architecture multi-tenant, l'identifiant du tenant (\texttt{tenant\_id})
+    joue un rôle analogue~: il adresse chaque requête vers le bon contexte de données et
+    de règles métier.
+\end{description}
+
+C'est cette transposition que BCaaS exploite explicitement~: la pile applicative métier
+est conçue comme une pile protocolaire, avec des couches aux responsabilités distinctes,
+des mécanismes d'encapsulation du contexte (tenant, utilisateur, droits) et un adressage
+explicite par \texttt{tenant\_id}.
+
+% ------------------------------------------------------------
+\section{Architectures multi-tenant}
+\label{sec:multi-tenant}
+
+% ---- 2.2.1 -------------------------------------------------
+\subsection{Définition et enjeux}
+\label{subsec:multitenant-def}
+
+Une application est dite \textbf{multi-tenant} (multi-locataire) lorsqu'une seule instance
+logicielle sert simultanément plusieurs organisations ou clients distincts (les
+\textit{tenants} ) tout en garantissant l'isolation totale de leurs données et
+configurations. Ce modèle s'oppose au modèle multi-instance, où chaque client dispose de
+sa propre installation du logiciel~\cite{multitenant}.
+
+Les enjeux du multi-tenant sont multiples et parfois contradictoires~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{Isolation des données}]
+    Un tenant ne doit jamais pouvoir accéder, même accidentellement, aux données d'un
+    autre. Cette exigence est à la fois technique (partitionnement physique ou logique) et
+    réglementaire (RGPD, normes sectorielles).
+
+  \item[\textbf{Performance et scalabilité}]
+    Le partage d'infrastructure peut introduire des effets de voisinage
+    (\textit{noisy neighbor problem}) où un tenant très actif dégrade les performances
+    des autres.
+
+  \item[\textbf{Personnalisation}]
+    Chaque tenant peut avoir des configurations, des règles métier ou des interfaces
+    différentes, tout en partageant le même code de base.
+
+  \item[\textbf{Opérabilité}]
+    Les mises à jour, les sauvegardes et la supervision doivent être gérées de manière
+    centralisée pour tous les tenants, sans interruption de service.
+\end{description}
+
+% ---- 2.2.2 -------------------------------------------------
+\subsection{Trois stratégies d'isolation}
+\label{subsec:isolation-strategies}
+
+La littérature académique et les pratiques de l'industrie distinguent classiquement trois
+niveaux d'isolation, chacun avec ses compromis en termes de sécurité, de performance et
+de coût opérationnel~\cite{strategies}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Comparaison des stratégies d'isolation multi-tenant}
+  \label{tab:multitenant}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X
+                               >{\centering\arraybackslash}p{2.2cm}
+                               >{\centering\arraybackslash}p{2.4cm}
+                               >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Stratégie} & \textbf{Isolation} & \textbf{Performance} & \textbf{Complexité / Coût} \\
+    \midrule
+    Colonne \texttt{tenant\_id} (schéma partagé)
+      & Logique   & Bonne (index)  & Faible idéal pour un MVP \\
+    Schéma PostgreSQL séparé
+      & Physique  & Très bonne     & Moyenne \\
+    Base de données séparée
+      & Totale    & Variable       & Élevée \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsubsection*{a) Schéma partagé avec colonne \texttt{tenant\_id}}
+
+C'est la stratégie la plus simple. Toutes les données de tous les tenants coexistent dans
+les mêmes tables. Une colonne \texttt{tenant\_id}, indexée, identifie à qui appartient
+chaque enregistrement. Toutes les requêtes SQL doivent inclure un filtre
+\texttt{WHERE tenant\_id = :id} pour garantir l'isolation logique.
+
+Les avantages sont nombreux~: déploiement simplifié (une seule base de données à
+maintenir), migrations de schéma appliquées une seule fois, consommation de ressources
+optimisée. Les risques résident dans les bugs de filtrage (oubli du filtre
+\texttt{tenant\_id} dans une requête) et dans la moindre isolation en cas d'attaque ou
+d'erreur. BCaaS adopte cette stratégie pour son MVP, en s'appuyant sur des mécanismes de
+sécurité au niveau applicatif (middleware d'injection automatique du \texttt{tenant\_id})
+pour réduire les risques d'oubli.
+
+\subsubsection*{b) Schéma PostgreSQL séparé par tenant}
+
+Chaque tenant dispose de son propre schéma PostgreSQL (un \textit{namespace} de tables)
+au sein d'une même base de données. L'isolation est physique au niveau des données mais
+les tenants partagent toujours le moteur de base de données et ses ressources.
+
+Cette approche offre une meilleure isolation (il est impossible d'accéder aux données d'un
+autre schéma sans changer explicitement de \texttt{search\_path}), des sauvegardes par
+tenant plus aisées, et une capacité à personnaliser le schéma par tenant. En contrepartie,
+les migrations doivent être appliquées à chaque schéma séparément, ce qui complexifie les
+déploiements.
+
+\subsubsection*{c) Base de données séparée par tenant}
+
+Chaque tenant dispose de sa propre instance de base de données. C'est le niveau
+d'isolation le plus fort~: une défaillance ou une compromission de la base d'un tenant
+n'affecte pas les autres. Cette stratégie est requise dans les secteurs très régulés
+(banque, santé) où les données doivent être physiquement séparées.
+
+Le coût opérationnel est significatif~: $N$ tenants impliquent $N$ bases à provisionner,
+surveiller, sauvegarder et mettre à jour. Elle est donc rarement justifiée pour un grand
+nombre de petits tenants.
+
+% ---- 2.2.3 -------------------------------------------------
+\subsection{Analogie avec les réseaux virtuels (VLAN)}
+\label{subsec:vlan-analogy}
+
+L'analogie entre le multi-tenant et les VLAN (\textit{Virtual Local Area Networks}) est
+particulièrement éclairante. Un VLAN permet de segmenter logiquement un réseau physique
+unique en plusieurs réseaux virtuels isolés. Des équipements physiquement connectés au
+même commutateur peuvent appartenir à des VLAN différents et ne pas pouvoir communiquer
+entre eux, comme s'ils étaient sur des réseaux entièrement séparés.
+
+De même, dans une architecture multi-tenant à schéma partagé, les données de différents
+tenants coexistent sur la même infrastructure physique (même serveur, même base de
+données) mais sont isolées logiquement par leur \texttt{tenant\_id}, exactement comme les
+trames Ethernet sont isolées par leur \textit{tag} VLAN (norme IEEE~802.1Q). BCaaS
+exploite cette analogie pour conceptualiser et documenter son architecture.
+
+% ------------------------------------------------------------
+\section{Le paradigme \textit{as-a-Service} et le \textit{Business as a Service}}
+\label{sec:baas}
+
+% ---- 2.3.1 -------------------------------------------------
+\subsection{L'évolution des modèles \textit{as-a-Service}}
+\label{subsec:aas-evolution}
+
+Le cloud computing a popularisé une famille de modèles de fourniture de services
+informatiques regroupés sous le terme générique \textit{as-a-Service}. L'idée centrale
+est de fournir une capacité informatique sous forme de service accessible via une interface
+standardisée, déchargeant le consommateur de la responsabilité de construire et d'opérer
+l'infrastructure sous-jacente.
+\begin{table}[ht]
+  \centering
+  \caption{Comparaison des modèles \textit{as-a-Service} et positionnement de BCaaS}
+  \label{tab:aas}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{2.2cm}
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}X}
+    \toprule
+    \textbf{Modèle} & \textbf{Ce qui est fourni} & \textbf{Exemples concrets} & \textbf{Analogie BCaaS} \\
+    \midrule
+    IaaS & Infrastructure (serveurs, stockage, réseau) & AWS EC2, Azure VMs, GCP Compute & --- \\
+    PaaS & Plateforme d'exécution + middleware & Heroku, Vercel, Render & --- \\
+    SaaS & Application complète prête à l'emploi & Salesforce, Gmail, Notion & --- \\
+    BaaS (BCaaS) & Briques métier réutilisables via API & BCaaS acteurs, règles, facturation & Couche métier partageable \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+Ces trois modèles forment une progression~: IaaS délègue la gestion du matériel, PaaS y
+ajoute celle du système d'exploitation et des middlewares, SaaS va jusqu'à déléguer la
+gestion de l'application elle-même. Le consommateur n'a plus qu'à utiliser le service,
+sans se préoccuper de ce qui se passe en dessous.
+
+% ---- 2.3.2 -------------------------------------------------
+\subsection{Le \textit{Business as a Service} (BaaS)}
+\label{subsec:baas-def}
+
+Le \textit{Business as a Service} (BaaS) transpose cette logique au niveau des fonctions
+métier. Plutôt que de déléguer de l'infrastructure ou une application, il s'agit d'exposer
+comme services réutilisables les briques fonctionnelles communes à tout système
+d'information professionnel.
+
+Ces briques récurrentes comprennent typiquement~:
+\begin{itemize}
+  \item La gestion des acteurs~: utilisateurs, clients, fournisseurs, partenaires et leurs
+        rôles respectifs.
+  \item La gestion des ressources~: produits, services, inventaires, tarifs.
+  \item La facturation et la comptabilité~: devis, commandes, factures, paiements,
+        rapprochements.
+  \item Les règles métier~: politiques de prix, conditions d'accès, workflows
+        d'approbation.
+  \item La traçabilité et l'audit~: journaux d'événements, historiques, conformité
+        réglementaire.
+\end{itemize}
+
+Au lieu que chaque projet réimplémente ces fonctions depuis zéro, le BaaS propose de les
+centraliser dans un socle commun consommable via des API. BCaaS est une mise en œuvre
+concrète de ce paradigme, conçue comme socle commun à plusieurs instances métier distinctes
+pouvant appartenir à des secteurs différents.
+
+% ---- 2.3.3 -------------------------------------------------
+\subsection{Avantages et défis du BaaS}
+\label{subsec:baas-avantages}
+
+\paragraph{Avantages.}
+Réduction drastique du temps de développement des projets consommateurs, homogénéité des
+comportements métier entre projets, centralisation de la maintenance et des corrections de
+bogues, et mutualisation des coûts d'infrastructure.
+
+\paragraph{Défis.}
+Le socle doit être suffisamment générique pour couvrir des cas d'usage variés sans être si
+abstrait qu'il devient inutilisable. La gestion des personnalisations par tenant (règles
+métier spécifiques à un client) et la compatibilité ascendante de l'API sont des points de
+vigilance critiques.
+
+% ------------------------------------------------------------
+\section{Architecture hexagonale et \textit{Domain-Driven Design}}
+\label{sec:hexa-ddd}
+
+% ---- 2.4.1 -------------------------------------------------
+\subsection{L'architecture hexagonale (\textit{Ports \& Adaptateurs})}
+\label{subsec:hexagonal}
+
+Proposée par Alistair Cockburn en 2005~\cite{hexagonale}, l'architecture hexagonale 
+également appelée \textit{Ports and Adapters} repose sur un principe fondamental~: le
+c\oe{}ur métier d'une application ne doit dépendre d'aucun détail technique. La base de
+données, le framework web, la messagerie asynchrone, les systèmes externes sont tous des
+détails susceptibles de changer, et le domaine métier ne doit pas en être affecté.
+
+L'architecture se structure autour de trois zones~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{Le domaine (hexagone central)}]
+    Contient la logique métier pure~: les entités, les règles, les calculs. Il est exprimé
+    en langage métier et ne dépend d'aucune technologie.
+
+  \item[\textbf{Les ports}]
+    Interfaces (au sens de contrats ou d'abstractions) définies par le domaine pour
+    interagir avec l'extérieur. Un port entrant (\textit{driving port}) représente ce que
+    le domaine offre aux utilisateurs (commandes, requêtes). Un port sortant
+    (\textit{driven port}) représente ce dont le domaine a besoin de l'infrastructure
+    (persistance, notifications).
+
+  \item[\textbf{Les adaptateurs}]
+    Implémentations concrètes des ports. Un adaptateur REST traduit les requêtes HTTP en
+    appels de commandes métier. Un adaptateur PostgreSQL traduit les appels de persistance
+    en requêtes SQL. Les adaptateurs sont interchangeables sans toucher au domaine.
+\end{description}
+
+Les bénéfices de cette architecture sont considérables pour un projet comme BCaaS. Le
+c\oe{}ur métier peut être testé indépendamment de toute infrastructure (tests unitaires
+rapides, sans base de données ni serveur HTTP). On peut changer de base de données, de
+framework web ou de système de messagerie sans réécrire la logique métier. Les adaptateurs
+peuvent être développés et remplacés indépendamment.
+
+% ---- 2.4.2 -------------------------------------------------
+\subsection{Le \textit{Domain-Driven Design} (DDD)}
+\label{subsec:ddd}
+
+Le \textit{Domain-Driven Design}, formalisé par Eric Evans dans son ouvrage fondateur
+\textit{Domain-Driven Design: Tackling Complexity in the Heart of Software}
+(2003)~\cite{evans2003}, fournit un ensemble de \textit{patterns} et de pratiques pour
+modéliser des domaines métier complexes. Il s'articule autour de plusieurs concepts
+clés~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{Le langage omniprésent} (\textit{Ubiquitous Language})]
+    Développeurs et experts métier utilisent exactement le même vocabulaire pour désigner
+    les concepts du domaine. Ce langage partagé se retrouve dans le code, les tests, la
+    documentation et les discussions. Il élimine les ambiguïtés et les traductions
+    coûteuses entre monde technique et monde métier.
+
+  \item[\textbf{Les entités} (\textit{Entities})]
+    Objets métier possédant une identité unique et persistante à travers le temps,
+    indépendamment de leurs attributs. Un client reste le même client même si son adresse
+    change~: c'est l'identité qui compte, pas les valeurs.
+
+  \item[\textbf{Les objets-valeur} (\textit{Value Objects})]
+    Objets définis uniquement par leurs attributs, sans identité propre. Une adresse
+    postale, un montant en devise, une plage de dates sont des objets-valeur~: deux
+    instances identiques sont interchangeables.
+
+  \item[\textbf{Les agrégats} (\textit{Aggregates})]
+    Grappes d'entités et d'objets-valeur traitées comme une unité cohérente pour les
+    modifications. Chaque agrégat a une racine (\textit{Aggregate Root}) qui est le seul
+    point d'accès depuis l'extérieur, garantissant la cohérence des invariants métier.
+
+  \item[\textbf{Les services de domaine} (\textit{Domain Services})]
+    Opérations métier qui n'appartiennent naturellement à aucune entité ou objet-valeur,
+    telles qu'un calcul de TVA impliquant des règles fiscales complexes.
+
+  \item[\textbf{Les contextes délimités} (\textit{Bounded Contexts})]
+    Frontières explicites dans lesquelles un modèle de domaine particulier s'applique. Un
+    même mot peut avoir des significations différentes dans des contextes différents~: un
+    «~client~» dans le contexte commercial n'est pas le même concept que dans le contexte
+    du support technique.
+\end{description}
+
+% ---- 2.4.3 -------------------------------------------------
+\subsection{DDD et architecture hexagonale : une synergie naturelle}
+\label{subsec:ddd-hexa-synergie}
+
+L'architecture hexagonale et le DDD se complètent naturellement. Le DDD fournit le modèle
+conceptuel du domaine (ce qu'on modélise et pourquoi), tandis que l'architecture
+hexagonale fournit la structure technique pour implémenter ce modèle de manière isolée et
+testable (comment on l'organise dans le code).
+
+Ensemble, ils permettent de construire un \textbf{monolithe modulaire}~: une application
+unique et cohérente, mais découpée en modules aux frontières explicites (les
+\textit{Bounded Contexts}) et aux interfaces bien définies (les ports). Cette structure
+prépare une éventuelle migration vers les microservices~: chaque module peut, à terme,
+être extrait et déployé indépendamment sans réécriture du domaine, car les dépendances
+inter-modules passent déjà par des interfaces, non par des appels directs.
+
+% ------------------------------------------------------------
+\section{Positionnement de BCaaS}
+\label{sec:positionnement}
+
+% ---- 2.5.1 -------------------------------------------------
+\subsection{Ce que la littérature fournit déjà}
+\label{subsec:litterature-existante}
+
+La revue de la littérature met en évidence que chacun des éléments conceptuels mobilisés
+par BCaaS existe et est documenté indépendamment~:
+
+\begin{itemize}
+  \item Les modèles en couches OSI et TCP/IP sont des standards établis depuis plusieurs
+        décennies, avec une littérature abondante et des implémentations universelles.
+  \item Les stratégies multi-tenant sont documentées dans la littérature académique et dans
+        les guides de bonnes pratiques des fournisseurs cloud (Microsoft Azure, AWS).
+  \item Le paradigme \textit{as-a-Service} est largement décrit et analysé, notamment dans
+        les travaux du NIST sur le cloud computing~\cite{nist}.
+  \item L'architecture hexagonale et le DDD sont des méthodologies reconnues, avec des
+        communautés actives et des implémentations de référence dans de nombreux langages.
+\end{itemize}
+
+% ---- 2.5.2 -------------------------------------------------
+\subsection{Le \textit{gap} identifié}
+\label{subsec:gap}
+
+Cependant, la littérature existante traite ces éléments séparément, dans des silos
+disciplinaires distincts~: les modèles réseau dans la littérature des systèmes distribués,
+le multi-tenant dans la littérature SaaS, l'architecture hexagonale dans la littérature du
+génie logiciel. Il n'existe pas, à notre connaissance, de travail proposant une grille de
+lecture unifiée qui utilise les métaphores réseau pour conceptualiser et documenter un
+système logiciel multi-tenant à architecture hexagonale.
+
+% ---- 2.5.3 -------------------------------------------------
+\subsection{La contribution de BCaaS}
+\label{subsec:contribution}
+
+L'originalité de BCaaS ne réside donc pas dans l'invention de l'un de ces éléments, mais
+dans leur \textbf{unification sous une grille de lecture réseau cohérente et systématique}.
+Cette grille se manifeste à travers plusieurs analogies structurantes~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{La pile métier comme pile protocolaire}]
+    Les couches de l'application (présentation, application, domaine, infrastructure) sont
+    interprétées comme les couches d'une pile réseau, avec des responsabilités distinctes
+    et des interfaces explicites entre couches.
+
+  \item[\textbf{L'isolation multi-tenant comme VLAN}]
+    Le partage d'infrastructure avec étiquetage logique des flux par \texttt{tenant\_id}
+    est l'exact équivalent logiciel du marquage de trames par \textit{tag} VLAN dans les
+    réseaux commutés (IEEE~802.1Q).
+
+  \item[\textbf{La facture comme accusé de réception}]
+    Le cycle de vie d'une facture (émission, accusé, paiement, rapprochement) est modélisé
+    sur le \textit{pattern} ACK/NACK des protocoles réseau fiables~: chaque étape confirme
+    la bonne réception et le traitement du message précédent.
+
+  \item[\textbf{L'administration comme plan de contrôle SDN}]
+    La séparation entre le plan de données (traitement des transactions métier) et le plan
+    de contrôle (configuration des règles, gestion des tenants, supervision) reflète
+    l'architecture \textit{Software-Defined Networking}, où le plan de contrôle est
+    découplé du plan de données pour plus de flexibilité.
+\end{description}
+
+Cette cohérence conceptuelle (utiliser un seul cadre métaphorique pour relier des
+concepts habituellement traités séparément) constitue l'apport central du présent
+travail. Elle offre un langage commun accessible aussi bien aux profils techniques
+(développeurs, architectes) qu'aux profils familiers des réseaux, et facilite la
+communication entre équipes aux expertises différentes.
+
+La transposition de ces métaphores en décisions d'architecture concrètes sera détaillée au
+chapitre~\ref{chap:archi}, qui présente le modèle conceptuel de BCaaS.
+
+% ------------------------------------------------------------
+\section*{Synthèse}
+\addcontentsline{toc}{section}{Conclusion du chapitre}
+\label{sec:conclusion-chap2}
+
+Ce chapitre a passé en revue les quatre piliers conceptuels sur lesquels repose BCaaS~:
+les modèles en couches OSI/TCP-IP, les architectures multi-tenant, le paradigme
+\textit{as-a-Service} étendu au niveau métier, et l'architecture hexagonale couplée au
+\textit{Domain-Driven Design}. Pour chacun de ces piliers, nous avons présenté les
+concepts fondamentaux, leurs avantages et leurs limites, ainsi que leurs applications
+concrètes dans le contexte de BCaaS.
+
+La section~\ref{sec:positionnement} a montré que l'originalité de BCaaS tient à la
+combinaison et à l'unification de ces approches sous une grille de lecture réseau
+cohérente une perspective que la littérature n'exploite pas jusqu'ici de manière
+systématique. Le chapitre suivant s'appuiera sur cet état de l'art pour présenter le
+modèle d'architecture détaillé de BCaaS et expliciter comment chaque analogie réseau se
+traduit en décisions de conception concrètes.

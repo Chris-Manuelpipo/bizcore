@@ -1,0 +1,131 @@
+\chapter{Implémentation technique}
+\label{chap:impl}
+
+\section{Pile technologique}
+
+Le tableau~\ref{tab:pile} présente la pile effectivement utilisée. Conformément au cadrage
+MVP retenu, les versions et composants y sont indiqués tels qu'ils sont réellement mis en
+œuvre ; les briques avancées non câblées sont reportées au chapitre~\ref{chap:perspectives}.
+
+\begin{table}[H]
+\centering
+\caption{Pile technologique de BCaaS}
+\label{tab:pile}
+\renewcommand{\arraystretch}{1.25}\footnotesize
+\begin{tabularx}{\linewidth}{L{4.2cm} X L{2.8cm}}
+\toprule
+\textbf{Composant} & \textbf{Technologie} & \textbf{Version} \\
+\midrule
+Framework backend     & Spring Boot (servlet, MVC)         & 3.5.x \\
+Langage               & Java                               & 21 LTS \\
+Base de données       & PostgreSQL                         & 16 \\
+Migrations            & Liquibase                          & 4.x \\
+Sécurité              & Spring Security + JWT (jjwt)       & 0.12.6 \\
+Documentation API     & SpringDoc OpenAPI                  & 2.8.6 \\
+Cache / pub-sub       & Redis                              & 7 \\
+Bus d'événements      & Apache Kafka (infra)               & 7.6 (image) \\
+Build                 & Maven                              & 3.9+ \\
+Tests                 & JUnit 5 + Mockito + AssertJ        & 152 tests \\
+Conteneurisation      & Docker + Docker Compose            & --- \\
+Frontend              & Next.js / React / TypeScript       & 16 / 19 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Structure du projet}
+
+Le projet suit l'architecture hexagonale combinée au DDD. L'arborescence backend est
+organisée par responsabilités techniques au sein du package \texttt{com.bizcore.bizcore\_backend}.
+
+\begin{lstlisting}[language={},caption={Structure du projet backend},captionpos=b]
+src/main/java/com/bizcore/bizcore_backend/
+  +-- auth/         # Authentification (register, login, roles)
+  +-- config/       # Configurations (Kafka, Redis, Security, cache)
+  +-- controller/   # Controllers REST
+  +-- domain/       # Entites JPA (15) + enum SupportedCurrency
+  +-- dto/          # Objets de transfert
+  +-- exception/    # GlobalExceptionHandler, ApiError
+  +-- listener/     # Listener Kafka (consommateur)
+  +-- repository/   # Repositories Spring Data (tenant-aware)
+  +-- security/     # JwtService, JwtAuthFilter, TenantFilter, TenantContext
+  +-- service/      # Services metier
+src/main/resources/
+  +-- application.properties
+  +-- db/changelog/ # Migrations Liquibase
+src/test/           # 16 classes, 152 tests (JUnit 5 + Mockito)
+\end{lstlisting}
+
+\section{Multi-tenant et isolation}
+
+L'isolation repose sur le modèle « schéma partagé, colonne \texttt{tenant\_id} » et sur
+trois pièces coordonnées.
+
+\paragraph{1. \texttt{TenantContext} --- un \texttt{ThreadLocal}.}
+Chaque requête HTTP dispose d'une copie isolée du tenant actif, stockée dans un
+\texttt{ThreadLocal<UUID>}, ce qui évite toute fuite entre requêtes concurrentes partageant
+le même pool de threads.
+
+\paragraph{2. \texttt{TenantFilter} --- extraction depuis le JWT.}
+Filtre \texttt{OncePerRequestFilter} d'ordre $2$ (après le filtre d'authentification), il
+lit le claim \texttt{tenantId} du JWT et le place dans le contexte, puis le purge dans un
+bloc \texttt{finally}.
+
+\begin{lstlisting}[language=Java,caption={Extrait simplifié de TenantFilter},captionpos=b]
+String tenantIdStr = jwtService.extractTenantId(jwt);   // claim "tenantId"
+TenantContext.setTenantId(UUID.fromString(tenantIdStr));
+try {
+    filterChain.doFilter(request, response);
+} finally {
+    TenantContext.clear();   // pas de fuite inter-tenant
+}
+\end{lstlisting}
+
+\paragraph{3. Injection du claim à la connexion.}
+À l'authentification, \texttt{JwtService} embarque \texttt{tenantId} et \texttt{tenantName}
+dans le token. Le tenant est ainsi dérivé de l'utilisateur (colonne \texttt{users.tenant\_id})
+et relu à chaque requête sans appel supplémentaire à la base. L'isolation est appliquée
+dans la couche service via des requêtes \emph{tenant-aware} de type
+\texttt{findAllByTenantId(...)}.
+
+\begin{garantie}[Garantie d'isolation et limite assumée]
+Le \texttt{tenant\_id} circule dans le contexte d'exécution et conditionne les requêtes des
+services principaux ; un générateur de clés de cache préfixe par tenant. \textbf{Limite
+assumée :} l'isolation n'est pas une barrière globale (ni filtre Hibernate
+\texttt{@Filter}, ni \emph{Row-Level Security} PostgreSQL) ; elle repose sur la discipline
+de chaque méthode de service. Le renforcement de cette barrière est traité au
+chapitre~\ref{chap:perspectives}.
+\end{garantie}
+
+\section{Sécurité : JWT et RBAC}
+
+L'authentification repose sur un couple email / mot de passe chiffré par BCrypt. Le token
+JWT, signé en HMAC-SHA, porte les rôles et le \texttt{tenantId}. Le contrôle d'accès est
+basé sur les rôles (\texttt{USER}, \texttt{ADMIN}, \texttt{PROVIDER}, \texttt{CONSUMER}),
+un même utilisateur pouvant cumuler plusieurs rôles. Spring Security joue ici le rôle d'un
+pare-feu applicatif filtrant les requêtes selon l'analogie du tableau~\ref{tab:correspondance}.
+
+\section{Persistance et migrations}
+
+Le schéma est géré par Liquibase, garantissant des migrations versionnées et reproductibles
+(création du schéma, ajout des tables \texttt{notifications}, \texttt{messages},
+\texttt{audit\_events}, colonnes \texttt{tenant\_id} contraintes par clé étrangère et
+indexées). Le paramètre \texttt{ddl-auto=none} laisse Liquibase seul maître du schéma en
+exécution.
+
+\section{Temps réel et événementiel}
+
+La messagerie instantanée sur les demandes de service est réalisée par \textbf{Redis
+publish/subscribe} : le service de messages publie sur un canal
+\texttt{messages:<requestId>}. Un \textbf{bus d'événements Kafka} est configuré
+(\texttt{KafkaTemplate} côté producteur, \texttt{@KafkaListener} sur le topic
+\texttt{bizcore.events} côté consommateur) ; l'infrastructure est posée et le consommateur
+opérationnel, la \emph{production} d'événements restant à câbler (perspective au
+chapitre~\ref{chap:perspectives}). Le cache Redis est de même configuré (gestionnaire de
+cache, TTL par espace) et prêt à être activé par annotations.
+
+\section{Documentation et conteneurisation}
+
+L'API est documentée automatiquement via SpringDoc OpenAPI et explorable par Swagger UI
+(annexe~\ref{ann:swagger}). Un \texttt{docker-compose} décrit l'environnement local complet
+(application, PostgreSQL, Redis, Kafka avec \emph{healthchecks} et dépendances
+ordonnancées) ; en production, l'API et sa base s'exécutent sur Render.

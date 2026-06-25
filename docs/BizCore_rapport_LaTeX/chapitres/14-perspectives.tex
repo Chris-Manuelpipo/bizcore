@@ -1,0 +1,70 @@
+\chapter{Perspectives d'amélioration}
+\label{chap:perspectives}
+
+Le MVP livré pose des fondations solides ; il ouvre néanmoins de nombreuses pistes
+d'amélioration, dont plusieurs correspondent aux contraintes technologiques avancées du
+sujet. Cette feuille de route est organisée par horizon.
+
+\section{Court terme : finalisation des briques posées}
+
+\begin{itemize}
+  \item \textbf{Câblage de l'événementiel Kafka.} L'infrastructure (producteur configuré,
+        topic \texttt{bizcore.events}, consommateur de notifications) est en place ; il
+        reste à publier effectivement les événements de domaine (changement de statut d'une
+        demande, génération de facture) pour rendre la chaîne pleinement \emph{event-driven}.
+  \item \textbf{Activation du cache Redis.} Le gestionnaire de cache et les TTL sont
+        définis ; l'ajout d'annotations \texttt{@Cacheable} / \texttt{@CacheEvict} sur les
+        lectures fréquentes (règles métier, configuration tenant, catalogue) activerait le
+        cache déjà préfixé par tenant.
+  \item \textbf{Limitation de débit (rate limiting).} La dépendance Bucket4j est présente ;
+        son intégration permettrait d'appliquer des quotas par tenant, prolongeant l'analogie
+        de la bande passante et de la QoS.
+  \item \textbf{Mesure de couverture de tests.} L'ajout de JaCoCo fournirait un indicateur
+        chiffré de couverture.
+    \item\textbf{Sur le plan de l'architecture: }il s'agirait d'étendre la couverture des cent cinquante-deux tests automatisés afin d'inclure des scénarios de charge et des tests d'intégration multitenant plus poussés, garantissant la robustesse de l'isolation par tenantId dans des conditions de concurrence élevée
+    
+    \item\textbf{La documentation OpenAPI: }pourrait également être enrichie d'exemples d'utilisation et de scénarios d'erreur, facilitant l'adoption de l'API par de nouveaux développeurs
+
+    \item\textbf{le service d'analytique et la piste d'audit:} pourraient être complétés par des tableaux de bord de supervision en temps réel, exploitant les données déjà collectées pour offrir une visibilité immédiate sur l'activité de chaque tenant
+    
+\end{itemize}
+
+\section{Moyen terme : robustesse et qualité de service}
+
+\begin{itemize}
+  \item \textbf{Isolation multi-tenant renforcée.} Passer de la discipline applicative à
+        une barrière systématique au moyen d'un filtre Hibernate \texttt{@Filter} ou de la
+        \emph{Row-Level Security} PostgreSQL, voire d'une isolation par schéma dédié pour
+        les tenants premium.
+  \item \textbf{QoS différenciée.} Introduire des niveaux de service inspirés de DiffServ
+        (Bronze, Silver, Gold, Platinum) combinant priorité, latence cible et stratégie
+        d'isolation.
+  \item \textbf{Observabilité complète.} Exposer des métriques via Prometheus et un tableau
+        de bord Grafana, et mettre en place des logs structurés agrégés.
+
+  \item \textbf{Le modele generique}pourrait être étendu pour couvrir de nouveaux domaines métier au-delà du cas d'usage initial, validant ainsi la généricité réelle du Business Core sur des secteurs d'activité variés (santé, transport, logistique)
+
+  \item \textbf{L'authentification JWT et le contrôle d'accès basé sur les rôles :} pourraient évoluer vers une gestion plus fine des permissions, avec la possibilité pour chaque tenant de définir ses propres rôles et politiques d'autorisation sans intervention sur le code du système
+\end{itemize}
+
+\section{Long terme : montée en charge et nouvelles contraintes}
+
+\begin{itemize}
+  \item \textbf{Architecture réactive.} Migration vers Spring WebFlux + R2DBC pour un
+        modèle non bloquant, mieux adapté à une forte concurrence.
+  \item \textbf{Géo-référencement natif.} Intégration de PostGIS et d'attributs de
+        localisation pour les recherches géo-spatiales (\emph{geolocation aware}).
+  \item \textbf{Stockage d'objets.} Adoption de MinIO pour les médias, au lieu de la simple
+        URL actuellement stockée.
+  \item \textbf{Sécurité renforcée.} Double authentification (2FA) et migration vers
+        OAuth 2.0.
+  \item \textbf{Front offline-first et international.} Transformation du frontend en PWA
+        installable, mode hors-ligne, et internationalisation (i18n) web et mobile.
+  \item \textbf{Application mobile native.} Client React Native partageant l'API.
+  \item \textbf{Microservices.} Extraction progressive des modules en services déployés
+        indépendamment, le découpage actuel ayant été pensé pour cette évolution.
+  \item \textbf{Marketplace d'instances.} À terme, permettre à des entreprises de déployer
+        leur propre configuration BCaaS sans développement, comme socle d'un écosystème
+        d'instances métier.
+  \item \textbf{ La grille de lecture protocolaire en cinq couches : }, actuellement formalisée et reliée au modèle OSI, pourrait servir de fondement à une véritable spécification ouverte du Business Core as a Service, documentée et partagée, permettant à d'autres équipes de contribuer à son évolution ou de l'adopter comme standard interne
+\end{itemize}

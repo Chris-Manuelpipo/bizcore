@@ -1,0 +1,234 @@
+%=====================================================================
+%  BCaaS — Business Core as a Service
+%  Rapport de projet — 3GI, Introduction aux Réseaux, S2 2025-2026
+%  École Nationale Supérieure Polytechnique de Yaoundé (ENSPY)
+%=====================================================================
+\documentclass[12pt,a4paper]{report}
+
+%------------------------- Encodage & langue -------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+%------------------------- Mise en page ------------------------------
+\usepackage[top=2cm, bottom=2cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+%------------------------- Polices ----------------------------------
+\usepackage{lmodern}
+\usepackage{microtype}
+
+%------------------------- Graphiques & couleurs ---------------------
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, positioning, calc, fadings, shadows,
+	decorations.pathmorphing, arrows.meta}
+
+%------------------------- Tableaux ----------------------------------
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{tabularx}
+
+%------------------------- Figures & flottants ----------------------
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{labelfont=bf, labelsep=period, font=small}
+
+%------------------------- Listes ------------------------------------
+\usepackage{enumitem}
+
+%------------------------- En-têtes / pieds de page -----------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{NavyBlue}{\textit{BCaaS — Business Core as a Service}}}
+\fancyhead[R]{\small\textcolor{NavyBlue}{\textit{ENSPY – GI – 3e Année}}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+%------------------------- Liens hypertexte --------------------------
+\usepackage[hidelinks,colorlinks=true,linkcolor=NavyBlue,
+urlcolor=teal,citecolor=NavyBlue]{hyperref}
+
+%------------------------- Boîtes colorées --------------------------
+\usepackage{tcolorbox}
+\tcbuselibrary{most}
+
+%------------------------- Titres (titlesec) -------------------------
+\usepackage{titlesec}
+
+\titleformat{\chapter}[display]
+{\normalfont\Large\bfseries\color{NavyBlue}}
+{\chaptertitlename\ \thechapter}{10pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\titleformat{\section}
+{\normalfont\large\bfseries\color{NavyBlue}}
+{\thesection}{0.8em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+
+\titleformat{\subsection}
+{\normalfont\normalsize\bfseries\color{ENSPYblue!80}}
+{\thesubsection}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+
+\titleformat{\subsubsection}
+{\normalfont\normalsize\itshape\color{AccentOrange}}
+{\thesubsubsection}{0.6em}{}
+\titlespacing*{\subsubsection}{0pt}{8pt}{2pt}
+
+%------------------------- Couleurs personnalisées ------------------
+\definecolor{ENSPYblue}{RGB}{0, 51, 153}
+\definecolor{ENSPYgold}{RGB}{204, 153, 0}
+\definecolor{GradTop}{RGB}{0, 51, 153}
+\definecolor{GradBot}{RGB}{0, 102, 204}
+\definecolor{AccentOrange}{RGB}{230, 100, 20}
+\definecolor{LightBg}{RGB}{240, 245, 255}
+\definecolor{MyBlue}{RGB}{0,70,180}
+\definecolor{MyOrange}{RGB}{230,100,10}
+\definecolor{MyDark}{RGB}{20,20,40}
+\definecolor{OrangeBg}{RGB}{255,243,230}
+\definecolor{GreenBg}{RGB}{230,245,230}
+\definecolor{NavyBlue}{RGB}{0,0,128}
+
+%=====================================================================
+\begin{document}
+	\sloppy
+	
+	%===================== PAGE DE GARDE ===============================
+\begin{titlepage}
+	
+	% === RÉDUIRE LES MARGES UNIQUEMENT ICI ===
+	\newgeometry{top=1.2cm, bottom=1.2cm, left=1.5cm, right=1.5cm}
+	
+	% === EN-TÊTE BILINGUE AVEC LOGO CENTRÉ ===
+	\begin{center}
+		\begin{tabular}{m{0.4\textwidth} m{0.15\textwidth} m{0.4\textwidth}}
+			\begin{flushleft}
+				\begin{center}
+					{\small
+						{République du Cameroun}\\
+						\textit{Paix -- Travail -- Patrie}\\
+						---------------\\
+						{Université de Yaoundé I}\\
+						---------------\\
+						École Nationale Supérieure Polytechnique de Yaoundé\\
+						{(ENSPY)}\\
+						---------------\\
+						Département de Génie Informatique
+					}
+				\end{center}
+			\end{flushleft}
+			&
+			\centering
+			\includegraphics[width=2.5cm]{figures/logopo-rbg.png}
+			&
+			\begin{flushright}
+				\begin{center}
+					{\small
+						{Republic of Cameroon}\\
+						\textit{Peace -- Work -- Fatherland}\\
+						---------------\\
+						{University of Yaoundé I}\\
+						---------------\\
+						National Advanced School of Engineering of Yaoundé\\
+						{(NASEY)}\\
+						---------------\\
+						Department of Computer Engineering
+					}
+				\end{center}
+			\end{flushright}
+		\end{tabular}
+	\end{center}
+	
+	\vspace{0.2cm}
+	
+	% --- Trait décoratif ---
+	{\color{MyBlue}\rule{\linewidth}{1.2pt}}
+	\vspace{0.1cm}
+	{\color{MyOrange}\rule{\linewidth}{0.5pt}}
+	
+	\vspace{0.3cm}
+	
+	% --- Titre RAPPORT DE PROJET ---
+	\begin{center}
+		{\Large \bfseries \color{MyBlue} Rapport de projet}
+		
+	
+		{\sffamily\bfseries\color{MyOrange}\fontsize{34}{38}\selectfont Business Core as a Service\par}
+		\vspace{0.1cm} 
+		{ \itshape \color{gray!60} Une infrastructure générique de gestion des métiers\\[0.05cm]
+			inspirée de l'ingénierie des protocoles réseaux}
+	\end{center}
+	
+	% --- Trait décoratif ---
+	{\color{MyOrange}\rule{\linewidth}{0.5pt}}
+	\vspace{0.1cm}
+	{\color{MyBlue}\rule{\linewidth}{1.2pt}}
+	
+	\vspace{0.3cm}
+	
+	% --- GROUPE 3 ---
+	\begin{center}
+		{\large \bfseries \color{MyOrange} \textsc{Groupe 3}}
+	\end{center}
+	
+	\vspace{0.2cm}
+	
+	% --- Auteurs ---
+	\begin{center} 
+		\vspace{0.15cm}
+		\renewcommand{\arraystretch}{1.15}
+		\begin{tabular}{l c c}
+			\toprule[0.6pt]
+			\textbf{Nom \& Prénom(s)} & \textbf{Matricule} & \textbf{Participation (\%)} \\
+			\midrule
+			ETCHOME Chris                  & \underline{\hspace{2cm}} & \underline{\hspace{1.2cm}} \\
+			KEMDA DEMANOU Jean Loïc        & \underline{\hspace{2cm}} & \underline{\hspace{1.2cm}} \\
+			KENNE DIHA Ange Léa            & \underline{\hspace{2cm}} & \underline{\hspace{1.2cm}} \\
+			KOTCHAP TINGA Blessing         & \underline{\hspace{2cm}} & \underline{\hspace{1.2cm}} \\
+			MBA BELA Océanne               & \underline{\hspace{2cm}} & \underline{\hspace{1.2cm}} \\
+			KONGNI TCHINDA Jude Roland     & \underline{\hspace{2cm}} & \underline{\hspace{1.2cm}} \\
+			\bottomrule[0.6pt]
+		\end{tabular}
+	\end{center}
+	
+	\vspace{0.3cm}
+	
+	% --- Encadrement (à droite) ---
+	\begin{flushright}
+		{ \bfseries \color{MyBlue} \large Sous la supervision de :}
+		
+		\vspace{0.05cm}
+		{  Pr. Dr Ing. \textbf{Thomas Djotio Ndié}}
+		
+		\vspace{0.2cm}
+		
+		{  \bfseries \color{MyBlue} Assistant :}
+		
+		\vspace{0.05cm}
+		{ \textbf{Juslin KUTCHE NEGOUE}}
+		
+		\vspace{0.05cm}
+		{\small MSc, PhD Student}
+	\end{flushright}
+	
+	\vfill
+	
+	% --- Pied de page ---
+	\begin{center}
+		{\small Année académique 2025-2026} 
+	\end{center}
+	
+	% === RESTAURER LES MARGES ORIGINALES ===
+	\restoregeometry
+	
+\end{titlepage}
+	
+\end{document}

@@ -1,0 +1,163 @@
+\babel@toc {french}{}\relax 
+\contentsline {chapter}{Résumé}{i}{chapter*.1}%
+\contentsline {chapter}{Abstract}{ii}{chapter*.2}%
+\contentsline {chapter}{Liste des abréviations}{ix}{chapter*.6}%
+\contentsline {chapter}{\numberline {1}Introduction générale}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Contexte du projet}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Problème}{1}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Problématique}{2}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Objectifs}{2}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1}Objectif général}{2}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2}Objectifs spécifiques}{2}{subsection.1.4.2}%
+\contentsline {section}{\numberline {1.5}Méthodologie}{3}{section.1.5}%
+\contentsline {section}{\numberline {1.6}Structure du document}{4}{section.1.6}%
+\contentsline {chapter}{\numberline {2}État de l'art}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Modèles en couches : OSI et TCP/IP}{5}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Le modèle OSI}{5}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}La suite TCP/IP}{6}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Intérêt méthodologique pour BCaaS}{7}{subsection.2.1.3}%
+\contentsline {section}{\numberline {2.2}Architectures multi-tenant}{7}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Définition et enjeux}{7}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Trois stratégies d'isolation}{8}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Analogie avec les réseaux virtuels (VLAN)}{9}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Le paradigme \textit {as-a-Service} et le \textit {Business as a Service}}{9}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}L'évolution des modèles \textit {as-a-Service}}{9}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Le \textit {Business as a Service} (BaaS)}{10}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Avantages et défis du BaaS}{10}{subsection.2.3.3}%
+\contentsline {paragraph}{Avantages.}{10}{paragraph*.10}%
+\contentsline {paragraph}{Défis.}{10}{paragraph*.11}%
+\contentsline {section}{\numberline {2.4}Architecture hexagonale et \textit {Domain-Driven Design}}{10}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}L'architecture hexagonale (\textit {Ports \& Adaptateurs})}{10}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Le \textit {Domain-Driven Design} (DDD)}{11}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}DDD et architecture hexagonale : une synergie naturelle}{12}{subsection.2.4.3}%
+\contentsline {section}{\numberline {2.5}Positionnement de BCaaS}{12}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Ce que la littérature fournit déjà}{12}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Le \textit {gap} identifié}{12}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}La contribution de BCaaS}{13}{subsection.2.5.3}%
+\contentsline {section}{Conclusion du chapitre}{13}{subsection.2.5.3}%
+\contentsline {chapter}{\numberline {3}Analogie formelle entre réseaux et métier}{14}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Table de correspondance réseau--métier}{14}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Émetteur, récepteur, protocole et message}{15}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Flux de traitement d'une requête}{16}{section.3.3}%
+\contentsline {section}{\numberline {3.4}La pile protocolaire métier en cinq couches}{16}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Couche 1 --- Infrastructure}{16}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Couche 2 --- Transport \& Messaging}{17}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {3.4.3}Couche 3 --- Tenant \& Routing}{17}{subsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.4.4}Couche 4 --- Context \& Policy}{18}{subsection.3.4.4}%
+\contentsline {subsection}{\numberline {3.4.5}Couche 5 --- Business Capabilities}{18}{subsection.3.4.5}%
+\contentsline {section}{\numberline {3.5}Le multi-tenant comme réseau virtuel (VLAN)}{18}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Plan de contrôle et plan de données}{18}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Routage applicatif et recherche de chemin logique}{19}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Contrôle de flux et qualité de service (QoS)}{19}{section.3.8}%
+\contentsline {chapter}{\numberline {4}Analyse et spécification des besoins}{20}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Besoins fonctionnels}{20}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Besoins non fonctionnels}{21}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Diagramme de contexte}{22}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Modélisation mathématique}{23}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Ensembles fondamentaux}{23}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Décomposition des acteurs}{23}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Attributs des entités principales}{23}{subsection.5.1.2}%
+\contentsline {section}{\numberline {5.2}Variables de décision et fonction objectif}{23}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Variables}{24}{subsection.5.2.1}%
+\contentsline {section}{\numberline {5.3}Contraintes du système}{24}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Contraintes de cardinalité}{24}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Contraintes métier}{24}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}Contrainte de workflow : machine à états}{24}{subsection.5.3.3}%
+\contentsline {section}{\numberline {5.4}Algorithmes et complexité}{25}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Recherche des fournisseurs d'un métier}{25}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Recherche par filtres combinés}{25}{subsection.5.4.2}%
+\contentsline {section}{\numberline {5.5}Indicateurs et métriques (KPIs)}{25}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Architecture en couches : composition de fonctions}{26}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}Définition formelle}{26}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}Propriété : encapsulation stricte}{26}{subsection.5.6.2}%
+\contentsline {subsection}{\numberline {5.6.3}Exemple}{27}{subsection.5.6.3}%
+\contentsline {section}{\numberline {5.7}Isolation multi-tenant : théorie des ensembles}{27}{section.5.7}%
+\contentsline {subsection}{\numberline {5.7.1}Définitions}{27}{subsection.5.7.1}%
+\contentsline {subsection}{\numberline {5.7.2}Propriété : isolation totale}{27}{subsection.5.7.2}%
+\contentsline {subsection}{\numberline {5.7.3}Exemple}{28}{subsection.5.7.3}%
+\contentsline {section}{\numberline {5.8}Provisionnement d'un tenant : suite finie d'états}{28}{section.5.8}%
+\contentsline {subsection}{\numberline {5.8.1}Les sept états du provisionnement}{28}{subsection.5.8.1}%
+\contentsline {subsection}{\numberline {5.8.2}Propriété : injectivité du domaine}{28}{subsection.5.8.2}%
+\contentsline {subsection}{\numberline {5.8.3}Exemple}{28}{subsection.5.8.3}%
+\contentsline {chapter}{\numberline {6}Conception architecturale}{30}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Architecture hexagonale et DDD}{30}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Monolithe modulaire « microservices-ready »}{30}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Diagramme de packages}{31}{section.6.3}%
+\contentsline {paragraph}{Tenant}{31}{paragraph*.23}%
+\contentsline {paragraph}{Authentification et gestion des acteurs}{31}{paragraph*.24}%
+\contentsline {paragraph}{Gestion des business et services}{32}{paragraph*.25}%
+\contentsline {paragraph}{Gestion des médias, ressources et factures}{32}{paragraph*.26}%
+\contentsline {chapter}{\numberline {7}Conception détaillée des données}{33}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Dictionnaire des entités}{33}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Modèle Logique de Données (MLD)}{34}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Diagramme de classes métier}{35}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Contraintes d'intégrité}{35}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Machines à états}{36}{section.7.5}%
+\contentsline {chapter}{\numberline {8}Implémentation technique}{37}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Pile technologique}{37}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Structure du projet}{37}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Multi-tenant et isolation}{38}{section.8.3}%
+\contentsline {paragraph}{1. \texttt {TenantContext} --- un \texttt {ThreadLocal}.}{38}{paragraph*.34}%
+\contentsline {paragraph}{2. \texttt {TenantFilter} --- extraction depuis le JWT.}{38}{paragraph*.35}%
+\contentsline {paragraph}{3. Injection du claim à la connexion.}{38}{paragraph*.36}%
+\contentsline {section}{\numberline {8.4}Sécurité : JWT et RBAC}{39}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Persistance et migrations}{39}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Temps réel et événementiel}{39}{section.8.6}%
+\contentsline {section}{\numberline {8.7}Documentation et conteneurisation}{39}{section.8.7}%
+\contentsline {chapter}{\numberline {9}Protocole d'échange pour un cas métier concret}{40}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Cas choisi : création d'un Business et ajout au catalogue}{40}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Protocole : création d'un Business}{40}{section.9.2}%
+\contentsline {paragraph}{Codes d'erreur (analogie : messages ICMP).}{41}{paragraph*.37}%
+\contentsline {section}{\numberline {9.3}Protocole : ajout au catalogue de services}{41}{section.9.3}%
+\contentsline {paragraph}{Sémantique du transport.}{41}{paragraph*.38}%
+\contentsline {chapter}{\numberline {10}Traçabilité et observabilité}{42}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Piste d'audit}{42}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Tracing : \texttt {traceId} et \texttt {correlationId}}{43}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Analytique et KPIs}{44}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Logs structurés (proposition)}{45}{section.10.4}%
+\contentsline {chapter}{\numberline {11}Frontend et déploiement}{46}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Architecture du frontend}{46}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Choix techniques}{46}{section.11.2}%
+\contentsline {section}{\numberline {11.3}Pages principales}{47}{section.11.3}%
+\contentsline {section}{\numberline {11.4}Déploiement}{47}{section.11.4}%
+\contentsline {chapter}{\numberline {12}Tests et validation}{50}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Stratégie de test}{50}{section.12.1}%
+\contentsline {subsection}{\numberline {12.1.1}Vue d'ensemble et outillage}{50}{subsection.12.1.1}%
+\contentsline {subsection}{\numberline {12.1.2}Environnement de test}{51}{subsection.12.1.2}%
+\contentsline {paragraph}{Base H2 en mémoire.}{51}{paragraph*.44}%
+\contentsline {paragraph}{Liquibase désactivé.}{51}{paragraph*.45}%
+\contentsline {paragraph}{Profil Spring dédié.}{51}{paragraph*.46}%
+\contentsline {subsection}{\numberline {12.1.3}Les trois niveaux de test}{51}{subsection.12.1.3}%
+\contentsline {section}{\numberline {12.2}Critères d'acceptation}{53}{section.12.2}%
+\contentsline {subsection}{\numberline {12.2.1}Définition et méthode}{53}{subsection.12.2.1}%
+\contentsline {subsection}{\numberline {12.2.2}Tableau des critères}{53}{subsection.12.2.2}%
+\contentsline {subsection}{\numberline {12.2.3}Analyse des critères}{54}{subsection.12.2.3}%
+\contentsline {paragraph}{ACC-001 — Endpoints REST.}{54}{paragraph*.48}%
+\contentsline {paragraph}{ACC-002 — Authentification JWT.}{54}{paragraph*.49}%
+\contentsline {paragraph}{ACC-003 — Cycle CdS $\rightarrow $ FdS.}{54}{paragraph*.50}%
+\contentsline {paragraph}{ACC-004 — Génération automatique de la facture.}{54}{paragraph*.51}%
+\contentsline {paragraph}{ACC-005 — Isolation multi-tenant.}{54}{paragraph*.52}%
+\contentsline {paragraph}{ACC-006 — Documentation Swagger.}{54}{paragraph*.53}%
+\contentsline {section}{\numberline {12.3}Scénario de validation bout-en-bout}{55}{section.12.3}%
+\contentsline {subsection}{\numberline {12.3.1}Objectif et portée}{55}{subsection.12.3.1}%
+\contentsline {subsection}{\numberline {12.3.2}Déroulement du scénario nominal}{55}{subsection.12.3.2}%
+\contentsline {subsection}{\numberline {12.3.3}Ce que le scénario valide}{56}{subsection.12.3.3}%
+\contentsline {section}{\numberline {12.4}Note sur la couverture de code et perspectives}{57}{section.12.4}%
+\contentsline {subsection}{\numberline {12.4.1}État actuel}{57}{subsection.12.4.1}%
+\contentsline {subsection}{\numberline {12.4.2}Perspectives d'amélioration}{57}{subsection.12.4.2}%
+\contentsline {section}{Synthèse}{57}{subsection.12.4.2}%
+\contentsline {chapter}{\numberline {13}Perspectives d'amélioration}{59}{chapter.13}%
+\contentsline {section}{\numberline {13.1}Court terme : finalisation des briques posées}{59}{section.13.1}%
+\contentsline {section}{\numberline {13.2}Moyen terme : robustesse et qualité de service}{59}{section.13.2}%
+\contentsline {section}{\numberline {13.3}Long terme : montée en charge et nouvelles contraintes}{60}{section.13.3}%
+\contentsline {chapter}{\numberline {14}Conclusion générale}{61}{chapter.14}%
+\contentsline {section}{\numberline {14.1}Bilan}{61}{section.14.1}%
+\contentsline {section}{\numberline {14.2}Limites}{61}{section.14.2}%
+\contentsline {section}{\numberline {14.3}Apports personnels}{62}{section.14.3}%
+\contentsline {chapter}{Bibliographie}{63}{chapter*.54}%
+\contentsline {chapter}{Glossaire}{64}{chapter*.55}%
+\contentsline {chapter}{\numberline {A}Annexes}{66}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Liste des endpoints REST}{66}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Exemple de log structuré}{67}{section.A.2}%
+\contentsline {section}{\numberline {A.3}Capture Swagger UI}{67}{section.A.3}%
+\contentsline {section}{\numberline {A.4}Extraits de code significatifs}{67}{section.A.4}%

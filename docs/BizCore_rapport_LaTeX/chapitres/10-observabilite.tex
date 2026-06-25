@@ -1,0 +1,86 @@
+\chapter{Traçabilité et observabilité}
+\label{chap:observ}
+
+Dans une architecture multi-tenant et distribuée comme la plateforme BCaaS, l'absence de visibilité sur l'état interne du système constitue un risque majeur. Pour garantir une transparence totale sur le cycle de vie des transactions, ce chapitre formalise notre couche d'observabilité.
+
+En transposant les techniques de supervision et d'analyse de protocoles propres aux infrastructures réseaux --- à l'image d'une capture de flux ou d'une analyse de paquets sous Wireshark --, nous articulons ce module autour d'éléments réellement implémentés au cœur de l'application :
+\begin{enumerate}
+    \item \textbf{Une piste d'audit :} Matérialisée par l'entité \texttt{AuditEvent}, elle enregistre de manière exhaustive les actions clés, les adresses IP et les dimensions de sécurité de chaque transaction.
+    \item \textbf{Un système de tracing distribué :} L'utilisation des identifiants \texttt{traceId} et \texttt{correlationId} (UUID) qui se propagent dans tout le système pour suivre les flux de bout en bout, jouant le rôle des numéros de séquence TCP.
+    \item \textbf{Un service analytique :} Un module dédié exposé par API pour calculer les indicateurs clés (KPIs) des tenants, calqués sur les métriques réseaux fondamentales (latence moyenne, débit, taux d'erreur).
+\end{enumerate}
+
+Ce dispositif se trouve complété en fin de chapitre par une proposition d'intégration de logs structurés au format JSON.
+
+\section{Piste d'audit}
+
+L'entité \texttt{AuditEvent} enregistre les événements significatifs du système : type d'entité concernée (\texttt{SERVICE\_REQUEST}, \texttt{INVOICE}, \texttt{ACTOR}, \texttt{BUSINESS}, \texttt{SERVICE\_CATALOGUE}), action (\texttt{CREATED}, \texttt{STATUS\_CHANGED}, \texttt{UPDATED}, \texttt{DELETED}), statut précédent et nouveau, adresse IP, \emph{user agent} et métadonnées au format JSON. 
+
+Conçue selon un principe de stricte \textbf{immuabilité}, la piste d'audit fonctionne exclusivement en mode \emph{Append-Only} (écriture seule) : aucune opération de mise à jour (\texttt{UPDATE}) ou de suppression (\texttt{DELETE}) n'est exposée par l'API ou autorisée par le système, garantissant la non-répudiation des logs même en cas de compromission d'un administrateur de tenant.
+
+L'enregistrement capture les dimensions clés de chaque transaction :
+\begin{itemize}
+  \item \textbf{Le contexte d'application} : Le type d'entité concernée.
+  \item \textbf{La nature de l'opération} : L'action effectuée, accompagnée de l'état précédent et du nouvel état de l'entité.
+  \item \textbf{L'empreinte d'infrastructure} : L'adresse IP de l'appelant ainsi que son \emph{user agent} (navigateur ou client applicatif).
+  \item \textbf{La charge utile} : Des métadonnées dynamiques stockées dans un champ au format \texttt{JSONB} sous PostgreSQL. Ce choix technique permet de supporter un polymorphisme des données métiers (les métadonnées d'une facture différant de celles d'un catalogue) sans altérer le schéma relationnel.
+\end{itemize}
+
+Chaque événement porte obligatoirement les identifiants bruts \texttt{tenantId}, \texttt{actorId}, \texttt{entityId} et \texttt{traceId}. L'API d'audit permet d'interroger et de filtrer ces événements par demande de service, par acteur, par tenant et par trace.
+
+\begin{analogie}[Analogie : Deep Packet Inspection et Sonde Réseau]
+La capture des données d'audit est réalisée de manière non intrusive via un intercepteur applicatif (\texttt{OncePerRequestFilter} au niveau de la couche de sécurité), agissant comme une sonde réseau (SPAN/Mirroring). L'analyse de la charge utile \texttt{JSONB} est analogue au \emph{Deep Packet Inspection} (DPI), où l'on inspecte non seulement les en-têtes du paquet (IP, Tenant, Acteur), mais également le contenu profond de la charge utile applicative pour en valider l'intégrité opérationnelle.
+\end{analogie}
+
+\section{Tracing : \texttt{traceId} et \texttt{correlationId}}
+
+Chaque \texttt{ServiceRequest} véhicule de manière intrinsèque un \texttt{traceId} et un \texttt{correlationId} sous forme d'identifiants uniques universels (UUID). Bien qu'ils concourent tous deux à la visibilité du système, ils répondent à des granularités distinctes :
+\begin{itemize}
+    \item \textbf{\texttt{traceId}} : Il est associé à une unique requête HTTP entrante. Il permet de suivre le fil d'exécution synchrone d'un bout à l'autre des couches logicielles (\emph{Controller}, \emph{Service}, \emph{Repository}) pour une opération donnée.
+    \item \textbf{\texttt{correlationId}} : Il englobe une opération métier globale pouvant impliquer plusieurs requêtes ou événements asynchrones distincts (par exemple, une demande de service qui déclenche une génération de facture puis une notification). Toutes ces sous-opérations partagent le même \texttt{correlationId}, permettant de lier logiquement des transactions hétérogènes.
+\end{itemize}
+
+Le mécanisme repose sur la \textbf{propagation de contexte}. À l'entrée du système, la passerelle applicative gère la genèse de ces identifiants et les injecte dans les en-têtes HTTP (\texttt{X-Trace-Id} et \texttt{X-Correlation-Id}). Les services internes extraient ces en-têtes et les rattachent au fil d'exécution via le mécanisme \texttt{MDC} (\emph{Mapped Diagnostic Context}) de la brique de journalisation, garantissant leur inscription systématique dans chaque log généré.
+
+\begin{analogie}[Analogie : En-tête de protocole et circuit virtuel]
+Le \texttt{traceId} et le \texttt{correlationId} agissent exactement comme les en-têtes de contrôle d'un protocole réseau (tels que les numéros de séquence TCP ou les étiquettes MPLS). Au lieu d'altérer la charge utile de la requête métier, ces identifiants sont encapsulés dans les couches de transport applicatif (en-têtes HTTP), permettant aux routeurs applicatifs et aux commutateurs de logs de corréler et de reconstituer la topologie complète du flux de données sans inspecter le contenu sémantique du message.
+\end{analogie}
+
+\section{Analytique et KPIs}
+
+Le service d'analytique calcule en temps réel, pour chaque tenant, les indicateurs clés de performance (KPIs) formalisés au chapitre~\ref{chap:math}. Afin de préserver les performances du noyau transactionnel et d'éviter des requêtes d'agrégation (\texttt{COUNT}, \texttt{SUM}) lourdes sur la base de données relationnelle, le système implémente un principe de \textbf{séparation des responsabilités} (CQRS applicatif). Les métriques sont soit calculées de manière asynchrone au fil de l'eau via le bus d'événements, soit agrégées et matérialisées dans un cache en mémoire à haute disponibilité (\texttt{Redis}).
+
+L'endpoint \texttt{GET /api/analytics/tenants/\{tenantId\}/kpis} expose ces indicateurs. Pour garantir une haute réactivité, les réponses de cet endpoint sont associées à une durée de vie stricte (\emph{TTL - Time To Live}), limitant la fréquence de recalcul. Le tableau~\ref{tab:metriques} dresse la liste de ces métriques opérationnelles et explicite leur équivalent conceptuel dans le domaine des réseaux.
+
+\begin{table}[H]
+\centering
+\caption{Métriques de BCaaS et leur analogie réseau}
+\label{tab:metriques}
+\renewcommand{\arraystretch}{1.25}\footnotesize
+\begin{tabularx}{\linewidth}{L{3.6cm} L{4.4cm} X}
+\toprule
+\textbf{Métrique} & \textbf{Analogie réseau} & \textbf{Calcul} \\
+\midrule
+Taux de conversion   & Taux de livraison de paquets & demandes finalisées / total \\
+Latence moyenne      & RTT (Round Trip Time)        & temps moyen de traitement \\
+Débit (req/s)        & Bande passante               & requêtes par minute \\
+Taux d'erreur        & Taux de perte                & réponses 4xx/5xx / total \\
+Panier moyen         & Taille moyenne de payload    & chiffre d'affaires / nb factures \\
+Délai d'exécution    & Délai de routage             & temps requête $\rightarrow$ finalisation \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{analogie}[Analogie : Cache DNS et TTL]
+Le mécanisme de mise en cache des KPIs avec un TTL (Time To Live) est rigoureusement identique à la gestion d'un cache DNS ou d'une table de routage dynamique. Un équipement réseau ne sollicite pas le serveur racine pour chaque paquet à acheminer ; il maintient une copie locale des routes et des résolutions de noms pendant une durée déterminée afin de maximiser le débit global et de minimiser la surcharge CPU du système.
+\end{analogie}
+
+\section{Logs structurés (proposition)}
+
+Pour compléter le dispositif d'observabilité, une stratégie de journalisation structurée au format JSON est proposée. Contrairement aux chaînes de caractères de texte brut traditionnelles (\emph{Plain Text}) dont l'analyse logicielle requiert des expressions régulières complexes et fragiles, le format JSON standardise nativement la sémantique de chaque ligne de log. Chaque entrée intègre systématiquement le contexte d'exécution complet : \texttt{tenant\_id}, \texttt{trace\_id}, \texttt{actor\_id}, le nom du service, l'opération exécutée, la durée exacte du traitement et le code de statut HTTP retourné.
+
+L'implémentation de cette proposition repose sur un découplage total : l'application écrit ces objets JSON directement sur la sortie standard (\texttt{STDOUT}), minimisant l'impact sur le thread d'exécution métier. Un agent de collecte léger (tel que \emph{Promtail} ou \emph{FluentBit}) se charge ensuite d'aspirer ces flux de manière asynchrone pour alimenter une chaîne de centralisation (\emph{Grafana Loki} ou pile \emph{ELK}). Cette structuration permet d'effectuer des requêtes multi-critères instantanées et de corréler une alerte de performance globale avec les logs spécifiques d'un tenant.
+
+\begin{analogie}[Analogie : Protocoles d'export de flux (NetFlow / IPFIX)]
+La journalisation structurée en JSON is l'équivalent applicatif des protocoles de métrologie réseau tels que \emph{NetFlow} (Cisco) ou \emph{IPFIX}. Un routeur réseau n'exporte pas des lignes de texte brut pour décrire le trafic ; il transmet des enregistrements structurés contenant des champs normalisés (adresses IP, ports, drapeaux TCP, volumes). Cette standardisation permet aux collecteurs réseau, tout comme à nos indexeurs de logs, d'agréger, de filtrer et de cartographier le trafic en temps réel à grande échelle.
+\end{analogie}

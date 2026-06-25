@@ -1,0 +1,474 @@
+% ============================================================
+%  CHAPITRE 12 — Tests et validation
+%  À inclure dans le document principal avec :
+%    \input{chapitre12}   ou   \include{chapitre12}
+% ============================================================
+
+\chapter{Tests et validation}
+\label{chap:tests-validation}
+
+La qualité d'un système logiciel ne se décrète pas~: elle se démontre. Ce chapitre
+présente l'ensemble de la démarche de validation mise en œuvre pour BCaaS, depuis la
+stratégie globale de test jusqu'au scénario de validation bout-en-bout, en passant par
+les critères d'acceptation formels. L'objectif est de montrer que chaque brique du système
+--- sécurité, logique métier, isolation multi-tenant, génération de factures --- a été
+vérifiée de manière systématique et reproductible.
+
+% ------------------------------------------------------------
+\section{Stratégie de test}
+\label{sec:strategie-test}
+
+% ---- 12.1.1 ------------------------------------------------
+\subsection{Vue d'ensemble et outillage}
+\label{subsec:outillage}
+
+La validation de BCaaS repose sur \textbf{16~classes de test} totalisant
+\textbf{152~méthodes}, organisées selon une pyramide de test à trois niveaux. L'ensemble
+du dispositif s'appuie sur la stack de test standard de l'écosystème Spring~Boot~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{JUnit~5} (\textit{Jupiter})]
+    Socle d'exécution des tests~: annotations \texttt{@Test}, \texttt{@BeforeEach},
+    \texttt{@AfterEach}, \texttt{@ParameterizedTest}. JUnit~5 apporte la prise en charge
+    des extensions (\texttt{@ExtendWith}), utilisée notamment pour injecter le contexte
+    Spring ou Mockito.
+
+  \item[\textbf{Mockito}]
+    Bibliothèque de création de \textit{mocks} et de \textit{stubs}. Elle permet de
+    simuler les dépendances externes d'un composant (repositories, services tiers) afin de
+    tester la logique d'un service en totale isolation, sans base de données réelle ni
+    appel réseau.
+
+  \item[\textbf{AssertJ}]
+    Bibliothèque d'assertions fluides (\texttt{assertThat(...).isEqualTo(...)},
+    \texttt{.contains(...)}, \texttt{.isNotNull()}...). Sa syntaxe chaînée améliore la
+    lisibilité des assertions et produit des messages d'erreur plus explicites que les
+    assertions JUnit natives.
+
+  \item[\textbf{spring-boot-starter-test}]
+    Méta-dépendance qui embarque JUnit~5, Mockito et AssertJ, ainsi que
+    \texttt{MockMvc} pour les tests de contrôleurs HTTP et \texttt{@SpringBootTest} pour
+    les tests d'intégration avec contexte Spring complet.
+
+  \item[\textbf{spring-security-test}]
+    Extension dédiée aux tests de la couche de sécurité Spring Security. Elle fournit les
+    annotations \texttt{@WithMockUser} et \texttt{@WithUserDetails}, ainsi que les
+    utilitaires \texttt{SecurityMockMvcRequestPostProcessors} pour simuler des requêtes
+    authentifiées sans générer de vrais tokens JWT.
+\end{description}
+
+% ---- 12.1.2 ------------------------------------------------
+\subsection{Environnement de test}
+\label{subsec:env-test}
+
+Les tests s'exécutent dans un environnement entièrement isolé de la base de données de
+production ou de développement. Deux choix techniques fondamentaux garantissent cette
+isolation~:
+
+\paragraph{Base H2 en mémoire.}
+H2 est un moteur de base de données relationnelle embarqué, écrit en Java, qui s'exécute
+entièrement en mémoire vive (\textit{in-memory}). Il n'est pas nécessaire d'installer ni
+de démarrer un serveur de base de données externe~: H2 démarre automatiquement avec le
+contexte Spring et s'arrête à la fin de la suite de tests. La configuration
+\texttt{ddl-auto=create-drop} garantit que le schéma est recréé à chaque lancement et
+détruit à la fin, rendant chaque exécution de tests parfaitement reproductible et
+indépendante de l'état laissé par une exécution précédente.
+
+\paragraph{Liquibase désactivé.}
+En production et en développement, BCaaS utilise Liquibase pour gérer les migrations de
+schéma de façon versionnée. Liquibase est désactivé dans le profil de test~: le schéma est
+entièrement reconstruit par Hibernate à partir des entités JPA (\texttt{create-drop}), ce
+qui garantit que les tests ne dépendent pas d'un état de migration particulier et
+s'exécutent aussi bien sur la première version que sur une version ultérieure du schéma.
+
+\paragraph{Profil Spring dédié.}
+Un profil Spring \texttt{test} est activé pour les tests d'intégration. Ce profil
+surcharg les propriétés de connexion (\texttt{spring.datasource.url=jdbc:h2:mem:testdb}),
+désactive les mécanismes de cache, et configure des secrets JWT simplifiés adaptés à
+l'environnement de test.
+
+% ---- 12.1.3 ------------------------------------------------
+\subsection{Les trois niveaux de test}
+\label{subsec:niveaux-test}
+
+La stratégie de test de BCaaS suit le principe de la \textbf{pyramide de test}~: une large
+base de tests unitaires rapides, une couche intermédiaire de tests de contrôleurs, et un
+sommet de tests d'intégration plus lents mais plus représentatifs du comportement réel du
+système.
+
+\subsubsection*{Niveau 1 — Tests unitaires de services}
+
+Les tests unitaires ciblent la \textbf{logique métier pure} des services applicatifs, en
+isolation complète de toute infrastructure. Toutes les dépendances (repositories,
+services tiers) sont remplacées par des mocks Mockito.
+
+Les services couverts sont~:
+
+\begin{itemize}
+  \item \textbf{InvoiceService}~: génération automatique de facture lors de la transition
+        \texttt{fulfill}, calcul des montants, association à la demande de service et au
+        tenant.
+  \item \textbf{BusinessService}~: création, modification et suppression de métiers~;
+        vérification des règles de nommage et d'unicité au sein d'un tenant.
+  \item \textbf{TenantService}~: provisionnement d'un nouveau tenant, vérification de
+        l'absence de doublon, initialisation des configurations par défaut.
+  \item \textbf{ActorService}~: gestion du cycle de vie des acteurs (prestataires, clients)
+        et de leurs rôles au sein d'un tenant.
+  \item \textbf{ServiceRequestService}~: machine à états de la demande de service~;
+        validation des transitions autorisées et déclenchement des effets de bord
+        (notification, facturation).
+  \item \textbf{ServiceCatalogueService}~: gestion des services offerts par un métier~;
+        règles de visibilité et de tarification.
+  \item \textbf{BusinessRuleService}~: évaluation des règles métier configurables par
+        tenant~; vérification de la conformité des demandes aux politiques en vigueur.
+  \item \textbf{TenantContextTest}~: vérification du bon fonctionnement du mécanisme de
+        propagation du \texttt{tenant\_id} dans le contexte de thread (ThreadLocal)~; test
+        des cas de corruption ou d'absence de contexte.
+\end{itemize}
+
+\subsubsection*{Niveau 2 — Tests de contrôleurs (WebMvc)}
+
+Les tests de contrôleurs utilisent \texttt{MockMvc}, qui simule des requêtes HTTP sans
+démarrer un vrai serveur web. Le contexte Spring est chargé partiellement
+(\texttt{@WebMvcTest}), incluant uniquement la couche web (contrôleurs, filtres,
+sérialiseurs JSON) et excluant la couche de persistance.
+
+Les services sont mockés via \texttt{@MockBean}, ce qui permet de se concentrer sur~:
+
+\begin{itemize}
+  \item la \textbf{désérialisation} des corps de requêtes JSON et la validation des
+        contraintes (\texttt{@Valid}, \texttt{@NotNull}, tailles, formats)~;
+  \item le \textbf{routage} des URLs vers les bonnes méthodes de contrôleur~;
+  \item la \textbf{sérialisation} des réponses JSON et les codes HTTP retournés (200, 201,
+        400, 403, 404, 409)~;
+  \item la \textbf{gestion des erreurs} via les \texttt{@ExceptionHandler} et le
+        \texttt{ControllerAdvice} global.
+\end{itemize}
+
+Les contrôleurs couverts sont \textbf{BusinessController}, \textbf{InvoiceController},
+\textbf{ActorController} et \textbf{ServiceRequestController}.
+
+\subsubsection*{Niveau 3 — Tests de sécurité et d'intégration}
+
+Ce niveau constitue le sommet de la pyramide~: les tests chargent le contexte Spring
+complet (\texttt{@SpringBootTest}) avec la base H2 en mémoire, et exercent le système
+de bout en bout à travers plusieurs couches.
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{JwtServiceTest}]
+    Vérifie la génération, la signature et la validation des tokens JWT~: format du token,
+    présence et valeur des \textit{claims} (\texttt{sub}, \texttt{tenantId}, \texttt{exp},
+    \texttt{iat}), rejet des tokens expirés ou falsifiés, et extraction correcte du
+    \texttt{tenantId} depuis le token.
+
+  \item[\textbf{SecurityIntegrationTest}]
+    Teste le filtre de sécurité sur l'ensemble des endpoints protégés~: rejet des requêtes
+    sans token (401), rejet des tokens invalides (401), autorisation correcte des requêtes
+    avec un token valide, et vérification que les endpoints publics (inscription, connexion)
+    sont bien accessibles sans authentification.
+
+  \item[\textbf{ServiceRequestIntegrationTest}]
+    Scénario d'intégration complet de la demande de service~: création d'un contexte tenant,
+    d'un acteur demandeur et d'un prestataire, d'un service au catalogue, émission d'une
+    demande, puis parcours de toutes les transitions de la machine à états
+    (\texttt{pending} → \texttt{accepted} → \texttt{in\_progress} → \texttt{fulfilled})
+    avec vérification, à chaque étape, de l'état persisté en base et de la génération
+    automatique de la facture lors du passage à \texttt{fulfilled}.
+\end{description}
+
+% ------------------------------------------------------------
+\section{Critères d'acceptation}
+\label{sec:criteres-acceptation}
+
+% ---- 12.2.1 ------------------------------------------------
+\subsection{Définition et méthode}
+\label{subsec:criteres-def}
+
+Les critères d'acceptation formalisent les conditions minimales que BCaaS doit satisfaire
+pour être considéré comme livrable. Chaque critère est identifié par un code
+\texttt{ACC-XXX}, formulé de manière vérifiable et associé à une méthode de vérification
+concrète. Cette approche s'inspire des pratiques de \textit{Behavior-Driven Development}
+(BDD) et garantit que la validation n'est pas subjective~: un critère est soit satisfait,
+soit non satisfait, sans ambiguïté.
+
+% ---- 12.2.2 ------------------------------------------------
+\subsection{Tableau des critères}
+\label{subsec:criteres-tableau}
+
+\begin{table}[ht]
+  \centering
+  \caption{Critères d'acceptation et méthodes de vérification}
+  \label{tab:criteres-acceptation}
+  \renewcommand{\arraystretch}{1.4}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{1.8cm}
+                               >{\raggedright\arraybackslash}X
+                               >{\raggedright\arraybackslash}p{4.2cm}}
+    \toprule
+    \textbf{ID} & \textbf{Critère} & \textbf{Méthode de vérification} \\
+    \midrule
+    ACC-001 & Les endpoints REST répondent correctement aux requêtes valides et retournent
+              les codes HTTP appropriés (2xx, 4xx) pour les cas d'erreur.
+            & Tests WebMvc + validation manuelle via Swagger UI \\
+    ACC-002 & L'authentification par JWT fonctionne~: génération, signature, validation et
+              rejet des tokens expirés ou malformés.
+            & \texttt{JwtServiceTest}, \texttt{SecurityIntegrationTest} \\
+    ACC-003 & Le cycle complet CdS $\rightarrow$ FdS (demande de service à facture) se
+              déroule sans erreur à travers toutes les transitions de la machine à états.
+            & \texttt{ServiceRequestIntegrationTest} \\
+    ACC-004 & La facture est générée automatiquement lors du passage à l'état
+              \texttt{fulfilled}, avec les montants et références corrects.
+            & Test de service \texttt{InvoiceServiceTest} + vérification en base H2 \\
+    ACC-005 & L'isolation multi-tenant est garantie~: un tenant ne peut accéder aux données
+              d'un autre, même en cas de manipulation du token.
+            & \texttt{TenantContextTest} + \texttt{SecurityIntegrationTest} \\
+    ACC-006 & La documentation Swagger (OpenAPI) est à jour et reflète fidèlement tous les
+              endpoints exposés.
+            & Validation visuelle sur \texttt{/swagger-ui.html} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% ---- 12.2.3 ------------------------------------------------
+\subsection{Analyse des critères}
+\label{subsec:criteres-analyse}
+
+\paragraph{ACC-001 — Endpoints REST.}
+Ce critère couvre la surface d'API complète de BCaaS. Les tests WebMvc vérifient
+systématiquement les cas nominaux (requête valide $\rightarrow$ réponse 200/201) et les
+cas d'erreur les plus fréquents~: corps de requête invalide (400), ressource inexistante
+(404), conflit d'identifiant (409), et accès non autorisé (403). La validation manuelle
+via Swagger UI complète ces tests automatisés en permettant une exploration visuelle
+des contrats d'API.
+
+\paragraph{ACC-002 — Authentification JWT.}
+La sécurité de BCaaS repose entièrement sur les JWT~: chaque requête vers un endpoint
+protégé doit porter un token valide, signé avec la clé secrète du serveur, non expiré, et
+contenant un \texttt{tenantId} cohérent avec les données demandées. Les tests de ce critère
+couvrent le chemin nominale (token valide $\rightarrow$ accès accordé) et les cas
+d'attaque les plus courants (token absent, expiré, signature altérée, \texttt{tenantId}
+modifié).
+
+\paragraph{ACC-003 — Cycle CdS $\rightarrow$ FdS.}
+Ce critère valide le flux métier central de BCaaS. CdS désigne la \textit{Commande de
+Service} (demande émise par un client) et FdS la \textit{Facture de Service} générée à
+l'issue de la prestation. Le test d'intégration associé parcourt toutes les transitions de
+la machine à états et vérifie à chaque étape que~: (i) la transition est acceptée ou
+refusée conformément aux règles métier, (ii) l'état persisté en base est correct, et (iii)
+les effets de bord attendus (notifications, génération de facture) sont bien déclenchés.
+
+\paragraph{ACC-004 — Génération automatique de la facture.}
+La facture est le document qui matérialise la fin d'une prestation et déclenche le
+processus de paiement. Sa génération automatique à l'état \texttt{fulfilled} est un
+invariant métier critique~: aucune prestation ne doit pouvoir être marquée comme terminée
+sans qu'une facture valide soit créée. Les tests vérifient également que les montants
+calculés correspondent aux tarifs du catalogue et que les références croisées
+(identifiant de la demande, identifiant du tenant, identifiant du prestataire) sont
+correctement renseignées.
+
+\paragraph{ACC-005 — Isolation multi-tenant.}
+L'isolation multi-tenant est à la fois un critère de sécurité et un critère de conformité.
+\texttt{TenantContextTest} vérifie que le mécanisme de propagation du \texttt{tenant\_id}
+par ThreadLocal fonctionne correctement dans tous les cas~: contexte présent, contexte
+absent, changement de contexte entre deux requêtes. \texttt{SecurityIntegrationTest}
+complète cette vérification en s'assurant qu'un token portant un \texttt{tenantId} A ne
+permet pas d'accéder aux ressources d'un tenant B.
+
+\paragraph{ACC-006 — Documentation Swagger.}
+La documentation Swagger (générée via SpringDoc/OpenAPI~3) constitue le contrat d'API
+exposé aux développeurs consommateurs de BCaaS. Sa validité est vérifiée manuellement~:
+chaque endpoint documenté est testé via l'interface Swagger UI pour s'assurer que les
+paramètres, les corps de requête et les réponses décrits correspondent au comportement
+réel de l'API.
+
+% ------------------------------------------------------------
+\section{Scénario de validation bout-en-bout}
+\label{sec:scenario-e2e}
+
+% ---- 12.3.1 ------------------------------------------------
+\subsection{Objectif et portée}
+\label{subsec:e2e-objectif}
+
+Le scénario de validation bout-en-bout constitue la démonstration de référence de BCaaS.
+Son objectif est de valider, en une seule séquence cohérente, l'ensemble des mécanismes
+fondamentaux du système~: authentification JWT, isolation multi-tenant, machine à états
+de la demande de service, et génération automatique de facture. Ce scénario est conçu
+pour être reproductible aussi bien par les tests automatisés (\texttt{ServiceRequestIntegrationTest})
+que par une démonstration manuelle lors d'une soutenance.
+
+% ---- 12.3.2 ------------------------------------------------
+\subsection{Déroulement du scénario nominal}
+\label{subsec:e2e-scenario}
+
+Le scénario se déroule en six étapes séquentielles, chacune produisant un état observable
+vérifiable~:
+
+\begin{enumerate}[leftmargin=*, label=\textbf{Étape \arabic*.}]
+
+  \item \textbf{Inscription et connexion — obtention du JWT.}\\
+    Un nouvel utilisateur s'inscrit via \texttt{POST /api/auth/register} en fournissant
+    ses informations et le nom de son organisation (tenant). BCaaS provisionne
+    automatiquement le tenant, crée le compte utilisateur et retourne un token JWT signé.
+    Ce token contient le \texttt{tenantId} du tenant nouvellement créé et est inclus dans
+    l'en-tête \texttt{Authorization: Bearer <token>} de toutes les requêtes suivantes.\\
+    \textit{Vérification~:} le token est bien formé (trois segments base64 séparés par des
+    points), non expiré, et le \texttt{tenantId} est présent dans les \textit{claims}.
+
+  \item \textbf{Création d'un acteur, d'un portfolio et d'un métier.}\\
+    L'utilisateur crée un acteur prestataire via \texttt{POST /api/actors}, lui associe
+    un portfolio de compétences, puis crée un métier (\textit{business}) via
+    \texttt{POST /api/businesses}. Ces entités sont automatiquement associées au tenant
+    extrait du JWT.\\
+    \textit{Vérification~:} les réponses HTTP retournent le statut 201, les entités
+    créées sont récupérables via les endpoints \texttt{GET} correspondants et portent bien
+    le \texttt{tenantId} attendu.
+
+  \item \textbf{Ajout d'un service au catalogue.}\\
+    Un service est ajouté au catalogue du métier via
+    \texttt{POST /api/service-catalogue}. La définition du service inclut
+    son libellé, sa description, son tarif unitaire et son unité de facturation.\\
+    \textit{Vérification~:} le service est visible dans le catalogue du tenant via
+    \texttt{GET /api/service-catalogue} et son tarif est correctement persisté.
+
+  \item \textbf{Émission d'une demande de service (CdS).}\\
+    Un acteur client émet une demande de service via
+    \texttt{POST /api/service-requests}, en référençant le service du catalogue et en
+    précisant les paramètres de la prestation (quantité, date souhaitée, instructions
+    spécifiques). La demande est créée à l'état \texttt{PENDING}.\\
+    \textit{Vérification~:} la demande est persistée avec l'état \texttt{PENDING},
+    l'identifiant de la demande est retourné dans la réponse, et la demande est visible
+    dans la liste des demandes du tenant.
+
+  \item \textbf{Transitions d'état et génération de la facture.}\\
+    Le prestataire fait progresser la demande à travers les transitions de la machine à
+    états~:
+    \begin{itemize}
+      \item \texttt{PENDING} $\rightarrow$ \texttt{ACCEPTED}~: le prestataire accepte la
+            demande via \texttt{PATCH /api/service-requests/\{id\}/accept}.
+      \item \texttt{ACCEPTED} $\rightarrow$ \texttt{IN\_PROGRESS}~: le prestataire démarre
+            la prestation via \texttt{PATCH /api/service-requests/\{id\}/start}.
+      \item \texttt{IN\_PROGRESS} $\rightarrow$ \texttt{FULFILLED}~: le prestataire
+            marque la prestation comme terminée via
+            \texttt{PATCH /api/service-requests/\{id\}/fulfill}.
+    \end{itemize}
+    Lors du passage à \texttt{FULFILLED}, BCaaS génère automatiquement une facture
+    (FdS) associée à la demande. Cette génération constitue l'\textbf{accusé de réception
+    métier}~: elle matérialise la fin de la prestation et déclenche le processus de
+    paiement.\\
+    \textit{Vérification~:} après chaque transition, l'état persisté est contrôlé. Après
+    \texttt{fulfill}, la facture est récupérable via \texttt{GET /api/invoices} et ses
+    montants correspondent au tarif du catalogue multiplié par la quantité de la demande.
+
+  \item \textbf{Paiement de la facture.}\\
+    L'acteur client enregistre le paiement de la facture via
+    \texttt{PATCH /api/invoices/\{id\}/pay}. La facture passe à l'état \texttt{PAID}
+    et la demande de service est clôturée.\\
+    \textit{Vérification~:} la facture est à l'état \texttt{PAID}, la date de paiement
+    est renseignée, et aucune transition supplémentaire n'est acceptée par la machine à
+    états (idempotence du paiement).
+
+\end{enumerate}
+
+% ---- 12.3.3 ------------------------------------------------
+\subsection{Ce que le scénario valide}
+\label{subsec:e2e-validation}
+
+Ce parcours en six étapes exerce simultanément les mécanismes les plus critiques de
+BCaaS~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{La machine à états de la demande de service}]
+    Chaque transition est validée~: les transitions autorisées aboutissent, les transitions
+    interdites sont rejetées avec un code HTTP~409. L'ordre des transitions est imposé par
+    la machine à états et ne peut pas être contourné via l'API.
+
+  \item[\textbf{L'isolation multi-tenant}]
+    Toutes les entités créées (acteurs, métiers, services, demandes, factures) sont
+    automatiquement scopées au tenant du JWT. Un deuxième tenant créé en parallèle ne
+    voit aucune de ces données.
+
+  \item[\textbf{La génération automatique de facture}]
+    La facture est créée de façon atomique avec la transition \texttt{fulfill}~: les deux
+    opérations font partie de la même transaction JPA, garantissant qu'il ne peut pas
+    exister de demande \texttt{FULFILLED} sans facture associée.
+
+  \item[\textbf{La cohérence des références croisées}]
+    La facture référence correctement la demande, le prestataire, le client et le tenant.
+    Ces références sont vérifiées via des assertions sur les identifiants retournés par
+    les différents endpoints.
+\end{description}
+
+% ------------------------------------------------------------
+\section{Note sur la couverture de code et perspectives}
+\label{sec:couverture}
+
+% ---- 12.4.1 ------------------------------------------------
+\subsection{État actuel}
+\label{subsec:couverture-actuel}
+
+Aucun outil de mesure de couverture de code (\textit{code coverage}) n'est actuellement
+intégré au pipeline de build de BCaaS. Les 152~tests constituent néanmoins une base de
+non-régression substantielle qui couvre~:
+
+\begin{itemize}
+  \item l'ensemble des chemins nominaux de tous les services métier~;
+  \item les principaux cas d'erreur et cas limites identifiés durant le développement~;
+  \item le cycle de vie complet de la demande de service, de l'émission au paiement~;
+  \item les mécanismes de sécurité (authentification, autorisation, isolation tenant).
+\end{itemize}
+
+En l'absence de mesure formelle, il est impossible d'affirmer un taux de couverture précis.
+Cependant, la couverture fonctionnelle --- c'est-à-dire la proportion des fonctionnalités
+métier couvertes par au moins un test --- est estimée à un niveau satisfaisant pour un MVP.
+
+% ---- 12.4.2 ------------------------------------------------
+\subsection{Perspectives d'amélioration}
+\label{subsec:couverture-perspectives}
+
+Plusieurs améliorations sont identifiées pour les versions futures de BCaaS (voir
+chapitre~14)~:
+
+\begin{description}[leftmargin=0.5cm]
+  \item[\textbf{Intégration de JaCoCo}]
+    JaCoCo (\textit{Java Code Coverage Library}) s'intègre nativement avec Maven et
+    Gradle. Son ajout permettrait de générer un rapport de couverture à chaque build,
+    d'identifier les branches non testées et de définir des seuils minimaux de couverture
+    (par exemple, 80\,\% de couverture de branches) en dessous desquels le build échoue.
+
+  \item[\textbf{Tests de mutation}]
+    Les tests de mutation (avec des outils comme PIT/Pitest) permettent d'évaluer la
+    \textit{qualité} des tests plutôt que leur simple existence~: ils introduisent
+    délibérément des fautes dans le code (mutations) et vérifient que les tests les
+    détectent. Un test qui passe même en présence d'une mutation est un test insuffisant.
+
+  \item[\textbf{Tests de charge}]
+    BCaaS étant un service multi-tenant destiné à héberger plusieurs organisations
+    simultanément, des tests de charge avec des outils comme Gatling ou JMeter permettraient
+    de valider les performances sous des montées en charge réalistes et d'identifier les
+    goulots d'étranglement avant la mise en production.
+
+  \item[\textbf{Tests de contrat (Consumer-Driven Contract Testing)}]
+    Si BCaaS est consommé par plusieurs applications clientes, les tests de contrat
+    (avec Pact, par exemple) garantiraient que les évolutions de l'API ne cassent pas
+    silencieusement les consommateurs existants.
+\end{description}
+
+% ------------------------------------------------------------
+\section*{Synthèse}
+\addcontentsline{toc}{section}{Synthèse}
+\label{sec:synthese-chap12}
+
+Ce chapitre a présenté la démarche complète de validation de BCaaS. La stratégie de test
+repose sur une pyramide à trois niveaux --- tests unitaires, tests de contrôleurs et tests
+d'intégration --- mobilisant 16~classes et 152~méthodes sur un environnement H2 en mémoire
+parfaitement isolé. Les six critères d'acceptation formels garantissent que les
+fonctionnalités les plus critiques --- sécurité JWT, isolation multi-tenant, cycle
+CdS~$\rightarrow$~FdS --- sont vérifiées de manière systématique et reproductible.
+
+Le scénario de validation bout-en-bout constitue la démonstration de référence du système~:
+en six étapes cohérentes, il exerce simultanément la machine à états, l'isolation tenant
+et la génération automatique de facture, offrant une preuve d'intégration concrète et
+démontrable lors de la soutenance.
+
+L'absence de mesure formelle de couverture constitue la principale limite reconnue de ce
+dispositif~; son adressage, via l'intégration de JaCoCo et de tests de mutation, figure
+parmi les priorités du plan d'évolution présenté au chapitre~14.

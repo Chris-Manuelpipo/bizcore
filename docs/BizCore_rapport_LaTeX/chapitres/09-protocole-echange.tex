@@ -1,0 +1,82 @@
+\chapter{Protocole d'échange pour un cas métier concret}
+\label{chap:protocole}
+
+Pour illustrer la « pensée protocolaire » du projet, ce chapitre formalise l'échange d'un
+cas métier complet --- la création d'un \texttt{Business} puis l'ajout d'un service à son
+catalogue --- comme on spécifierait un protocole réseau : en-têtes obligatoires, payload,
+réponses, codes d'erreur et sémantique de transport.
+
+\section{Cas choisi : création d'un Business et ajout au catalogue}
+
+Ce cas correspond à deux requêtes distinctes mais liées, typiques de l'enregistrement d'une
+nouvelle activité (auto-école, cabinet de conseil, etc.) dans un tenant.
+
+\section{Protocole : création d'un Business}
+
+\noindent\textbf{Endpoint :} \texttt{POST /api/businesses}\\
+\textbf{En-têtes obligatoires :}
+\begin{itemize}
+  \item \texttt{Authorization: Bearer <JWT>} --- authentification (analogie : ticket de
+        session) ; le claim \texttt{tenantId} joue le rôle de l'adresse réseau.
+\end{itemize}
+
+\begin{lstlisting}[language=json,caption={Corps de la requête (payload)},captionpos=b]
+ 
+{
+  "name": "Auto-Ecole Centrale",
+  "domain": "driving_school",
+  "description": "Numero 1 dans la formation auto",
+  "typeOfInvolvedActors": ["instructor", "student"],
+  "requiredJobProfile": "moniteur",
+  "tenantId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={Réponse (succès 201 Created)},captionpos=b]
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Auto-Ecole Centrale",
+  "domain": "driving_school",
+  "createdAt": "2025-05-04T10:00:00Z"
+}
+\end{lstlisting}
+
+\paragraph{Codes d'erreur (analogie : messages ICMP).}
+\begin{itemize}
+  \item \texttt{400 Bad Request} : payload invalide ;
+  \item \texttt{401 Unauthorized} : JWT manquant ou invalide ;
+  \item \texttt{403 Forbidden} : rôle insuffisant ;
+  \item \texttt{404 Not Found} : ressource inexistante ;
+  \item \texttt{409 Conflict} : ressource déjà existante.
+\end{itemize}
+
+\section{Protocole : ajout au catalogue de services}
+
+\noindent\textbf{Endpoint :} \texttt{POST /api/service-catalogues/business/\{businessId\}}\\
+\textbf{En-têtes :} identiques, plus une corrélation optionnelle.
+
+\begin{lstlisting}[language=json,caption={Corps de la requête},captionpos=b]
+{
+  "name": "Cours de conduite",
+  "description": "Formation theorique et pratique de 3 mois",
+  "basePrice": 150000,
+  "currency": "XAF",
+  "isAvailable": true
+}
+\end{lstlisting}
+
+\paragraph{Sémantique du transport.}
+\begin{itemize}
+  \item \textbf{Mode :} synchrone (REST) --- analogie TCP (fiable, ordonné) ;
+  \item \textbf{Timeout :} de l'ordre de 30 secondes ;
+  \item \textbf{Idempotence :} non (chaque \texttt{POST} crée une nouvelle ressource) ;
+  \item \textbf{Retry :} recommandé avec \emph{backoff} exponentiel (au plus 3 tentatives).
+\end{itemize}
+
+% \section{Diagramme de séquence}
+
+% \figplaceholder{Diagramme de séquence UML du cas « création Business + ajout au catalogue » :
+% acteurs Provider, API Gateway, TenantFilter, BusinessService, ServiceCatalogueService, base
+% de données ; messages REST et réponses 201, propagation du traceId.}{6.5cm}
+% \captionof{figure}{Diagramme de séquence du cas métier « Business + Catalogue »}
+% \label{fig:sequence}

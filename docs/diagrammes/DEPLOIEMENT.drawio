@@ -1,0 +1,40 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="5PnPdP0SpgQV1Wb_zWXl">
+    <mxGraphModel dx="1488" dy="837" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="SilydUy-OVa_-QO09hEd-59" parent="1" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=14;" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;server&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;postgresql://bizcore:JJR0KrxamNcYsmvwBnchLVo9lvsugdXz@dpg-d8fql0reo5us73fo4d3g-a.frankfurt-postgres.render.com/bizcore_8ham&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="240" width="390" x="700" y="1150" as="geometry" />
+        </mxCell>
+        <mxCell id="SilydUy-OVa_-QO09hEd-60" parent="1" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=14;" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;&lt;b&gt;server&lt;/b&gt;&amp;gt;&amp;gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Java Spring boot&amp;nbsp;&lt;br&gt;API REST&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;https://bizcore-api.onrender.com/&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="290" x="760" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="SilydUy-OVa_-QO09hEd-65" parent="1" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=14;" value="&lt;div align=&quot;center&quot;&gt;&amp;lt;&amp;lt;&lt;b&gt;device&lt;/b&gt;&amp;gt;&amp;gt;&lt;br&gt;Frontend Documentation API&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;https://bizcore-liard.vercel.app/&lt;/div&gt;" vertex="1">
+          <mxGeometry height="240" width="250" x="320" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="SilydUy-OVa_-QO09hEd-73" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontColor=#000000;fontSize=14;" value="&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&amp;lt;&amp;lt;database&amp;gt;&amp;gt;&lt;/b&gt;&lt;/div&gt;BD PostgresSQL&amp;nbsp;" vertex="1">
+          <mxGeometry height="100" width="105" x="842.5" y="1280" as="geometry" />
+        </mxCell>
+        <mxCell id="SilydUy-OVa_-QO09hEd-78" edge="1" parent="1" source="SilydUy-OVa_-QO09hEd-65" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.554;exitY=0.013;exitDx=0;exitDy=0;endArrow=open;startArrow=open;endFill=0;startFill=0;strokeColor=#555555;strokeWidth=2;fontSize=14;fontStyle=1;exitPerimeter=0;rounded=0;curved=0;" target="SilydUy-OVa_-QO09hEd-60" value="HTTPS/REST&amp;nbsp;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="686" as="sourcePoint" />
+            <mxPoint x="660" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SilydUy-OVa_-QO09hEd-79" edge="1" parent="1" source="SilydUy-OVa_-QO09hEd-60" style="html=1;entryX=0;entryY=0;entryDx=0;entryDy=190;endArrow=open;startArrow=none;endFill=0;strokeColor=#555555;strokeWidth=2;fontSize=14;fontStyle=1;entryPerimeter=0;exitX=0;exitY=0;exitDx=150;exitDy=150;exitPerimeter=0;" target="SilydUy-OVa_-QO09hEd-59" value="&amp;nbsp;TCP / SQL">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="890" y="1020" as="sourcePoint" />
+            <mxPoint x="930" y="985" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SilydUy-OVa_-QO09hEd-81" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0;exitDx=0;exitDy=45;exitPerimeter=0;entryX=1;entryY=1;entryDx=0;entryDy=-15;entryPerimeter=0;fontSize=14;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="488.75" y="1005" as="sourcePoint" />
+            <mxPoint x="488.75" y="1025" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

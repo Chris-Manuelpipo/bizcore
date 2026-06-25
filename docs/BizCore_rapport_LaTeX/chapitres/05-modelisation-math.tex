@@ -1,0 +1,381 @@
+\chapter{Modélisation mathématique}
+\label{chap:math}
+
+Ce chapitre propose une formalisation ensembliste du système, de ses contraintes et de ses
+indicateurs. Cette modélisation explicite les invariants que l'implémentation doit garantir
+et fournit un langage rigoureux pour raisonner sur le matching et les performances.
+
+\section{Ensembles fondamentaux}
+
+Le système est décrit par les ensembles d'entités suivants, tous identifiés par des UUID :
+\[
+\begin{aligned}
+&T \text{ (Tenants)}, \quad U \text{ (Users)}, \quad A \text{ (Actors)}, \quad
+B \text{ (Businesses)}, \quad S \text{ (ServiceCatalogues)}, \\
+&R \text{ (Resources)}, \quad Po \text{ (Portfolios)}, \quad SR \text{ (ServiceRequests)},
+\quad I \text{ (Invoices)}, \quad BR \text{ (BusinessRules)}.
+\end{aligned}
+\]
+L'ensemble des devises supportées est fini :
+\[
+C = \{\text{XAF, XOF, NGN, KES, GHS, USD, EUR, GBP}\}.
+\]
+
+\subsection{Décomposition des acteurs}
+\[
+A = A_{c} \cup A_{p}, \qquad A_{c} \cap A_{p} \neq \emptyset,
+\]
+où $A_c$ (consommateurs) et $A_p$ (fournisseurs) peuvent se recouper : un même acteur peut
+à la fois consommer et fournir des services.
+
+\subsection{Attributs des entités principales}
+\begin{align*}
+t  &= (\mathit{id}_T, \text{name}, \text{domain}, \text{isActive}, \text{createdAt}) \in T,\\
+u  &= (\mathit{id}_U, \text{tenant}, \text{email}, \text{roles}, \text{isActive}, \dots) \in U,\\
+a  &= (\mathit{id}_A, \text{user}, \text{role}, \text{bio}, \text{isActive}) \in A,\\
+sr &= (\mathit{id}_{SR}, \text{tenant}, \text{consumer}, \text{provider}, \text{catalogue},
+       \text{status}, \text{traceId}, \dots) \in SR,\\
+i  &= (\mathit{id}_I, \text{serviceRequest}, \text{amount}, \text{currency}, \text{status},
+       \text{issuedAt}, \text{paidAt}) \in I.
+\end{align*}
+
+\section{Variables de décision et fonction objectif}
+
+\subsection{Variables}
+Variable binaire de matching :
+\[
+x_{a_c, a_p, b} \in \{0,1\}, \quad \forall (a_c, a_p, b) \in A_c \times A_p \times B,
+\]
+valant $1$ si le consommateur $a_c$ est mis en relation avec le fournisseur $a_p$ pour le
+métier $b$. Variable d'état d'une demande :
+\[
+\sigma_{sr} \in \Sigma_{SR} = \{\text{PENDING, ACCEPTED, IN\_PROGRESS, FULFILLED, CANCELLED}\}.
+\]
+\iffalse
+\subsection{Objectif multi-critère}
+On cherche à maximiser le nombre de transactions réussies et le chiffre d'affaires, tout en
+minimisant la durée de traitement :
+\[
+\max\; \alpha \sum_{sr \in SR} \mathbb{1}_{\sigma_{sr} = \text{FULFILLED}}
+     + \beta  \sum_{i \in I} \text{amount}(i)\,\mathbb{1}_{\sigma_i = \text{PAID}}
+     - \gamma \sum_{sr \in SR} \text{duration}(sr),
+\]
+\[
+\text{avec } \alpha + \beta + \gamma = 1, \quad \alpha,\beta,\gamma \geq 0.
+\]
+\fi
+
+\section{Contraintes du système}
+
+\subsection{Contraintes de cardinalité}
+\begin{align}
+&\forall u_1, u_2 \in U,\ u_1 \neq u_2 : \ u_1.\text{email} \neq u_2.\text{email}
+   &&\text{(unicité de l'email)}\\
+&\forall a \in A,\ \exists!\, po \in Po : po.\text{actor} = a
+   &&\text{(Actor} \to \text{Portfolio, 1:1)}\\
+&\forall po \in Po : \ po.\text{businesses} \subseteq B
+   &&\text{(Portfolio} \to \text{Business, N:M)}\\
+&\forall sr \in SR,\ \exists!\, i \in I : i.\text{serviceRequest} = sr
+   &&\text{(ServiceRequest} \to \text{Invoice, 1:1)}
+\end{align}
+
+\subsection{Contraintes métier}
+Validité d'une demande :
+\[
+\text{valid}(sr) \iff
+\begin{cases}
+sr.\text{consumer}.\text{role} = \text{CONSUMER},\\
+sr.\text{provider}.\text{role} = \text{PROVIDER},\\
+sr.\text{provider}.\text{isActive} = \text{vrai}.
+\end{cases}
+\]
+Compatibilité de matching :
+\[
+\text{compatible}(a_c, a_p, b) \iff \exists\, po \in Po :
+\big(po.\text{actor} = a_p \ \wedge\ b \in po.\text{businesses}\big).
+\]
+Contrainte de devise :
+\[
+\forall i \in I : i.\text{currency} \in C, \qquad \forall s \in S : s.\text{currency} \in C.
+\]
+Contrainte d'isolation multi-tenant (invariant de sécurité) :
+\[
+\forall sr \in SR : sr.\text{tenant} = \tau \implies
+\big(sr.\text{consumer}.\text{user}.\text{tenant} = \tau \ \wedge\
+      sr.\text{catalogue}.\text{business}.\text{tenant} = \tau\big).
+\]
+
+\subsection{Contrainte de workflow : machine à états}
+Soit $\delta_{SR} : \Sigma_{SR} \times \mathcal{A} \to \Sigma_{SR}$ la fonction de
+transition, avec $\mathcal{A} = \{\text{create, accept, start, fulfill, cancel}\}$. Les
+transitions valides sont données au tableau~\ref{tab:fsm-math}.
+
+\begin{table}[H]
+\centering
+\caption{Transitions valides de la machine à états \texttt{ServiceRequest}}
+\label{tab:fsm-math}
+\renewcommand{\arraystretch}{1.2}\footnotesize
+\begin{tabular}{lll}
+\toprule
+\textbf{État courant} & \textbf{Action} & \textbf{État suivant} \\
+\midrule
+$\emptyset$    & create  & PENDING \\
+PENDING        & accept  & ACCEPTED \\
+PENDING        & cancel  & CANCELLED \\
+ACCEPTED       & start   & IN\_PROGRESS \\
+ACCEPTED       & cancel  & CANCELLED \\
+IN\_PROGRESS   & fulfill & FULFILLED \\
+IN\_PROGRESS   & cancel  & CANCELLED \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Algorithmes et complexité}
+
+\subsection{Recherche des fournisseurs d'un métier}
+\begin{lstlisting}[language={},caption={FindProvidersByBusiness},captionpos=b]
+Entree : b (business cible)
+Sortie : ensemble des providers compatibles
+1: Resultat <- vide
+2: pour chaque po dans Po :
+3:     si b appartient a po.businesses :
+4:         a <- po.actor
+5:         si a.role = PROVIDER et a.isActive : Resultat <- Resultat U {a}
+6: retourner Resultat
+\end{lstlisting}
+\textbf{Complexité :} $O(|Po|)$ dans le pire cas, $O(1)$ amorti avec un index sur les
+métiers du portfolio.
+
+\subsection{Recherche par filtres combinés}
+Pour un ensemble de filtres $F = \{f_1, \dots, f_n\}$, le résultat est l'intersection
+\[
+\text{result}(F) = \bigcap_{f \in F} \text{applyFilter}(f, \text{Univers}),
+\]
+optimisée en appliquant d'abord le filtre le plus sélectif :
+\[
+\text{selectivity}(f) = \frac{|\text{applyFilter}(f, \text{Univers})|}{|\text{Univers}|},
+\qquad \text{ordre croissant de } \text{selectivity}.
+\]
+
+\section{Indicateurs et métriques (KPIs)}
+
+Sur une période $[t_1, t_2]$, on définit :
+\[
+\boxed{T_{\text{conv}} = \frac{N_{\text{fulfilled}}}{N_{\text{requests}}} \times 100\%},
+\qquad
+\boxed{PA = \frac{CA}{N_{\text{paid}}}},
+\]
+où le chiffre d'affaires est
+\[
+CA(t_1, t_2) = \sum_{\substack{i \in I \,:\, \sigma_i = \text{PAID}\\ i.\text{paidAt} \in [t_1,t_2]}}
+i.\text{amount},
+\]
+et le temps moyen de réalisation
+\[
+\boxed{T_{\text{compl}} = \frac{1}{N_{\text{fulfilled}}}
+\sum_{\substack{sr \in SR \,:\, \sigma_{sr} = \text{FULFILLED}}}
+\big(sr.\text{fulfilledAt} - sr.\text{requestedAt}\big)}.
+\]
+La part d'un métier $b$ dans le chiffre d'affaires s'écrit
+$\text{Share}_b = CA_b / CA \times 100\%$, et la croissance mensuelle
+$\text{Growth}_{\text{MoM}}(t) = (CA(t) - CA(t-1)) / CA(t-1) \times 100\%$. Ces indicateurs
+sont calculés par le service d'analytique 
+% ════════════════════════════════════════════════════════
+% À COLLER DIRECTEMENT APRÈS LA DERNIÈRE LIGNE DU 5.5
+% Aucun package ou couleur supplémentaire requis.
+% ════════════════════════════════════════════════════════
+
+\section{Architecture en couches : composition de fonctions}
+
+Ce modèle formalise le traitement d'une requête à travers les cinq
+couches de BCaaS. Chaque couche est représentée par une fonction de
+transformation, et le traitement complet est leur composée.
+
+\subsection{Définition formelle}
+
+On associe à chaque couche $i \in \{1,\ldots,5\}$ une fonction :
+\begin{align*}
+f_1 &: r   \mapsto r_1 && \text{Infrastructure (connexion BD, cache)}\\
+f_2 &: r_1 \mapsto r_2 && \text{Transport \& Messaging (REST ou Kafka)}\\
+f_3 &: r_2 \mapsto r_3 && \text{Tenant \& Routing (résolution \texttt{tenant\_id})}\\
+f_4 &: r_3 \mapsto r_4 && \text{Context \& Policy (JWT, RBAC, SLA)}\\
+f_5 &: r_4 \mapsto r_5 && \text{Business Capabilities (logique métier)}
+\end{align*}
+
+Le traitement complet d'une requête $r$ est la \textbf{composée} de
+ces cinq fonctions :
+\[
+\text{BCaaS}(r)
+\;=\;
+(f_5 \circ f_4 \circ f_3 \circ f_2 \circ f_1)(r)
+\;=\;
+f_5\!\Bigl(f_4\!\bigl(f_3\!\bigl(f_2\!\bigl(f_1(r)\bigr)\bigr)\bigr)\Bigr).
+\]
+
+\subsection{Propriété : encapsulation stricte}
+
+Pour tout $i \in \{1,\ldots,5\}$, la fonction $f_i$ ne reçoit en entrée
+que $r_{i-1}$ et est indépendante de $f_j$ pour tout $j > i$ :
+\[
+f_i \;:\; \mathcal{R}_{i-1} \;\longrightarrow\; \mathcal{R}_i,
+\qquad f_i \perp f_j \text{ pour } j > i.
+\]
+Modifier $f_5$ n'affecte jamais $f_1$ : c'est la traduction formelle du
+principe d'encapsulation du modèle OSI.
+
+\subsection{Exemple}
+
+Considérons une \texttt{ServiceRequest} de création de métier
+(\texttt{POST /api/businesses}) émise par un acteur authentifié.
+La requête $r$ traverse les cinq couches :
+$f_1$ ouvre la connexion PostgreSQL,
+$f_2$ sélectionne le transport REST synchrone,
+$f_3$ résout le \texttt{tenant\_id} depuis l'en-tête \texttt{X-Tenant-ID},
+$f_4$ valide le token JWT et le rôle \texttt{ADMIN},
+et $f_5$ persiste l'entité et retourne \texttt{201 Created} :
+\[
+\text{BCaaS}(r) = f_5\bigl(f_4\bigl(f_3\bigl(f_2\bigl(f_1(r)\bigr)\bigr)\bigr)\bigr)
+= r_5 = \texttt{201 Created}.
+\]
+Si $f_4$ échoue (JWT expiré), la composition s'arrête en $r_4$ et
+retourne \texttt{401 Unauthorized}, sans jamais atteindre $f_5$.
+
+
+\section{Isolation multi-tenant : théorie des ensembles}
+
+Ce modèle formalise l'étanchéité des données entre les tenants de
+l'ensemble $T$ (défini à la section~5.1). Il constitue la preuve
+ensembliste globale de la contrainte d'isolation posée à la section~5.3.
+
+\subsection{Définitions}
+
+On note $\mathcal{E}$ l'ensemble de toutes les lignes présentes en base
+de données (tables $U$, $A$, $B$, $SR$, $I$, etc. confondues).
+On définit la fonction d'appartenance $\pi : \mathcal{E} \to T$ par :
+\[
+\pi(e) = \tau_k
+\quad \Longleftrightarrow \quad
+\text{la colonne \texttt{tenant\_id} de } e \text{ vaut } \tau_k.
+\]
+L'ensemble des données du tenant $\tau_k$ est :
+\[
+\mathcal{D}(\tau_k) \;=\; \bigl\{\, e \in \mathcal{E} \;\big|\; \pi(e) = \tau_k \,\bigr\}.
+\]
+
+\subsection{Propriété : isolation totale}
+
+\[
+\forall\, \tau_i, \tau_j \in T,\quad
+\tau_i \neq \tau_j
+\;\implies\;
+\mathcal{D}(\tau_i) \cap \mathcal{D}(\tau_j) = \emptyset.
+\]
+
+Les ensembles $\mathcal{D}(\tau_1), \ldots, \mathcal{D}(\tau_n)$
+forment une \textbf{partition} de $\mathcal{E}$ :
+\[
+\mathcal{E}
+\;=\;
+\biguplus_{k=1}^{n} \mathcal{D}(\tau_k)
+\;=\;
+\mathcal{D}(\tau_1) \;\uplus\; \mathcal{D}(\tau_2)
+\;\uplus\; \cdots \;\uplus\; \mathcal{D}(\tau_n).
+\]
+Aucune entité n'est « sans tenant » ni « dans deux tenants à la fois ».
+Cette propriété est garantie dans le code par le \texttt{TenantFilter}
+de Spring Security, qui injecte le \texttt{tenant\_id} dans chaque
+requête SQL via un \texttt{ThreadLocal}.
+
+\subsection{Exemple}
+
+Deux tenants sont inscrits : $\tau_1$ (Auto-École Centrale) et
+$\tau_2$ (Clinique Mélen). Les \texttt{ServiceRequests} associées sont :
+\[
+\mathcal{D}(\tau_1) = \{sr_1, sr_2, sr_3\},
+\qquad
+\mathcal{D}(\tau_2) = \{sr_4, sr_5\},
+\qquad
+\mathcal{D}(\tau_1) \cap \mathcal{D}(\tau_2) = \emptyset.
+\]
+Un acteur de $\tau_2$ exécutant \texttt{GET /api/service-requests} ne
+verra jamais $sr_1$, $sr_2$ ou $sr_3$ : le \texttt{TenantFilter} ajoute
+automatiquement \texttt{WHERE tenant\_id = '$\tau_2$'} à chaque requête.
+
+
+\section{Provisionnement d'un tenant : suite finie d'états}
+
+Ce modèle formalise l'inscription d'un nouveau tenant comme une suite
+d'états atomiques. Il est distinct de la machine à états des
+\texttt{ServiceRequests} (section~5.3.3) : il ne s'exécute qu'une seule
+fois par tenant, au moment de son inscription sur la plateforme.
+
+\subsection{Les sept états du provisionnement}
+
+Soit $\mathcal{S} = (S_0, S_1, \ldots, S_6)$ la suite des états :
+
+\begin{table}[H]
+\centering
+\caption{Suite d'états du provisionnement d'un tenant}
+\label{tab:prov-states}
+\renewcommand{\arraystretch}{1.2}\small
+\begin{tabular}{lll}
+\toprule
+\textbf{État} & \textbf{Nom} & \textbf{Description et précondition} \\
+\midrule
+$S_0$ & Requête reçue
+  & Réception de \texttt{POST /api/tenants \{name, domain, sla\}}. \\
+$S_1$ & Validation du domaine
+  & \textbf{Précondition :}
+    $\text{dom}_{\text{req}} \notin \{t.\text{domain} \mid t \in T\}$.
+    Sinon : \texttt{409 Conflict}. \\
+$S_2$ & Génération de l'id
+  & Génération d'un $\text{id} \in \text{UUID}_4$
+    (collision $\approx 10^{-36}$). \\
+$S_3$ & Insertion en base
+  & \texttt{INSERT INTO tenant} en transaction atomique.
+    Rollback si échec. \\
+$S_4$ & Contexte d'isolation
+  & Initialisation $\mathcal{D}(t_{\text{new}}) \leftarrow \emptyset$,
+    \texttt{TenantFilter} configuré. \\
+$S_5$ & Génération JWT
+  & Token signé $(\text{tenant\_id}, \text{roles}, \exp)$,
+    $\exp = t_{\text{now}} + 24\,\text{h}$. \\
+$S_6$ & Tenant actif
+  & $t_{\text{new}} \in T$ et
+    $\mathcal{D}(t_{\text{new}}) = \emptyset$. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Propriété : injectivité du domaine}
+
+La précondition de $S_1$ garantit que la fonction
+$\text{domain} : T \to \mathit{Dom}$ est \textbf{injective} :
+\[
+\text{domain}(t_i) = \text{domain}(t_j) \;\implies\; t_i = t_j.
+\]
+Deux tenants distincts ne peuvent jamais partager le même domaine.
+Cette propriété complète les contraintes de cardinalité de la
+section~5.3 et est analogue à l'unicité des adresses IP sur un
+réseau : elle permet un routage sans ambiguïté par $f_3$ (section~5.6).
+
+\subsection{Exemple}
+
+Un gestionnaire soumet
+\texttt{POST /api/tenants \{"domain":"cabinet-dupont"\}}.
+En $S_1$, le système vérifie
+$\texttt{"cabinet-dupont"} \notin \{t.\text{domain} \mid t \in T\}$ :
+précondition satisfaite.
+En $S_2$, l'UUID \texttt{b9c2-4f1a-\ldots} est généré.
+En $S_3$, la ligne est insérée de façon atomique.
+En $S_4$, $\mathcal{D}(t_{\text{new}}) \leftarrow \emptyset$.
+En $S_5$, le JWT initial est signé.
+En $S_6$ :
+\[
+t_{\text{new}} \in T, \quad
+\mathcal{D}(t_{\text{new}}) = \emptyset, \quad
+\text{domain}(t_{\text{new}}) = \texttt{"cabinet-dupont"}.
+\]
+Si une seconde requête tentait le même domaine, $S_1$ retournerait
+\texttt{409 Conflict}, préservant l'injectivité.
+(chapitre~\ref{chap:observ}).

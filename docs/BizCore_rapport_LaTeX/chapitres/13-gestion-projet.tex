@@ -1,0 +1,62 @@
+\chapter{Gestion de projet}
+\label{chap:gestion}
+
+\iffalse
+\section{Méthodologie}
+
+Le projet a été conduit de façon incrémentale, organisée en sprints assortis de critères de
+priorité (P0 indispensable, P1 important). Chaque sprint livrait un incrément vérifiable et
+faisait l'objet d'une validation avant passage au suivant : modélisation Merise et UML,
+puis implémentation, puis tests automatisés et audits de code. Cette discipline a permis de
+détecter et corriger tôt les erreurs de modélisation (cardinalités, périmètre des entités).
+
+\section{Organisation des sprints}
+
+\begin{table}[H]
+\centering
+\caption{Découpage en sprints}
+\label{tab:sprints}
+\renewcommand{\arraystretch}{1.25}\footnotesize
+\begin{tabularx}{\linewidth}{L{2.4cm} X}
+\toprule
+\textbf{Sprint} & \textbf{Contenu} \\
+\midrule
+Sprint 1 & Modélisation (MCD/MLD/UML), entités JPA, repositories, services de base, migrations Liquibase \\
+Sprint 2 & Sécurité JWT + RBAC, DTO, pagination, gestion globale des erreurs, devises \\
+Sprint 3 & Multi-tenant (TenantContext / TenantFilter), entités Message/Notification/Audit, analytique \\
+Sprint 4 & Frontend Next.js (vitrine + tableau de bord), documentation, déploiement (Render, Vercel) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Répartition des tâches et participation}
+
+Le tableau~\ref{tab:participation} présente la répartition de la contribution entre les
+membres du groupe. \emph{(Les taux sont à compléter ; chacun est évalué sur 100.)}
+
+\begin{table}[H]
+\centering
+\caption{Répartition de la participation}
+\label{tab:participation}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{L{6cm} X C{2.6cm}}
+\toprule
+\textbf{Membre} & \textbf{Contributions principales} & \textbf{Participation} \\
+\midrule
+ETCHOME Chris           & \dotfill & \underline{\hspace{1cm}} / 100 \\
+{[Membre 2 — Nom Prénom]} & \dotfill & \underline{\hspace{1cm}} / 100 \\
+KENNE DIHA Lea & \dotfill & \underline{\hspace{1cm}} / 100 \\
+{[Membre 4 — Nom Prénom]} & \dotfill & \underline{\hspace{1cm}} / 100 \\
+MBA BELA Oceanne & \dotfill & \underline{\hspace{1cm}} / 100 \\
+{[Membre 6 — Nom Prénom]} & \dotfill & \underline{\hspace{1cm}} / 100 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Outils et gestion de version}
+
+Le code est versionné sous Git (dépôt GitHub), avec un flux de branches distinguant le code
+stable (\texttt{main}), l'intégration (\texttt{dev}) et les branches de fonctionnalités
+(\texttt{feat/*}) ou de correction (\texttt{fix/*}). La documentation technique est rédigée
+en Markdown et en \LaTeX{} (le présent rapport).
+\fi

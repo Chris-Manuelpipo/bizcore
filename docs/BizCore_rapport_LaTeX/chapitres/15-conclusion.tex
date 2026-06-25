@@ -1,0 +1,46 @@
+\chapter{Conclusion générale}
+\label{chap:conclusion}
+
+\section{Bilan}
+
+Ce projet a démontré qu'une analogie rigoureuse entre l'ingénierie des protocoles réseaux
+et la conception d'une plateforme métier n'est pas une simple métaphore pédagogique :
+elle constitue une véritable méthode de conception. Les concepts de couches,
+d'encapsulation, de routage, d'adressage, de qualité de service et de séparation des plans
+de contrôle et de données ont guidé chaque décision architecturale de BCaaS.
+
+Les réalisations principales sont :
+\begin{itemize}
+  \item une grille de lecture protocolaire en cinq couches, formellement reliée au modèle
+        OSI ;
+  \item un modèle de données générique de quinze entités, configurable par tenant et
+        implémenté sur PostgreSQL avec Liquibase ;
+  \item une API REST d'environ quatre-vingt-cinq endpoints, documentée par OpenAPI et
+        validée par cent cinquante-deux tests automatisés ;
+  \item une authentification JWT multi-tenant avec contrôle d'accès basé sur les rôles, et
+        une isolation par colonne \texttt{tenant\_id} pilotée par un contexte
+        \texttt{ThreadLocal} ;
+  \item un protocole d'échange formalisé pour un cas métier concret ;
+  \item une piste d'audit et un service d'analytique pour la traçabilité ;
+  \item un frontend Next.js (site vitrine et tableau de bord), l'ensemble étant déployé sur
+        le cloud (Render et Vercel).
+\end{itemize}
+
+\section{Limites}
+
+Le périmètre livré est celui d'un MVP. Plusieurs briques avancées du sujet sont posées mais
+non pleinement câblées (événementiel Kafka, cache Redis par annotations, limitation de
+débit) ou restent à venir (réactif, géo-référencement, stockage objet, 2FA, PWA/offline,
+i18n, mobile natif).\\
+Par ailleurs, la couverture des tests automatisés, bien que substantielle, reste centrée sur la validation fonctionnelle de l'API et n'inclut pas encore de tests de charge approfondis permettant d'évaluer le comportement du système face à un grand nombre de tenants simultanés. Enfin, le contrôle d'accès basé sur les rôles, bien qu'opérationnel, demeure relativement statique : chaque tenant ne dispose pas encore de la capacité à définir ses propres rôles et politiques d'autorisation de façon autonome.\\
+Ces limites, assumées et documentées, font l'objet de la feuille de route du chapitre~\ref{chap:perspectives}.\\
+\section{Apports personnels}
+
+Ce projet a permis d'acquérir des compétences concrètes en architecture logicielle
+distribuée, en conception d'API REST professionnelle, en sécurité applicative (JWT, RBAC),
+en isolation multi-tenant et en modélisation de systèmes génériques. Au-delà des
+technologies, la démarche de \emph{pensée protocolaire} --- définir les contrats avant le
+code, modéliser les échanges comme des messages --- constitue un réflexe d'ingénieur
+directement transposable à tout projet de système d'information.
+
+Ce travail a également renforcé notre capacité à raisonner en termes de systèmes complets plutôt qu'en fonctionnalités isolées, en nous habituant à anticiper, dès la conception, des préoccupations transverses telles que la sécurité, la traçabilité et l'isolation des données, plutôt que de les traiter comme des ajouts tardifs. Cette approche constitue, selon nous, un acquis précieux pour notre future pratique en tant qu'ingénieurs en informatique.

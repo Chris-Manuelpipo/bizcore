@@ -1,0 +1,420 @@
+%=====================================================================
+%  BCaaS — Business Core as a Service
+%  Rapport de projet — 3GI, Introduction aux Réseaux, S2 2025-2026
+%  École Nationale Supérieure Polytechnique de Yaoundé (ENSPY)
+%  Compilation : pdflatex rapport.tex  (x2 pour la table des matières)
+%=====================================================================
+\documentclass[11pt,a4paper,oneside]{report}
+
+%------------------------- Encodage & langue -------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[main=french,provide=*]{babel}
+\IfFileExists{lmodern.sty}{%
+  \usepackage{lmodern}%
+  \IfFileExists{microtype.sty}{\usepackage{microtype}}{}%
+}{}
+
+%------------------------- Mise en page ------------------------------
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.7cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{emptypage}
+\newcommand{\bcaas}{BCaaS}
+%------------------------- Couleurs ----------------------------------
+
+%------------------------- Couleurs ----------------------------------
+\usepackage{xcolor}
+\definecolor{enspyorange}{HTML}{E8772E}
+\definecolor{bcblue}{HTML}{1F3A5F}
+\definecolor{bclight}{HTML}{EAF0F6}
+\definecolor{bcgray}{HTML}{555555}
+\definecolor{codebg}{HTML}{F6F8FA}
+\definecolor{codekw}{HTML}{1F3A5F}
+\definecolor{codestr}{HTML}{C7421A}
+\definecolor{codecmt}{HTML}{6A737D}
+% Définir la couleur primary (ajustez selon votre charte)
+\definecolor{primary}{RGB}{0, 102, 204}  % Bleu
+%------------------------- Graphiques & tableaux ---------------------
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{
+  decorations.pathreplacing,  % Pour les accolades
+  positioning,                % Pour positionner les nœuds
+  shapes.geometric,           % Pour des formes spécifiques
+  arrows.meta                 % Pour les flèches
+}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{float}
+\captionsetup{labelfont={bf,color=bcblue},textfont={it}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+%------------------------- Maths -------------------------------------
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+
+%------------------------- Listings (code) ---------------------------
+\usepackage{listings}
+\lstdefinestyle{bcstyle}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecmt}\itshape,
+  numberstyle=\tiny\color{bcgray},
+  numbers=left, numbersep=8pt,
+  showstringspaces=false,
+  breaklines=true, frame=single, framerule=0pt,
+  rulecolor=\color{bclight},
+  xleftmargin=10pt, xrightmargin=4pt,
+  aboveskip=10pt, belowskip=6pt, tabsize=2,
+}
+\lstset{style=bcstyle}
+\lstdefinelanguage{json}{
+  basicstyle=\ttfamily\footnotesize,
+  stringstyle=\color{codestr},
+  literate=
+   *{:}{{{\color{codekw}:}}}{1}
+    {\{}{{{\color{bcblue}\{}}}{1}
+    {\}}{{{\color{bcblue}\}}}}{1}
+    {[}{{{\color{bcblue}[}}}{1}
+    {]}{{{\color{bcblue}]}}}{1},
+}
+
+%------------------------- Boîtes (analogies) ------------------------
+\usepackage[most]{tcolorbox}
+\newtcolorbox{analogie}[1][Analogie réseau]{
+  colback=bclight, colframe=bcblue, coltitle=white,
+  fonttitle=\bfseries, title={#1}, sharp corners=downhill,
+  boxrule=0.6pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+\newtcolorbox{garantie}[1][Garantie]{
+  colback=enspyorange!8, colframe=enspyorange, coltitle=white,
+  fonttitle=\bfseries, title={#1}, sharp corners=downhill,
+  boxrule=0.6pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+\newtcolorbox{question}[1][Question directrice]{
+  colback=white, colframe=bcblue, coltitle=white,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+
+%------------------------- Titres (titlesec) -------------------------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\sffamily\bfseries\color{bcblue}}
+  {\filright\Large\color{enspyorange}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {8pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{10pt}{30pt}
+\titleformat{\section}{\sffamily\Large\bfseries\color{bcblue}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries\color{bcblue!85}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\sffamily\normalsize\bfseries\color{bcgray}}{\thesubsubsection}{0.6em}{}
+
+%------------------------- En-têtes / pieds --------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{14pt}
+\fancyhead[L]{\footnotesize\itshape\color{bcgray} BCaaS — Business Core as a Service}
+\fancyhead[R]{\footnotesize\itshape\color{bcgray} 3GI — 2025-2026}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{enspyorange}\leaders\hrule height \headrulewidth\hfill}}
+
+%------------------------- Liens -------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=bcblue, citecolor=enspyorange,
+  urlcolor=enspyorange, pdftitle={BCaaS — Business Core as a Service},
+  pdfauthor={Groupe BizCore — 3GI ENSPY},
+}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+
+%------------------------- Commande figure placeholder ---------------
+\newcommand{\figplaceholder}[2]{%
+  \begin{center}
+  \fcolorbox{bcblue}{bclight}{%
+    \begin{minipage}[c][#2][c]{0.85\linewidth}\centering
+      \sffamily\color{bcgray}\textbf{[ FIGURE À INSÉRER ]}\\[4pt]
+      \footnotesize #1
+    \end{minipage}}
+  \end{center}}
+
+%=====================================================================
+\begin{document}
+\sloppy
+
+	
+	%===================== PAGE DE GARDE ===============================
+\begin{titlepage}
+	
+	% === RÉDUIRE LES MARGES UNIQUEMENT ICI ===
+	\newgeometry{top=1.2cm, bottom=1.2cm, left=1.5cm, right=1.5cm}
+	
+	% === EN-TÊTE BILINGUE AVEC LOGO CENTRÉ ===
+	\begin{center}
+		\begin{tabular}{m{0.4\textwidth} m{0.15\textwidth} m{0.4\textwidth}}
+			\begin{flushleft}
+				\begin{center}
+					{\small
+						{République du Cameroun}\\
+						\textit{Paix -- Travail -- Patrie}\\
+						---------------\\
+						{Université de Yaoundé I}\\
+						---------------\\
+						École Nationale Supérieure Polytechnique de Yaoundé\\
+						{(ENSPY)}\\
+						---------------\\
+						Département de Génie Informatique
+					}
+				\end{center}
+			\end{flushleft}
+			&
+			\centering
+			\includegraphics[width=2.5cm]{figures/logopo-rbg.png}
+			&
+			\begin{flushright}
+				\begin{center}
+					{\small
+						{Republic of Cameroon}\\
+						\textit{Peace -- Work -- Fatherland}\\
+						---------------\\
+						{University of Yaoundé I}\\
+						---------------\\
+						National Advanced School of Engineering of Yaoundé\\
+						{(NASEY)}\\
+						---------------\\
+						Department of Computer Engineering
+					}
+				\end{center}
+			\end{flushright}
+		\end{tabular}
+	\end{center}
+	
+	\vspace{0.2cm}
+	
+	% --- Trait décoratif ---
+	{\color{bcblue}\rule{\linewidth}{1.2pt}}
+	\vspace{0.1cm}
+	{\color{enspyorange}\rule{\linewidth}{0.5pt}}
+	
+	\vspace{0.3cm}
+	
+	% --- Titre RAPPORT DE PROJET ---
+	\begin{center}
+		{\Large \bfseries \color{bcblue} Rapport de projet}
+		
+	
+		{\sffamily\bfseries\color{enspyorange}\fontsize{34}{38}\selectfont Business Core as a Service\par}
+		\vspace{0.1cm} 
+		{ \itshape \color{gray!60} Une infrastructure générique de gestion des métiers\\[0.05cm]
+			inspirée de l'ingénierie des protocoles réseaux}
+	\end{center}
+	
+	% --- Trait décoratif ---
+	{\color{enspyorange}\rule{\linewidth}{0.5pt}}
+	\vspace{0.1cm}
+	{\color{bcblue}\rule{\linewidth}{1.2pt}}
+	
+	\vspace{0.3cm}
+	
+	% --- GROUPE 3 ---
+	\begin{center}
+		{\large \bfseries \color{enspyorange} \textsc{Groupe 3}}
+	\end{center}
+	
+	\vspace{0.1cm}
+	
+	% --- Auteurs ---
+	\begin{center} 
+		\vspace{0.15cm}
+		\renewcommand{\arraystretch}{1.15}
+		\begin{tabular}{l c c}
+			\toprule[0.6pt]
+			\textbf{Nom \& Prénom(s)} & \textbf{Matricule} & \textbf{Participation (\%)} \\
+			\midrule
+			ETCHOME Chris Manuel Loîc                 & 23P393 & 100 \\
+			KEMDA DEMANOU Jean Loïc        & 22P356 & 100 \\
+			KENNE DIHA Ange Léa            & 23P566 & 70\\
+			
+			KONGNI TCHINDA Jude Roland     & 23P349 & 70\\
+            KOTCHAP TINGA Blessing         & 23P350 & 60 \\
+			MBA BELA Océanne               & 23P518 & 70 \\
+            
+			\bottomrule[0.6pt]
+		\end{tabular}
+	\end{center}
+	
+	\vspace{0.3cm}
+	
+	% --- Encadrement (à droite) ---
+	\begin{flushright}
+		{ \bfseries \color{bcblue} \large Sous la supervision de :}
+		
+		\vspace{0.05cm}
+		{  Pr. Dr Ing. \textbf{Thomas Djotio Ndié}}
+		
+		\vspace{0.2cm}
+		
+		{  \bfseries \color{bcblue} Assistant :}
+		
+		\vspace{0.05cm}
+		{ \textbf{Juslin KUTCHE NEGOUE}}
+		
+		\vspace{0.05cm}
+		{\small MSc, PhD Student}
+	\end{flushright}
+	
+	\vfill
+	
+	% --- Pied de page ---
+	\begin{center}
+		{\small Année académique 2025-2026} 
+	\end{center}
+	
+	% === RESTAURER LES MARGES ORIGINALES ===
+	\restoregeometry
+	
+\end{titlepage}
+
+\pagenumbering{roman}
+
+%=====================  RÉSUMÉ  ======================================
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+\markboth{Résumé}{Résumé}
+
+Ce rapport présente la conception, l'implémentation et le déploiement de \textbf{BCaaS}
+(\emph{Business Core as a Service}), une plateforme générique \emph{multi-tenant}
+dédiée à la gestion standardisée des processus métier. Le projet s'inscrit dans le cadre
+du cours d'Introduction aux Réseaux de la troisième année de Génie Informatique de
+l'École Nationale Supérieure Polytechnique de Yaoundé. L'idée centrale consiste à modéliser un système d'information métier en s'appuyant rigoureusement sur les concepts de l'ingénierie des protocoles réseaux : pile de couches,
+encapsulation, routage, adressage, qualité de service, et séparation des plans de contrôle
+et de données. Cette analogie formelle, loin d'être une simple métaphore pédagogique,
+structure l'ensemble des décisions architecturales : un \emph{tenant} y joue le rôle d'un
+VLAN, une demande de service celui d'un paquet, et la facture celui d'un accusé de
+réception. La solution livrée repose sur Spring Boot 3.5 / Java 21, PostgreSQL avec Liquibase,
+Spring Security avec authentification JWT et isolation multi-tenant par colonne
+\texttt{tenant\_id}, et SpringDoc OpenAPI pour la documentation automatique de l'API.
+Le domaine compte quinze entités et l'API expose environ quatre-vingt-cinq points de
+terminaison REST validés par cent cinquante-deux tests automatisés. Un frontend Next.js
+(site vitrine et tableau de bord d'administration) complète l'ensemble. L'API est déployée
+sur Render et la documentation sur Vercel.
+
+\vspace{6pt}
+\noindent\textbf{Mots-clés :} Business Core, multi-tenant, protocoles réseaux, modèle OSI,
+encapsulation, Spring Boot, API REST, JWT, Next.js, architecture hexagonale.
+
+%=====================  ABSTRACT  ====================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\markboth{Abstract}{Abstract}
+
+This report presents the design, implementation and deployment of \textbf{BCaaS}
+(\emph{Business Core as a Service}), a generic \emph{multi-tenant} platform dedicated to
+the standardized management of business processes. The project was carried out within the
+Introduction to Networks course of the third year of Computer Engineering at the National
+Advanced School of Engineering of Yaoundé.The core idea is to model a business information system by rigorously relying on the
+concepts of network protocol engineering: layered stack, encapsulation, routing,
+addressing, quality of service, and the separation of control and data planes. This formal
+analogy is not a mere pedagogical metaphor; it drives every architectural decision: a
+\emph{tenant} plays the role of a VLAN, a service request that of a packet, and an
+invoice that of an acknowledgement signal. The delivered solution is built on Spring Boot 3.5 / Java 21, PostgreSQL with Liquibase,
+Spring Security with JWT authentication and \texttt{tenant\_id}-based multi-tenant
+isolation, and SpringDoc OpenAPI for automatic API documentation. The domain comprises
+fifteen entities and the API exposes roughly eighty-five REST endpoints validated by one
+hundred and fifty-two automated tests. A Next.js frontend (public showcase site and
+administration dashboard) completes the system. The API is deployed on Render and the
+documentation on Vercel.
+
+\vspace{6pt}
+\noindent\textbf{Keywords:} Business Core, multi-tenant, network protocols, OSI model,
+encapsulation, Spring Boot, REST API, JWT, Next.js, hexagonal architecture.
+
+%=====================  TOC / FIGURES / TABLES =======================
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+\listoftables
+
+%=====================  ABRÉVIATIONS =================================
+\chapter*{Liste des abréviations}
+\addcontentsline{toc}{chapter}{Liste des abréviations}
+\markboth{Liste des abréviations}{Liste des abréviations}
+
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{L{3.2cm} L{11cm}}
+\toprule
+\textbf{Sigle} & \textbf{Signification} \\
+\midrule \endhead
+BCaaS & Business Core as a Service \\
+BaaS  & Business as a Service \\
+API   & Application Programming Interface \\
+REST  & Representational State Transfer \\
+JWT   & JSON Web Token \\
+RBAC  & Role-Based Access Control \\
+DDD   & Domain-Driven Design \\
+DTO   & Data Transfer Object \\
+FSM   & Finite State Machine (machine à états finis) \\
+OSI   & Open Systems Interconnection \\
+TCP/IP& Transmission Control Protocol / Internet Protocol \\
+VLAN  & Virtual Local Area Network \\
+SDN   & Software-Defined Networking \\
+QoS   & Quality of Service \\
+SLA   & Service-Level Agreement \\
+MCD   & Modèle Conceptuel de Données \\
+MLD   & Modèle Logique de Données \\
+UML   & Unified Modeling Language \\
+PWA   & Progressive Web App \\
+SSR   & Server-Side Rendering \\
+CdS   & Consommateur de Service \\
+FdS   & Fournisseur de Service \\
+KPI   & Key Performance Indicator \\
+RLS   & Row-Level Security \\
+UUID  & Universally Unique Identifier \\
+\bottomrule
+\end{longtable}
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+%#####################################################################
+%  Les chapitres sont inclus ci-dessous.
+%#####################################################################
+\input{chapitres/01-introduction}
+\input{chapitres/02-etat-art}
+\input{chapitres/03-analogie}
+\input{chapitres/04-besoins}
+\input{chapitres/05-modelisation-math}
+\input{chapitres/06-conception-archi}
+\input{chapitres/07-conception-donnees}
+\input{chapitres/08-implementation}
+\input{chapitres/09-protocole-echange}
+\input{chapitres/10-observabilite}
+\input{chapitres/11-frontend-deploiement}
+\input{chapitres/12-tests}
+% \input{chapitres/13-gestion-projet}
+\input{chapitres/14-perspectives}
+\input{chapitres/15-conclusion}
+
+%=====================  BIBLIOGRAPHIE ================================
+\input{chapitres/99-biblio}
+
+%=====================  GLOSSAIRE ====================================
+\input{chapitres/99-glossaire}
+
+%=====================  ANNEXES ======================================
+\appendix
+\input{chapitres/99-annexes}
+
+\end{document}

@@ -1,0 +1,28 @@
+\babel@toc {french}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Flux bout-en-bout d'une requête dans BCaaS : Client $\to $ API Gateway $\to $ Tenant \& Routing $\to $ Context \& Policy $\to $ Business Service, avec correspondance OSI descendante/ascendante et publication d'événements (notification, audit).}}{17}{figure.caption.13}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Pile protocolaire métier de BCaaS{} et correspondance avec le modèle OSI}}{17}{figure.caption.14}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Diagramme de contexte du système}}{22}{figure.caption.19}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Architecture logique de BCaaS}}{31}{figure.caption.22}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Diagramme de packages de l'architecture du système}}{32}{figure.caption.27}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Diagramme de classes métier de BCaaS}}{35}{figure.caption.30}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Machine à états de \texttt {ServiceRequest}}}{36}{figure.caption.32}%
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Machine à états de \texttt {Invoice}}}{36}{figure.caption.32}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {11.1}{\ignorespaces Diagramme de déploiement du système}}{48}{figure.caption.41}%
+\contentsline {figure}{\numberline {11.2}{\ignorespaces Page d'accueil du site vitrine déployé sur Vercel}}{48}{figure.caption.42}%
+\contentsline {figure}{\numberline {11.3}{\ignorespaces Documentation interactive de l'API}}{49}{figure.caption.43}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {A.1}{\ignorespaces Documentation interactive Swagger UI}}{67}{figure.caption.56}%

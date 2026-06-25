@@ -1,0 +1,135 @@
+\chapter{Introduction générale}
+
+\section{Contexte du projet}
+
+%Dans le domaine du génie logiciel, chaque nouveau projet métier qu'il %s'agisse d'une
+%pharmacie, d'une agence immobilière, d'un cabinet médical, d'une auto-école %ou d'une
+%école reconstruit invariablement les mêmes fondations : gestion des acteurs, des
+%ressources, des règles, des workflows, des notifications et de la traçabilité. Cette
+%duplication systématique représente un gaspillage considérable en temps de développement,
+%en coût de maintenance et en cohérence architecturale.
+
+%Parallèlement, l'ingénierie des réseaux a résolu depuis des décennies un problème
+%structurellement similaire : faire communiquer de façon fiable, sécurisée et interopérable
+%des entités hétérogènes sur une infrastructure partagée. Le modèle OSI et la suite TCP/IP
+%proposent une décomposition en couches aux responsabilités clairement délimitées, un
+%mécanisme d'encapsulation des données, un adressage précis des destinataires, une qualité
+%de service différenciée, et une séparation nette entre plan de contrôle et plan de données.
+
+%Le présent projet a pour objectif pédagogique est précisément d'établir un
+%\emph{lien formel} entre les concepts du domaine des réseaux et ceux d'un domaine métier.
+%BCaaS constitue le \emph{noyau générique} (\emph{Business Core}) sur lequel les autres
+%instances métier de la promotion (pharmacie, immobilier, tourisme, médical, etc.) peuvent
+%se greffer.
+
+L’application métier est par définition une application développée selon des besoins métier. Elle permet de faciliter la gestion des activités d’une entreprise en simplifiant les tâches tout en automatisant les process. Depuis l’essor de la digitalisation, télétravail et BYOD (Bring your own device), la tendance est aux applications développées selon les spécificités de chaque métier ou chaque profil. Ainsi dans un contexte où les organisations multiplient ces applications métier spécifiques à chaque secteur d'activité, chaque nouveau projet métier, qu'il s'agisse d'une pharmacie, d'une agence immobilière, d'un cabinet médical, d'une auto-école ou d'une école, elle reconstruit invariablement les mêmes fondations : gestion des acteurs, des ressources, des règles métier, des workflows, ou des mécanismes d'audit, les mêmes briques logicielles sont reconstruites à chaque nouveau projet.\\
+
+Parallèlement, l'ingénierie des réseaux informatiques a depuis longtemps résolu un problème structurellement similaire : permettre à des flux de données hétérogènes de circuler de manière fiable, sécurisée et interopérable à travers une infrastructure partagée. Le modèle OSI et la suite TCP/IP proposent une décomposition en couches aux responsabilités clairement délimitées, un
+mécanisme d'encapsulation des données, un adressage précis des destinataires, une qualité
+de service différenciée, et une séparation nette entre plan de contrôle et plan de données.Les principes qui gouvernent les réseaux séparation des responsabilités en couches, encapsulation des données, routage, contrôle de la qualité de service constituent une référence éprouvée pour structurer des systèmes complexes. Les principes qui gouvernent les réseaux séparation des responsabilités en couches, encapsulation des données, routage, contrôle de la qualité de service constituent une référence éprouvée pour structurer des systèmes complexes. C'est dans ce contexte que s'inscrit le concept de Business Core as a Service (BCaaS) : une infrastructure générique de gestion des métiers inspirée de l'ingénierie des protocoles réseaux.
+
+\section{Problème}
+
+%Le problème adressé est celui de la \textbf{ré-implémentation perpétuelle des fondations
+%métier}. Concrètement :
+%\begin{itemize}
+  %\item la fragmentation des outils de gestion entre métiers, sans interopérabilité ;
+  %\item l'absence de standardisation des concepts récurrents (acteur, service, ressource,
+   %     règle métier, facture) ;
+  %\item la difficulté de mise en relation entre un consommateur de service (CdS) et un
+   %     fournisseur de service (FdS) ;
+  %\item le manque de traçabilité du cycle de vie des prestations ;
+  %\item la gestion manuelle et non auditée de la facturation.
+%\end{itemize}
+
+Les applications métier (gestion de pharmacie, d'agence immobilière, de cabinet médical, d'auto-école, d'école, etc.) reposent toutes sur les mêmes fondations : gestion des acteurs, des ressources, des règles métier, des workflows et de l'audit. Pourtant, ces briques communes sont reconstruites à chaque nouveau projet, sans méthode de conception réutilisable ni séparation claire des responsabilités, ce qui rend ces applications difficiles à faire évoluer et peu adaptées à une utilisation par plusieurs clients (tenants) sur une même infrastructure.\\
+
+Le problème qui se pose est donc le suivant : concevoir une infrastructure métier générique, modulaire et multitenant, en s'appuyant sur les principes de structuration en couches, d'encapsulation et de routage déjà éprouvés par l'ingénierie des protocoles réseaux
+
+\section{Problématique}
+
+\begin{question}
+Comment concevoir un noyau métier générique, réutilisable et configurable qui permette à
+n'importe quelle instance métier de fonctionner sans reconstruire les fondations, en
+s'appuyant formellement sur les concepts de l'ingénierie des protocoles réseaux ?
+\end{question}
+
+Cette question directrice se décline en sous-questions a savoir : \\
+%quels concepts réseaux peut-on
+%mettre en correspondance avec quels composants métier ? Comment garantir l'isolation des
+%données de clients distincts sur une infrastructure partagée, à la manière d'un VLAN ?
+%Comment formaliser le « protocole » d'échange d'un cas métier concret ?
+
+%\begin{enumerate}
+    \textbf{Sur la structuration en couches:} Comment décomposer un Business Core en couches aux responsabilités clairement délimitées, à l'image du modèle OSI, de sorte que chaque couche masque sa complexité aux couches voisines tout en leur offrant des services bien définis ?
+
+    \textbf{Sur l'encapsulation des échanges:}Comment séparer, au sein d'un même message métier, les métadonnées de routage et de contexte (identité du tenant, de l'acteur, traçabilité) du contenu métier proprement dit, afin qu'un service puisse appliquer les politiques communes sans connaître l'ensemble de l'application ?
+
+    \textbf{Sur le routage et l'identification:}Comment résoudre, pour chaque requête entrante, le tenant, le domaine métier et le service cible auquel elle doit être acheminée, de manière analogue à l'adressage IP dans un réseau ?
+
+    \textbf{Sur l'isolation multitenant:}Comment garantir qu'une infrastructure partagée entre plusieurs clients préserve une isolation stricte de leurs données et de leurs processus, à l'image de la virtualisation réseau (VLAN, namespace) ?
+
+    \textbf{Sur la séparation gouvernance/exécution:} Comment distinguer, au sein du Business Core, un plan de contrôle (configuration des règles, des tenants, des SLA) d'un plan de données (exécution effective des transactions métier), afin de permettre une reconfiguration du système sans interruption de service ?
+%\end{enumerate}
+
+  
+\section{Objectifs}
+
+\subsection{Objectif général}
+Concevoir et réaliser une plateforme générique multi-tenant de gestion des métiers,
+architecturée selon une analogie rigoureuse avec la pile protocolaire réseau.
+
+\subsection{Objectifs spécifiques}
+\begin{enumerate}
+  \item Établir une analogie formelle et rigoureuse entre les concepts réseaux (couches
+        OSI, encapsulation, routage, QoS, multi-tenant) et les composants d'une
+        architecture métier générique.
+  \item Définir une pile protocolaire métier en cinq couches (infrastructure, transport et messaging,         tenant et routage, contexte et politique, capacités métier), où chaque couche assure une              fonction précise et masque sa complexité aux couches voisines.%Concevoir une architecture modulaire multi-tenant, lisible à travers une pile
+        %protocolaire métier en cinq couches.
+  \item Implémenter une API REST de provisionnement de tenants reposant sur un modèle de
+        données générique configurable.
+        
+  \item Proposer une stratégie de multitenant et d'isolation garantissant la séparation logique des           données et des processus entre les différents clients partageant la même infrastructure.
+        %Sécuriser les échanges par authentification JWT et contrôle d'accès basé sur les
+        %rôles (RBAC), avec isolation stricte par tenant.
+  \item Documenter et exposer l'API via Swagger UI, et déployer la solution
+        (API et documentation) sur le cloud.
+  \item Développer un frontend Next.js comprenant un site vitrine et la documentation détaillée de l'API REST. \end{enumerate}
+
+\section{Méthodologie}
+
+%Le projet a été conduit de manière incrémentale, organisée en \emph{sprints} successifs
+%assortis de critères de priorité (P0 : indispensable ; P1 : important). L'architecture
+%retenue est une \textbf{architecture hexagonale} (ports et adaptateurs) combinée au
+%\textbf{Domain-Driven Design} (DDD), afin de préserver l'indépendance du domaine métier
+%vis-à-vis des détails techniques. Chaque étape a fait l'objet d'une validation explicite
+%(modélisation Merise, diagrammes UML, audits de code, tests automatisés) avant de passer
+%à la suivante.
+Pour répondre aux objectifs fixés, notre démarche s'appuie sur une progression en quatre étapes successives.\\
+
+La première étape consiste à établir une analyse comparative entre les concepts fondamentaux de l'ingénierie des réseaux (modèle OSI, adressage IP, encapsulation, contrôle de la qualité de service) et les besoins propres à une architecture métier générique. Cette étape pose les bases conceptuelles du projet en faisant correspondre chaque mécanisme réseau à un équivalent métier.\\
+
+La deuxième étape traduit cette analyse en un modèle mathematique d'une part et architectural d'autre part, structuré selon une pile de cinq couches respectant les principes d'abstraction et d'encapsulation. Chaque couche est définie avec ses responsabilités propres et ses interfaces vis-à-vis des couches voisines.\\
+       
+La troisième étape regroupe la conception, l'implémentation et les tests du système. Elle consiste d'abord à appliquer l'architecture définie à un scénario métier précis (santé, transport, logistique, etc.), en modélisant un flux d'échange complet, de la requête initiale à la propagation des événements. Cette conception est ensuite mise en œuvre à travers le développement des composants du Business Core, incluant la stratégie d'isolation multitenant garantissant la séparation des données entre clients. Enfin, des tests sont menés pour valider le bon fonctionnement de l'architecture, vérifier la cohérence des contrats d'échange entre services et s'assurer du respect des exigences de sécurité et d'isolation.\\
+
+La quatrième étape ouvre une réflexion sur les perspectives d'évolution du Business Core, à travers la mise en place de mécanismes d'observabilité et de qualité de service, ainsi que l'identification des pistes d'extension possibles : ajout de nouveaux domaines métier, enrichissement des règles de gouvernance, ou amélioration de la résilience du système face à la montée en charge.
+
+
+
+
+\section{Structure du document}
+
+Le rapport est organisé comme suit. Le chapitre~\ref{chap:etat-de-lart} dresse l'état de l'art.
+Le chapitre~\ref{chap:analogie} formalise l'analogie réseau--métier, cœur conceptuel du
+projet, et y présente la pile protocolaire en cinq couches. Le chapitre~\ref{chap:besoins}
+spécifie les besoins fonctionnels et non fonctionnels. Le chapitre~\ref{chap:math} propose
+une modélisation mathématique du système. Les chapitres~\ref{chap:archi}
+et~\ref{chap:donnees} détaillent la conception architecturale et la conception des données.
+Le chapitre~\ref{chap:impl} décrit l'implémentation technique, le
+chapitre~\ref{chap:protocole} le protocole d'échange d'un cas métier, et le
+chapitre~\ref{chap:observ} la traçabilité et l'observabilité. Le
+chapitre~\ref{chap:frontend} traite du frontend et du déploiement, le
+chapitre~\ref{chap:tests} des tests et de la validation, et le chapitre~\ref{chap:gestion}
+de la gestion de projet. Le chapitre~\ref{chap:perspectives} expose les perspectives
+d'amélioration, avant la conclusion générale (chapitre~\ref{chap:conclusion}).
