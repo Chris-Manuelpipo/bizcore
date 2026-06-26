@@ -6,13 +6,11 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,13 +19,30 @@ import java.util.Map;
         info = @Info(
                 title = "BizCore API",
                 version = "1.0",
-                description = "Business as a Service - API générique de gestion des métiers"
+                description = """
+                        Business as a Service — API générique de gestion des métiers.
+
+                        **Portail développeur** : inscrivez-vous via `POST /api/dev-auth/register`, \
+                        connectez-vous via `POST /api/dev-auth/login`, puis utilisez le JWT retourné \
+                        (schéma **developerBearerAuth**) pour les endpoints `/api/developer/**`.
+
+                        Les informations du développeur (prénom, nom, email) se renseignent à l'inscription ; \
+                        les endpoints Developer Portal identifient le développeur via le JWT, pas via le corps de requête.
+                        """
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
         name = "bearerAuth",
-        description = "JWT token — obtenu via /api/auth/login",
+        description = "JWT utilisateur métier — obtenu via POST /api/auth/login",
+        scheme = "bearer",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        in = SecuritySchemeIn.HEADER
+)
+@SecurityScheme(
+        name = "developerBearerAuth",
+        description = "JWT développeur portail — obtenu via POST /api/dev-auth/login (après inscription sur /api/dev-auth/register)",
         scheme = "bearer",
         type = SecuritySchemeType.HTTP,
         bearerFormat = "JWT",
@@ -36,10 +51,12 @@ import java.util.Map;
 public class OpenApiConfig {
 
     private static final List<String> TAG_ORDER = List.of(
+            "Developer Auth",
+            "Developer Portal",
             "Authentication", "Users", "Tenants", "Actors", "Businesses",
             "Service Catalogues", "Service Requests", "Invoices",
             "Portfolios", "Business Rules", "Resources", "Media", "Currencies",
-             "Messages", "Notifications", "Audit tail", "Analytics"
+            "Messages", "Notifications", "Audit tail", "Analytics"
     );
 
     @Bean

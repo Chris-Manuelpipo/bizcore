@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const NAV_LINKS = [
   { label: "Documentation", href: "/docs" },
@@ -21,6 +22,8 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { _hasHydrated, isSessionValid } = useAuthStore();
+  const isAuthenticated = mounted && _hasHydrated && isSessionValid();
 
   useEffect(() => {
     setMounted(true);
@@ -30,6 +33,13 @@ export function Navbar() {
   }, []);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+  const isPortalRoute = pathname.startsWith("/dashboard");
+  const isAuthenticatedDocs = isAuthenticated && pathname.startsWith("/docs");
+
+  if (isPortalRoute || isAuthenticatedDocs) {
+    return null;
+  }
 
   return (
     <>
@@ -119,6 +129,22 @@ export function Navbar() {
               </button>
             )}
 
+            {isAuthenticated ? (
+              <Link
+                href="/dashboard"
+                className="hidden md:inline-flex items-center gap-1.5 text-[13px] px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all font-medium shadow-sm shadow-indigo-500/30"
+              >
+                <LayoutDashboard size={14} />
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden md:block text-[13px] px-3 py-1.5 rounded-xl border border-[var(--glass-border)] bg-[var(--surface-2)] text-[var(--text)] hover:border-indigo-500/40 hover:text-indigo-400 transition-all font-medium"
+              >
+                Se connecter
+              </Link>
+            )}
             <Link
               href="/docs"
               className="hidden md:block text-[13px] px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all font-medium shadow-sm shadow-indigo-500/30"
@@ -164,6 +190,24 @@ export function Navbar() {
                 </Link>
               );
             })}
+            {isAuthenticated ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="mt-1 flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 text-[14px] font-medium text-white"
+              >
+                <LayoutDashboard size={15} />
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="mt-1 rounded-lg border border-[var(--glass-border)] bg-[var(--surface-2)] px-3 py-2.5 text-[14px] font-medium text-[var(--text)]"
+              >
+                Se connecter
+              </Link>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

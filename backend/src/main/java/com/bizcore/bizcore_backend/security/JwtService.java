@@ -1,6 +1,8 @@
 package com.bizcore.bizcore_backend.security;
 
+import com.bizcore.bizcore_backend.domain.Developer;
 import com.bizcore.bizcore_backend.domain.User;
+import com.bizcore.bizcore_backend.repository.DeveloperRepository;
 import com.bizcore.bizcore_backend.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -45,9 +47,11 @@ public class JwtService {
     private String activeProfiles;
 
     private final UserRepository userRepository;
+    private final DeveloperRepository developerRepository;
 
-    public JwtService(UserRepository userRepository) {
+    public JwtService(UserRepository userRepository, DeveloperRepository developerRepository) {
         this.userRepository = userRepository;
+        this.developerRepository = developerRepository;
     }
 
     /**
@@ -88,6 +92,26 @@ public class JwtService {
      */
     public String extractTenantId(String token) {
         return extractClaim(token, claims -> claims.get("tenantId", String.class));
+    }
+
+    public String extractPrincipalType(String token) {
+        return extractClaim(token, claims -> claims.get("principalType", String.class));
+    }
+
+    public String generateDeveloperToken(Developer developer) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("principalType", "DEVELOPER");
+        claims.put("developerId", developer.getId().toString());
+        claims.put("firstName", developer.getFirstName());
+        claims.put("lastName", developer.getLastName());
+
+        return Jwts.builder()
+                .claims(claims)
+                .subject(developer.getEmail())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSigningKey())
+                .compact();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

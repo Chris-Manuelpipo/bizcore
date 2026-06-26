@@ -5,17 +5,20 @@ import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { InstancesSection } from "@/components/home/InstancesSection";
 import { ChatPreview } from "@/components/home/ChatPreview";
 import { Footer } from "@/components/layout/Footer";
+import { SessionRedirect } from "@/components/auth/SessionRedirect";
 
 export default function Home() {
   return (
-    <>
-      <HeroSection />
-      <ProtocolStack />
-      <StatsSection />
-      <FeaturesSection />
-      <InstancesSection />
-      <ChatPreview />
-      <Footer />
-    </>
+    <SessionRedirect>
+      <main>
+        <HeroSection />
+        <ProtocolStack />
+        <StatsSection />
+        <FeaturesSection />
+        <InstancesSection />
+        <ChatPreview />
+        <Footer />
+      </main>
+    </SessionRedirect>
   );
 }

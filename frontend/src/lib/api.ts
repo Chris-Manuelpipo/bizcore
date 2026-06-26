@@ -29,6 +29,10 @@ apiClient.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401 && typeof window !== "undefined") {
       localStorage.removeItem("bizcore_token");
+      // Nettoyage différé pour éviter une dépendance circulaire store ↔ api.
+      void import("@/store/useAuthStore").then(({ useAuthStore }) => {
+        useAuthStore.getState().logout();
+      });
     }
     return Promise.reject(err);
   }

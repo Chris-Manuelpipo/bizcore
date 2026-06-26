@@ -25,4 +25,7 @@
     <!-- Sprint 3 — Fix colonne metadata JSON → TEXT -->
     <include file="db/changelog/migrations/008-fix-audit-metadata-type.xml"/>
 
+    <!-- Sprint 4 — Développeurs & clés API -->
+    <include file="db/changelog/migrations/009-add-developers-api-keys.xml"/>
+
 </databaseChangeLog>

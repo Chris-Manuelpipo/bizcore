@@ -45,10 +45,19 @@ public class TenantFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         try {
+            if (TenantContext.getTenantId() != null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             final String authHeader = request.getHeader("Authorization");
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 final String jwt = authHeader.substring(7);
+                if (ApiKeyHasher.isApiKey(jwt)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 try {
                     String tenantIdStr = jwtService.extractTenantId(jwt);
                     if (tenantIdStr != null && !tenantIdStr.isBlank()) {

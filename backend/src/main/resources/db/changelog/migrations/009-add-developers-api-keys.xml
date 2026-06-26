@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+  <!-- Développeurs (consommateurs de la plateforme BCaaS) -->
+  <changeSet id="009-developers" author="bizcore">
+    <createTable tableName="developers">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="first_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="email" type="varchar(255)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="password" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_active" type="boolean" defaultValueBoolean="true"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+    <createIndex tableName="developers" indexName="idx_developers_email">
+      <column name="email"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- Lien tenant ↔ développeur créateur -->
+  <changeSet id="009-tenants-developer" author="bizcore">
+    <addColumn tableName="tenants">
+      <column name="developer_id" type="uuid"/>
+    </addColumn>
+    <addForeignKeyConstraint
+      constraintName="fk_tenants_developer"
+      baseTableName="tenants"
+      baseColumnNames="developer_id"
+      referencedTableName="developers"
+      referencedColumnNames="id"/>
+    <createIndex tableName="tenants" indexName="idx_tenants_developer_id">
+      <column name="developer_id"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- Clés API (accès programmatique, scopées par tenant) -->
+  <changeSet id="009-api-keys" author="bizcore">
+    <createTable tableName="api_keys">
+      <column name="id" type="uuid">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="developer_id" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="tenant_id" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="key_prefix" type="varchar(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="key_hash" type="varchar(128)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="expires_at" type="timestamp"/>
+      <column name="last_used_at" type="timestamp"/>
+      <column name="is_active" type="boolean" defaultValueBoolean="true"/>
+      <column name="created_at" type="timestamp"/>
+    </createTable>
+    <addForeignKeyConstraint
+      constraintName="fk_api_keys_developer"
+      baseTableName="api_keys"
+      baseColumnNames="developer_id"
+      referencedTableName="developers"
+      referencedColumnNames="id"/>
+    <addForeignKeyConstraint
+      constraintName="fk_api_keys_tenant"
+      baseTableName="api_keys"
+      baseColumnNames="tenant_id"
+      referencedTableName="tenants"
+      referencedColumnNames="id"/>
+    <createIndex tableName="api_keys" indexName="idx_api_keys_prefix">
+      <column name="key_prefix"/>
+    </createIndex>
+    <createIndex tableName="api_keys" indexName="idx_api_keys_developer">
+      <column name="developer_id"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

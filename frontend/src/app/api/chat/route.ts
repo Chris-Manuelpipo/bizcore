@@ -1,5 +1,6 @@
 import dns from "node:dns";
 import { NextRequest, NextResponse } from "next/server";
+import { API_BASE } from "@/lib/config";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { GUIDES } from "@/lib/guides";
 
@@ -17,9 +18,13 @@ const GROQ_MODEL = process.env.GROQ_MODEL ?? "llama-3.1-8b-instant";
 // Résumé compact des endpoints (une ligne chacun) pour rester sous la limite
 // de tokens du modèle Groq.
 const ENDPOINTS_DOCS = ENDPOINTS.map((e) => {
-  const flags = [e.requiresAuth ? "auth" : null, e.requiresTenant ? "tenant" : null]
-    .filter(Boolean)
-    .join("+");
+  let authFlag: string | null = null;
+  if (e.category === "Portail développeur" && !e.path.startsWith("/api/dev-auth")) {
+    authFlag = "dev-jwt";
+  } else if (e.requiresAuth) {
+    authFlag = "api-key";
+  }
+  const flags = [authFlag, e.requiresTenant ? "tenant" : null].filter(Boolean).join("+");
   return `${e.method} ${e.path} — ${e.summary} [${e.category}${flags ? ` | ${flags}` : ""}]`;
 }).join("\n");
 
@@ -40,22 +45,50 @@ BizCore est une plateforme API générique multi-tenant qui modélise les intera
 • ACK = Invoice (facture automatique)
 
 ARCHITECTURE :
-- Backend : Spring Boot 3.5.12 (Java 21), PostgreSQL, Redis, JWT
-- Frontend : Next.js 16 avec React 19, Tailwind CSS, Zustand
-- Multi-tenant : isolation totale des données par le tenant porté dans le JWT (claim tenantId) — il n'y a PAS d'en-tête X-Tenant-Id
+- Backend : Spring Boot 3.5.12 (Java 21), PostgreSQL, Redis — URL API : ${API_BASE}
+- Frontend : Next.js 16 avec React 19, Tailwind CSS, Zustand — portail développeur (inscription, dashboard, clés API)
+- Multi-tenant : isolation totale des données par tenant — jamais d'en-tête X-Tenant-Id
 - Workflow ServiceRequest : PENDING → ACCEPTED → IN_PROGRESS → FULFILLED → PAID
 - Facture auto-générée à FULFILLED
 - Devises supportées : XAF, XOF, NGN, KES, GHS, USD, EUR, GBP
 
+AUTHENTIFICATION (3 modes distincts — ne pas les confondre) :
+
+1. JWT portail développeur (Authorization: Bearer)
+   - Routes : /api/dev-auth/register, /api/dev-auth/login, /api/developer/**
+   - Usage : gestion du compte développeur, tenants et clés API depuis le portail web
+   - Ne sert PAS aux appels métier (/api/businesses, /api/actors, etc.)
+
+2. Clé API (X-Api-Key: bcs_live_…) — CHEMIN PRINCIPAL d'intégration backend
+   - Obtenue via Dashboard → Nouvelle clé API (POST /api/developer/api-keys avec JWT portail)
+   - Le secret brut n'est affiché qu'une seule fois — à copier immédiatement dans une variable d'environnement
+   - Le tenant est résolu automatiquement depuis la clé (pas de JWT requis sur les routes métier)
+   - Alternative : la clé peut aussi être passée en Authorization: Bearer bcs_live_…
+
+3. JWT utilisateur métier (Authorization: Bearer)
+   - Routes : /api/auth/register, /api/auth/login puis appels métier
+   - Usage : applications où l'utilisateur final se connecte (mobile, web client)
+   - Le tenant est dans le claim tenantId du token ; l'acteur agissant est déduit du token pour les transitions ServiceRequest (accept, start, fulfill)
+
+FLUX PORTAIL DÉVELOPPEUR (à recommander en priorité pour l'intégration serveur) :
+1. Inscription sur /register (POST /api/dev-auth/register)
+2. Connexion (POST /api/dev-auth/login) → JWT portail
+3. Dashboard → « Nouvelle clé API » : crée un tenant + clé bcs_live_… en une opération
+4. Copier la clé et le tenantId (affichés une seule fois)
+5. Appeler l'API métier avec X-Api-Key depuis votre backend
+
 TOUS LES ENDPOINTS API (${ENDPOINTS.length} endpoints) :
 ${ENDPOINTS_DOCS}
+(Légende auth : dev-jwt = JWT portail développeur, api-key = clé API bcs_live_…)
 
 GUIDES D'INTÉGRATION :
 ${GUIDES_DOCS}
 
 TYPES D'ENTITÉS :
+• Developer : compte portail (id, firstName, lastName, email) — gère tenants et clés API
+• ApiKey : clé d'intégration (id, keyPrefix, tenantId, developer) — secret bcs_live_… one-time
 • Tenant : espace métier isolé (id, name, domain)
-• User : compte utilisateur (id, firstName, lastName, email, roles, tenant)
+• User : compte utilisateur métier (id, firstName, lastName, email, roles, tenant)
 • Actor : rôle dans un tenant (PROVIDER ou CONSUMER, lié à un User)
 • Business : entité métier (id, name, domain, description, tenant)
 • ServiceCatalogue : service du catalogue, rattaché à un Business (id, name, description, basePrice, currency)
@@ -65,12 +98,13 @@ TYPES D'ENTITÉS :
 
 RÈGLES DE RÉPONSE :
 1. Toujours répondre en français, clairement et professionnellement
-2. Donner des exemples concrets (curl, JSON, JavaScript/TypeScript)
+2. Donner des exemples concrets (curl, JSON, JavaScript/TypeScript) en utilisant l'URL ${API_BASE} — jamais localhost
 3. Expliquer le concept réseau (émetteur/récepteur/protocole) quand pertinent
-4. Le seul en-tête requis est Authorization (Bearer JWT) ; le tenant et l'acteur agissant sont déduits du token — pas d'en-tête X-Tenant-Id ni de paramètre actorId
-5. Si hors périmètre BizCore, expliquer poliment ta spécialisation
-6. Pour les transitions d'état invalides (HTTP 400), expliquer les transitions valides du workflow
-7. Réponses claires et structurées (titres, listes, blocs de code) sans emojis`;
+4. Pour l'intégration backend : recommander X-Api-Key (clé bcs_live_…) ; pour le portail : JWT développeur ; pour les apps utilisateur final : JWT via /api/auth/login — jamais d'en-tête X-Tenant-Id
+5. Distinguer clairement « intégration serveur » (clé API) et « auth utilisateur final » (JWT utilisateur)
+6. Si hors périmètre BizCore, expliquer poliment ta spécialisation
+7. Pour les transitions d'état invalides (HTTP 400), expliquer les transitions valides du workflow
+8. Réponses claires et structurées (titres, listes, blocs de code) sans emojis`;
 
 interface ChatMessage {
   role: "user" | "assistant";

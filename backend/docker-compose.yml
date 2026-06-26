@@ -154,6 +154,8 @@ services:
       # Actuator
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
       MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS: when_authorized
+      HEALTH_CHECK_REDIS: "true"
+      HEALTH_CHECK_KAFKA: "true"
 
       # Logging
       LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT:-INFO}

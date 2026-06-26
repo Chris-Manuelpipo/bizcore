@@ -36,10 +36,10 @@ export const mockServices: ServiceCatalogue[] = [
 ];
 
 export const mockServiceRequests: ServiceRequest[] = [
-  { id: 'sr1', consumer: mockActors[0], provider: mockActors[1], business: mockBusinesses[0], serviceName: 'Consultation Pharma', description: 'Conseil pour traitement hypertension', status: 'PENDING', requestedAt: '2026-04-05T09:00:00Z' },
-  { id: 'sr2', consumer: mockActors[2], provider: mockActors[1], business: mockBusinesses[0], serviceName: 'Préparation Ordonnance', description: 'Ordonnance pour antibiotiques', status: 'ACCEPTED', requestedAt: '2026-04-04T14:00:00Z' },
-  { id: 'sr3', consumer: mockActors[0], provider: mockActors[3], business: mockBusinesses[0], serviceName: 'Vaccination', description: 'Vaccin grippe annuelle', status: 'IN_PROGRESS', requestedAt: '2026-04-03T10:00:00Z' },
-  { id: 'sr4', consumer: mockActors[2], provider: mockActors[1], business: mockBusinesses[0], serviceName: 'Consultation Pharma', description: 'Suivi traitement diabète', status: 'FULFILLED', requestedAt: '2026-04-02T11:00:00Z', fulfilledAt: '2026-04-02T12:30:00Z' },
+  { id: 'sr1', consumerId: '101', consumerName: 'Jean Dupont', providerId: '102', providerName: 'Marie Nkoulou', businessId: 'b1', businessName: 'Pharmacien', serviceName: 'Consultation Pharma', description: 'Conseil pour traitement hypertension', status: 'PENDING', requestedAt: '2026-04-05T09:00:00Z' },
+  { id: 'sr2', consumerId: '103', consumerName: 'Pierre Manga', providerId: '102', providerName: 'Marie Nkoulou', businessId: 'b1', businessName: 'Pharmacien', serviceName: 'Préparation Ordonnance', description: 'Ordonnance pour antibiotiques', status: 'ACCEPTED', requestedAt: '2026-04-04T14:00:00Z' },
+  { id: 'sr3', consumerId: '101', consumerName: 'Jean Dupont', providerId: '104', providerName: 'Anne Biwole', businessId: 'b1', businessName: 'Pharmacien', serviceName: 'Vaccination', description: 'Vaccin grippe annuelle', status: 'IN_PROGRESS', requestedAt: '2026-04-03T10:00:00Z' },
+  { id: 'sr4', consumerId: '103', consumerName: 'Pierre Manga', providerId: '102', providerName: 'Marie Nkoulou', businessId: 'b1', businessName: 'Pharmacien', serviceName: 'Consultation Pharma', description: 'Suivi traitement diabète', status: 'FULFILLED', requestedAt: '2026-04-02T11:00:00Z', fulfilledAt: '2026-04-02T12:30:00Z' },
 ];
 
 export const mockInvoices: Invoice[] = [

@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <QueryProvider>
             <Navbar />
-            <main>{children}</main>
+            {children}
           </QueryProvider>
         </ThemeProvider>
       </body>

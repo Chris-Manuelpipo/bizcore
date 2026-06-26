@@ -74,7 +74,7 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
 
   const curlExample = `curl -X ${endpoint.method} \\
   ${API_BASE}${replaceParams("uuid")} \\${endpoint.requiresAuth ? `
-  -H "Authorization: Bearer <JWT>" \\` : ""}
+  -H "X-Api-Key: <VOTRE_CLE_API>" \\` : ""}
   -H "Content-Type: application/json"${endpoint.requestBody ? ` \\
   -d '${prettyBody}'` : ""}`;
 
@@ -102,7 +102,7 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
       <div className="flex items-center gap-2 mb-6 flex-wrap">
         {endpoint.requiresAuth && (
           <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border bg-amber-400/10 text-amber-400 border-amber-400/20">
-            <Lock size={10} /> Auth requise
+            <Lock size={10} /> Clé API requise
           </span>
         )}
         {endpoint.category && (
@@ -235,7 +235,7 @@ export default function EndpointPage({ params }: { params: Promise<{ id: string 
           </div>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Exemple cURL" defaultOpen={true}>
+        <CollapsibleSection title="Exemple cURL (depuis votre terminal)" defaultOpen={false}>
           <CodeBlock code={curlExample} lang="bash" />
         </CollapsibleSection>
       </div>

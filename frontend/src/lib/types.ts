@@ -58,14 +58,22 @@ export interface Portfolio {
 
 export interface ServiceRequest {
   id: string;
-  consumer: Actor;
-  provider: Actor;
-  business: Business;
+  consumerId?: string;
+  consumerName?: string;
+  providerId?: string;
+  providerName?: string;
+  serviceCatalogueId?: string;
+  serviceCatalogueName?: string;
+  businessId?: string;
+  businessName?: string;
   serviceName: string;
   description?: string;
   status: 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'FULFILLED' | 'CANCELLED';
   requestedAt: string;
   fulfilledAt?: string;
+  acceptedAt?: string;
+  startedAt?: string;
+  cancelledAt?: string;
 }
 
 export interface Invoice {

@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,10 +21,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserDetailsService developerDetailsService;
 
-    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthFilter(JwtService jwtService,
+                         @Qualifier("userDetailsService") UserDetailsService userDetailsService,
+                         @Qualifier("developerDetailsService") UserDetailsService developerDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.developerDetailsService = developerDetailsService;
     }
 
     @Override
@@ -42,6 +47,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String jwt = authHeader.substring(7);
 
+        if (ApiKeyHasher.isApiKey(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String userEmail;
         try {
             userEmail = jwtService.extractUsername(jwt);
@@ -54,7 +64,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            UserDetails userDetails;
+            try {
+                String principalType = jwtService.extractPrincipalType(jwt);
+                if ("DEVELOPER".equals(principalType)) {
+                    userDetails = developerDetailsService.loadUserByUsername(userEmail);
+                } else {
+                    userDetails = userDetailsService.loadUserByUsername(userEmail);
+                }
+            } catch (Exception e) {
+                userDetails = userDetailsService.loadUserByUsername(userEmail);
+            }
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

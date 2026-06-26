@@ -19,3 +19,34 @@ export function getMethodColor(method: string) {
   };
   return colors[method.toUpperCase()] ?? "text-gray-400 bg-gray-400/10";
 }
+
+const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const relativeFormatter = new Intl.RelativeTimeFormat("fr-FR", { numeric: "auto" });
+
+export function formatDate(value?: string | null): string {
+  if (!value) return "Jamais";
+  return dateFormatter.format(new Date(value));
+}
+
+export function formatRelative(value?: string | null): string {
+  if (!value) return "Jamais";
+  const diffMs = new Date(value).getTime() - Date.now();
+  const diffSec = Math.round(diffMs / 1000);
+  const absSec = Math.abs(diffSec);
+
+  if (absSec < 60) return relativeFormatter.format(diffSec, "second");
+  const diffMin = Math.round(diffSec / 60);
+  if (Math.abs(diffMin) < 60) return relativeFormatter.format(diffMin, "minute");
+  const diffHour = Math.round(diffMin / 60);
+  if (Math.abs(diffHour) < 24) return relativeFormatter.format(diffHour, "hour");
+  const diffDay = Math.round(diffHour / 24);
+  if (Math.abs(diffDay) < 30) return relativeFormatter.format(diffDay, "day");
+  return formatDate(value);
+}

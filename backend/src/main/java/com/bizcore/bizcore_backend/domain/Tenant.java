@@ -1,5 +1,6 @@
 package com.bizcore.bizcore_backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
@@ -12,6 +13,11 @@ public class Tenant {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "developer_id")
+    @JsonIgnore
+    private Developer developer;
 
     // Nom de l'instance métier — ex: "Campharma", "ImmoCore", "TourismCM"
     @NotBlank
@@ -42,6 +48,9 @@ public class Tenant {
     // ── Getters / Setters ─────────────────────────────────────────────────
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+
+    public Developer getDeveloper() { return developer; }
+    public void setDeveloper(Developer developer) { this.developer = developer; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

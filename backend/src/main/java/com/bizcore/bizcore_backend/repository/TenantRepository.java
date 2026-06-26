@@ -1,5 +1,6 @@
 package com.bizcore.bizcore_backend.repository;
 
+import com.bizcore.bizcore_backend.domain.Developer;
 import com.bizcore.bizcore_backend.domain.Tenant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,6 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
     List<Tenant> findByDomain(String domain);
     List<Tenant> findByIsActiveTrue();
     boolean existsByName(String name);
+    List<Tenant> findByDeveloperIdOrderByCreatedAtDesc(UUID developerId);
+    Optional<Tenant> findByIdAndDeveloperId(UUID id, UUID developerId);
 }
