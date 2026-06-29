@@ -20,15 +20,7 @@ import java.util.Map;
                 title = "BizCore API",
                 version = "1.0",
                 description = """
-                        Business as a Service — API générique de gestion des métiers.
-
-                        **Portail développeur** : inscrivez-vous via `POST /api/dev-auth/register`, \
-                        connectez-vous via `POST /api/dev-auth/login`, puis utilisez le JWT retourné \
-                        (schéma **developerBearerAuth**) pour les endpoints `/api/developer/**`.
-
-                        Les informations du développeur (prénom, nom, email) se renseignent à l'inscription ; \
-                        les endpoints Developer Portal identifient le développeur via le JWT, pas via le corps de requête.
-                        """
+                        Business as a Service — API générique de gestion des métiers."""
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )
@@ -51,8 +43,8 @@ import java.util.Map;
 public class OpenApiConfig {
 
     private static final List<String> TAG_ORDER = List.of(
-            "Developer Auth",
-            "Developer Portal",
+        //     "Developer Auth",
+        //    "Developer Portal",
             "Authentication", "Users", "Tenants", "Actors", "Businesses",
             "Service Catalogues", "Service Requests", "Invoices",
             "Portfolios", "Business Rules", "Resources", "Media", "Currencies",
