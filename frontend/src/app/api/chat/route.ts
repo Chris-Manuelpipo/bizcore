@@ -19,9 +19,7 @@ const GROQ_MODEL = process.env.GROQ_MODEL ?? "llama-3.1-8b-instant";
 // de tokens du modèle Groq.
 const ENDPOINTS_DOCS = ENDPOINTS.map((e) => {
   let authFlag: string | null = null;
-  if (e.category === "Portail développeur" && !e.path.startsWith("/api/dev-auth")) {
-    authFlag = "dev-jwt";
-  } else if (e.requiresAuth) {
+  if (e.requiresAuth) {
     authFlag = "api-key";
   }
   const flags = [authFlag, e.requiresTenant ? "tenant" : null].filter(Boolean).join("+");
@@ -46,7 +44,7 @@ BizCore est une plateforme API générique multi-tenant qui modélise les intera
 
 ARCHITECTURE :
 - Backend : Spring Boot 3.5.12 (Java 21), PostgreSQL, Redis — URL API : ${API_BASE}
-- Frontend : Next.js 16 avec React 19, Tailwind CSS, Zustand — portail développeur (inscription, dashboard, clés API)
+- Frontend : Next.js 16 avec React 19, Tailwind CSS — documentation, guides et assistant AI
 - Multi-tenant : isolation totale des données par tenant — jamais d'en-tête X-Tenant-Id
 - Workflow ServiceRequest : PENDING → ACCEPTED → IN_PROGRESS → FULFILLED → PAID
 - Facture auto-générée à FULFILLED
@@ -60,7 +58,7 @@ AUTHENTIFICATION (3 modes distincts — ne pas les confondre) :
    - Ne sert PAS aux appels métier (/api/businesses, /api/actors, etc.)
 
 2. Clé API (X-Api-Key: bcs_live_…) — CHEMIN PRINCIPAL d'intégration backend
-   - Obtenue via Dashboard → Nouvelle clé API (POST /api/developer/api-keys avec JWT portail)
+   - Obtenue via POST /api/developer/api-keys (JWT portail requis)
    - Le secret brut n'est affiché qu'une seule fois — à copier immédiatement dans une variable d'environnement
    - Le tenant est résolu automatiquement depuis la clé (pas de JWT requis sur les routes métier)
    - Alternative : la clé peut aussi être passée en Authorization: Bearer bcs_live_…
@@ -71,10 +69,10 @@ AUTHENTIFICATION (3 modes distincts — ne pas les confondre) :
    - Le tenant est dans le claim tenantId du token ; l'acteur agissant est déduit du token pour les transitions ServiceRequest (accept, start, fulfill)
 
 FLUX PORTAIL DÉVELOPPEUR (à recommander en priorité pour l'intégration serveur) :
-1. Inscription sur /register (POST /api/dev-auth/register)
-2. Connexion (POST /api/dev-auth/login) → JWT portail
-3. Dashboard → « Nouvelle clé API » : crée un tenant + clé bcs_live_… en une opération
-4. Copier la clé et le tenantId (affichés une seule fois)
+1. Inscription : POST /api/dev-auth/register
+2. Connexion : POST /api/dev-auth/login → JWT portail
+3. Génération : POST /api/developer/api-keys → crée un tenant + clé bcs_live_… en une opération
+4. Copier la clé et le tenantId (retournés une seule fois par l'API)
 5. Appeler l'API métier avec X-Api-Key depuis votre backend
 
 TOUS LES ENDPOINTS API (${ENDPOINTS.length} endpoints) :

@@ -4,12 +4,8 @@ import Link from "next/link";
 import { ENDPOINTS, API_CATEGORIES } from "@/lib/endpoints";
 import { getMethodColor, cn } from "@/lib/utils";
 import { API_BASE } from "@/lib/config";
-import { useAuthStore } from "@/store/useAuthStore";
 
 export default function DocsPage() {
-  const { _hasHydrated, isSessionValid } = useAuthStore();
-  const isDeveloper = _hasHydrated && isSessionValid();
-
   return (
     <div className="max-w-3xl">
       <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/10 px-3 py-1 text-[11px] text-[var(--color-primary)]">
@@ -23,14 +19,6 @@ export default function DocsPage() {
         des ressources métier et comment les intégrer dans vos applications, pas comment appeler
         l&apos;API directement depuis un navigateur.
       </p>
-
-      {isDeveloper && (
-        <p className="mb-8">
-          <Link href="/dashboard" className="btn-primary inline-flex text-sm">
-            Gérer mes clés API
-          </Link>
-        </p>
-      )}
 
       <div id="introduction" className="mb-10">
         <h2 className="mb-4 border-b border-[var(--color-border)] pb-2 text-xl font-bold text-[var(--color-text)]">
@@ -57,32 +45,17 @@ export default function DocsPage() {
           Authentification
         </h2>
         <p className="mb-4 text-sm leading-relaxed text-[var(--color-text-muted)]">
-          BizCore sépare deux niveaux d&apos;accès :
+          BizCore utilise une clé API pour authentifier les appels métier :
         </p>
         <div className="mb-4 space-y-3">
           <div className="panel p-4">
             <p className="mb-1 text-[13px] font-semibold text-[var(--color-text)]">
-              1. Portail développeur (frontend)
-            </p>
-            <p className="text-[13px] text-[var(--color-text-muted)]">
-              <Link href="/register" className="text-[var(--color-primary)] hover:underline">
-                Créez un compte
-              </Link>
-              , connectez-vous et générez une clé API depuis le{" "}
-              <Link href="/dashboard" className="text-[var(--color-primary)] hover:underline">
-                tableau de bord
-              </Link>
-              .
-            </p>
-          </div>
-          <div className="panel p-4">
-            <p className="mb-1 text-[13px] font-semibold text-[var(--color-text)]">
-              2. API métier (vos applications)
+              Clé API (vos applications)
             </p>
             <p className="mb-3 text-[13px] text-[var(--color-text-muted)]">
               Utilisez une clé API{" "}
               <code className="font-mono text-[var(--color-primary)]">bcs_live_…</code> générée depuis
-              le portail. Chaque clé est scopée à un tenant.
+              le portail développeur. Chaque clé est scopée à un tenant.
             </p>
             <div className="space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 font-mono text-xs">
               <div>
@@ -98,43 +71,6 @@ export default function DocsPage() {
         </div>
       </div>
 
-      <div id="portail-developpeur" className="mb-10">
-        <h2 className="mb-4 border-b border-[var(--color-border)] pb-2 text-xl font-bold text-[var(--color-text)]">
-          Portail développeur
-        </h2>
-        <p className="mb-4 text-sm leading-relaxed text-[var(--color-text-muted)]">
-          Avant d&apos;appeler l&apos;API métier, provisionnez votre environnement depuis le{" "}
-          <Link href="/dashboard" className="text-[var(--color-primary)] hover:underline">
-            dashboard
-          </Link>{" "}
-          ou via les endpoints{" "}
-          <Link href="/docs/dev-auth-register" className="text-[var(--color-primary)] hover:underline">
-            /api/dev-auth/*
-          </Link>{" "}
-          et{" "}
-          <Link href="/docs/developer-api-keys-create" className="text-[var(--color-primary)] hover:underline">
-            /api/developer/*
-          </Link>
-          .
-        </p>
-        <ol className="mb-4 list-decimal space-y-2 pl-5 text-sm text-[var(--color-text-muted)]">
-          <li>Inscription / connexion développeur (JWT portail)</li>
-          <li>Génération clé API + tenant en une étape</li>
-          <li>Copie de la clé <code className="text-indigo-400">bcs_live_…</code> et de l&apos;ID tenant</li>
-          <li>Appels métier avec <code className="text-indigo-400">X-Api-Key</code> depuis votre application</li>
-        </ol>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Guide pas-à-pas :{" "}
-          <Link href="/guides/premier-appel-api" className="text-[var(--color-primary)] hover:underline">
-            Démarrer en tant que développeur
-          </Link>
-          {" · "}
-          <Link href="/guides/workflow-tenant-detail" className="text-[var(--color-primary)] hover:underline">
-            Workflow complet d&apos;un tenant
-          </Link>
-        </p>
-      </div>
-
       <div id="multi-tenant" className="mb-10">
         <h2 className="mb-4 border-b border-[var(--color-border)] pb-2 text-xl font-bold text-[var(--color-text)]">
           Multi-tenant
@@ -142,7 +78,7 @@ export default function DocsPage() {
         <p className="text-sm leading-relaxed text-[var(--color-text-muted)]">
           Un développeur peut créer plusieurs tenants. Chaque clé API est liée à un seul tenant :
           toutes les requêtes effectuées avec cette clé opèrent dans l&apos;espace de données de ce
-          tenant uniquement. L&apos;ID tenant (UUID) est affiché et copiable depuis le dashboard — utilisez-le
+          tenant uniquement. L&apos;ID tenant (UUID) est retourné par la création de clé API — utilisez-le
           pour <code className="text-indigo-400">tenantId</code> lors de l&apos;inscription des utilisateurs métier.
         </p>
       </div>

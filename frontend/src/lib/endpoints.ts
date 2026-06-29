@@ -44,7 +44,6 @@ export interface Endpoint {
 }
 
 export const API_CATEGORIES = [
-  "Portail développeur",
   "Tenant",
   "Auth",
   "User",
@@ -73,14 +72,7 @@ function genUsage(ep: Endpoint): Endpoint["usage"] {
   const steps: UsageStep[] = [];
   const prerequisites: string[] = [];
 
-  if (ep.category === "Portail développeur") {
-    prerequisites.push("Compte développeur inscrit sur /register (ou POST /api/dev-auth/register).");
-    steps.push({
-      title: "Authentification portail",
-      description:
-        "Obtenez un JWT développeur via POST /api/dev-auth/login, puis envoyez `Authorization: Bearer <token>` sur les routes `/api/developer/**`. Ce JWT ne sert pas aux appels métier.",
-    });
-  } else if (ep.requiresAuth) {
+  if (ep.requiresAuth) {
     prerequisites.push(
       "Compte développeur sur le portail BizCore et clé API active (Dashboard → Nouvelle clé API). Copiez l'ID tenant depuis le tableau de bord.",
     );
@@ -177,139 +169,6 @@ function genUsage(ep: Endpoint): Endpoint["usage"] {
 }
 
 export const ENDPOINTS: Endpoint[] = [
-  // ── PORTAIL DÉVELOPPEUR ───────────────────────────────
-  {
-    id: "dev-auth-register",
-    method: "POST",
-    path: "/api/dev-auth/register",
-    summary: "Inscription développeur",
-    description: "Crée un compte développeur BCaaS et retourne un JWT portail (gestion des clés API, pas les appels métier).",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    requestBody: JSON.stringify(
-      { firstName: "Marie", lastName: "Dev", email: "marie@example.com", password: "secret123" },
-      null,
-      2,
-    ),
-    responses: [
-      { status: 201, description: "Compte créé + JWT portail" },
-      { status: 409, description: "Email déjà utilisé" },
-    ],
-  },
-  {
-    id: "dev-auth-login",
-    method: "POST",
-    path: "/api/dev-auth/login",
-    summary: "Connexion développeur",
-    description: "Authentifie un développeur et retourne un JWT pour les routes /api/developer/**.",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    requestBody: JSON.stringify({ email: "marie@example.com", password: "secret123" }, null, 2),
-    responses: [
-      { status: 200, description: "JWT portail retourné" },
-      { status: 401, description: "Identifiants incorrects" },
-    ],
-  },
-  {
-    id: "developer-me",
-    method: "GET",
-    path: "/api/developer/me",
-    summary: "Profil développeur connecté",
-    description: "Retourne id, email, prénom et nom du développeur identifié par le JWT portail.",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    responses: [{ status: 200, description: "Profil développeur" }, { status: 401, description: "JWT manquant ou invalide" }],
-  },
-  {
-    id: "developer-api-keys-list",
-    method: "GET",
-    path: "/api/developer/api-keys",
-    summary: "Lister les clés API",
-    description: "Liste les clés API du développeur avec tenantId, tenantName et préfixe.",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    responses: [{ status: 200, description: "Liste des clés" }, { status: 401, description: "JWT manquant" }],
-  },
-  {
-    id: "developer-api-keys-create",
-    method: "POST",
-    path: "/api/developer/api-keys",
-    summary: "Générer une clé API + créer le tenant",
-    description:
-      "Crée un tenant (tenantName, tenantDomain) puis génère une clé API. Le secret brut n'est retourné qu'une fois ; le tenantId est dans apiKey.tenantId.",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    requestBody: JSON.stringify(
-      {
-        name: "Production — app mobile",
-        tenantName: "Campharma",
-        tenantDomain: "pharmacie-centrale",
-        tenantDescription: "Instance pharmacie",
-      },
-      null,
-      2,
-    ),
-    responses: [
-      { status: 201, description: "Clé créée — copier secretKey et apiKey.tenantId" },
-      { status: 400, description: "Nom de tenant déjà pris" },
-    ],
-  },
-  {
-    id: "developer-api-keys-revoke",
-    method: "DELETE",
-    path: "/api/developer/api-keys/{id}",
-    summary: "Révoquer une clé API",
-    description: "Désactive une clé API. Les applications qui l'utilisent perdent l'accès.",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [{ name: "id", in: "path", required: true, type: "UUID", description: "ID de la clé API" }],
-    responses: [{ status: 204, description: "Clé révoquée" }, { status: 401, description: "JWT manquant" }],
-  },
-  {
-    id: "developer-tenants-list",
-    method: "GET",
-    path: "/api/developer/tenants",
-    summary: "Lister les tenants du développeur",
-    description: "Liste les tenants créés par le développeur connecté (IDs copiables depuis le dashboard).",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    responses: [{ status: 200, description: "Liste des tenants" }],
-  },
-  {
-    id: "developer-tenants-create",
-    method: "POST",
-    path: "/api/developer/tenants",
-    summary: "Créer un tenant rattaché au développeur",
-    description:
-      "Crée un tenant isolé rattaché au développeur connecté, sans générer de clé API. Pour le flux principal (tenant + clé en une opération), préférer POST /api/developer/api-keys.",
-    category: "Portail développeur",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    requestBody: JSON.stringify(
-      { name: "Campharma", domain: "pharmacie-centrale", description: "Instance pharmacie" },
-      null,
-      2,
-    ),
-    responses: [
-      { status: 201, description: "Tenant créé" },
-      { status: 400, description: "Nom de tenant déjà pris ou champs invalides" },
-      { status: 401, description: "JWT portail manquant ou invalide" },
-    ],
-  },
   // ── AUTH (public) ─────────────────────────────────────
   {
     id: "auth-register",
@@ -386,22 +245,6 @@ export const ENDPOINTS: Endpoint[] = [
     requiresTenant: false,
     params: [],
     responses: [{ status: 200, description: "Liste des tenants actifs" }, { status: 401, description: "Token absent ou invalide" }],
-  },
-  {
-    id: "tenant-create",
-    method: "POST",
-    path: "/api/tenants/register",
-    summary: "Créer un tenant",
-    description: "Crée un espace tenant isolé (public, aucun token requis). Rattachez ensuite des utilisateurs en passant son id à /api/auth/register.",
-    category: "Tenant",
-    requiresAuth: false,
-    requiresTenant: false,
-    params: [],
-    requestBody: JSON.stringify({ name: "Pharmacie Centrale", domain: "pharmacie-centrale" }, null, 2),
-    responses: [
-      { status: 201, description: "Tenant créé", example: JSON.stringify({ id: "<VOTRE_TENANT_ID>", name: "Pharmacie Centrale", domain: "pharmacie-centrale" }, null, 2) },
-      { status: 400, description: "Nom déjà utilisé ou données invalides" },
-    ],
   },
   {
     id: "tenant-get",
